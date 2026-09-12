@@ -62,6 +62,15 @@ header .count { color: var(--text-muted); margin-top: 4px; font-size: 14px; }
 .card-body .cta a.details { background: transparent; color: var(--text); border: 1px solid var(--card-border); }
 .card-body .cta a.details:hover { border-color: var(--accent); color: var(--accent); }
 .empty { text-align: center; color: var(--text-muted); padding: 60px 20px; }
+.promo { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 1200px; margin: 0 auto 8px; padding: 16px 20px; border-radius: 16px;
+  background: linear-gradient(90deg, rgba(233,69,96,.18), rgba(245,166,35,.14)); border: 1px solid rgba(245,166,35,.35); transition: transform .2s, box-shadow .2s; }
+.promo:hover { transform: translateY(-2px); box-shadow: 0 16px 40px -16px rgba(233,69,96,.6); }
+.promo .promo-text { display: flex; flex-direction: column; gap: 2px; }
+.promo .promo-kicker { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent2); }
+.promo .promo-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px; line-height: 1.1; }
+.promo .promo-sub { color: var(--text-muted); font-size: 14px; }
+.promo .promo-btn { flex: 0 0 auto; padding: 12px 18px; border-radius: 10px; background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff; font-weight: 700; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
+@media (max-width: 600px) { .promo { flex-direction: column; align-items: flex-start; margin: 0 12px 8px; } .promo .promo-btn { width: 100%; text-align: center; } }
 footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--card-border); margin-top: 40px; }
 @media (max-width: 600px) {
   .hero h2 { font-size: 28px; }
@@ -85,6 +94,14 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
   <h2>Find Live Shows Near You</h2>
   <p>Tribute bands, classic rock, country &amp; more</p>
 </div>
+<a class="promo" href="/gotphilvotedin/">
+  <div class="promo-text">
+    <span class="promo-kicker">Special event &middot; On sale now</span>
+    <span class="promo-title">Got Phil Voted In</span>
+    <span class="promo-sub">Four ticket packages. Pick yours before they're gone.</span>
+  </div>
+  <span class="promo-btn">See Packages &rarr;</span>
+</a>
 <div class="controls">
   <input id="q" type="search" placeholder="Search artist, venue, or city...">
   <select id="state">
