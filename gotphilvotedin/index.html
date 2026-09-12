@@ -61,6 +61,29 @@ img{max-width:100%;display:block}
 .facts span{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:14px;font-weight:600;backdrop-filter:blur(8px)}
 .facts svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero{position:relative}
+.hero-bg{position:absolute;inset:-120px -40vw 0;z-index:-1;pointer-events:none;background:url(img/hero.jpg) center 20%/cover no-repeat;opacity:.22;filter:blur(18px) saturate(.6);
+  -webkit-mask-image:linear-gradient(#000 40%,transparent 100%);mask-image:linear-gradient(#000 40%,transparent 100%)}
+.banner{position:relative;max-width:1100px;margin:34px auto 0;border-radius:18px;overflow:hidden;animation:rise .9s .35s ease both;
+  box-shadow:0 40px 90px -30px rgba(233,69,96,.55),0 0 0 1px rgba(255,255,255,.08)}
+.banner img{width:100%;display:block}
+.banner::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,15,35,.15),transparent 30%,transparent 70%,rgba(15,15,35,.35));pointer-events:none}
+/* presale */
+.presale{max-width:1100px;margin:28px auto 0;padding:0 20px}
+.presale .inner{display:flex;align-items:center;gap:22px;padding:18px 22px;border-radius:18px;
+  background:linear-gradient(120deg,rgba(37,117,252,.18),rgba(142,45,226,.18));border:1px solid rgba(120,140,255,.35);animation:rise .9s .45s ease both}
+.presale img{width:110px;height:110px;border-radius:50%;flex:0 0 auto;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.presale .txt{flex:1;min-width:0}
+.presale .k{font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#9db4ff}
+.presale h3{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(18px,2.4vw,24px);line-height:1.15;margin:4px 0 6px}
+.presale h3 em{font-style:normal;color:var(--gold)}
+.presale p{color:var(--muted);font-size:14px}
+.code{display:inline-flex;align-items:center;gap:10px;flex:0 0 auto;padding:12px 16px;border-radius:12px;background:rgba(10,10,30,.6);border:1px dashed rgba(255,255,255,.35);cursor:pointer;font:inherit;color:#fff;transition:border-color .2s,transform .2s}
+.code:hover{border-color:var(--gold);transform:translateY(-1px)}
+.code small{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:left}
+.code b{font-family:'Montserrat',sans-serif;font-size:18px;letter-spacing:.06em;display:block}
+.code .cp{font-size:11px;font-weight:700;color:var(--gold);white-space:nowrap}
+@media (max-width:700px){.presale .inner{flex-direction:column;text-align:center}.presale img{width:96px;height:96px}.code{width:100%;justify-content:center}.code small,.code b{text-align:center}}
 
 /* ---------- packages ---------- */
 .section-head{text-align:center;padding:36px 20px 8px}
@@ -85,7 +108,7 @@ img{max-width:100%;display:block}
 .tile .art .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;
   font-family:'Montserrat',sans-serif;font-weight:900;font-size:26px;text-transform:uppercase;letter-spacing:-.02em;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,.4)}
 .tile .art::after{content:"";position:absolute;inset:auto 0 0 0;height:30%;background:linear-gradient(transparent,rgba(10,10,30,.55));pointer-events:none}
-.badge{position:absolute;bottom:12px;left:12px;z-index:2;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:8px;
+.badge{position:absolute;bottom:12px;left:12px;z-index:2;max-width:calc(100% - 160px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:8px;
   background:rgba(10,10,30,.75);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px)}
 .badge.hot{background:linear-gradient(90deg,var(--accent),var(--gold));border-color:transparent;color:#fff}
 .body{display:flex;flex-direction:column;gap:12px;padding:18px 18px 20px;flex:1}
@@ -162,6 +185,7 @@ footer a:hover{color:var(--accent)}
 </nav>
 
 <section class="hero">
+  <div class="hero-bg" aria-hidden="true"></div>
   <div class="kicker"><i></i> #GotPhilVotedIn presents &middot; Fan Event 2026</div>
   <!-- EDIT: headline -->
   <h1>Got Phil<br><em>Voted In</em></h1>
@@ -172,6 +196,19 @@ footer a:hover{color:var(--accent)}
     <span><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Friday, Nov 13, 2026</span>
     <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Noon &ndash; 3 PM</span>
     <span><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Ion Terrace, The Ritz-Carlton &middot; Downtown LA</span>
+  </div>
+  <div class="banner"><img src="img/hero.jpg" alt="#GotPhilVotedIn presents Phil Collins Fans Fan Event 2026, Nov 13, 12 to 3 PM, Ritz-Carlton Downtown LA" fetchpriority="high"></div>
+</section>
+
+<section class="presale">
+  <div class="inner">
+    <img src="img/presale.jpg" alt="Presale offer drumhead">
+    <div class="txt">
+      <div class="k">Presale offer &middot; ends Oct 2</div>
+      <h3>Take <em>$25 off</em> the Face Value or Hello, I Must Be Going&hellip; VIP packages</h3>
+      <p>Very limited quantities: the drumsticks and drumhead are a numbered run of only 144. Enter the code at FanGenie checkout.</p>
+    </div>
+    <button class="code" type="button" data-code="TRACIFRIEND25" aria-label="Copy presale code TRACIFRIEND25"><span><small>Use code</small><b>TRACIFRIEND25</b></span><span class="cp">Copy</span></button>
   </div>
 </section>
 
@@ -188,28 +225,28 @@ footer a:hover{color:var(--accent)}
 <section class="grid" id="packages">
   <article class="tile featured">
     <button class="art" type="button" data-full="img/package-1.jpg" aria-label="View full Face Value package card">
-      <span class="badge hot">VIP Premium &middot; Very limited</span>
+      <span class="badge hot">Presale &middot; $25 off</span>
       <img src="img/package-1.jpg" alt="Face Value package card">
       <span class="zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>Full details</span>
     </button>
     <div class="body">
-      <h3><small>VIP Premium Package</small><a href="https://fangenie.com" target="_blank" rel="noopener">Face Value</a></h3>
+      <h3><small>VIP Premium Package</small><a href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">Face Value</a></h3>
       <div class="price"><b>$225</b><span>per person</span></div>
       <ul class="perks"><li>Collectible Face Value VIP laminate</li><li><b>Early entry at 11:30 AM</b></li><li class="wide">Limited-edition Promark Phil Collins signature drumsticks with the #GotPhilVotedIn 2026 logo &mdash; <b>only 144 in the world</b></li><li class="wide">Limited-edition Remo 14&Prime; drumhead, Fan Event 2026 design &mdash; <b>only 144 in the world</b></li><li class="wide"><b>Exclusive pre-event meet &amp; greet</b> with tribute band &lsquo;One More Night&rsquo;</li><li class="wide">Exclusive Fan Event logo ball cap (only 52 made) plus the full swag bag: backpack, keychain, coasters, guitar picks, notebook, pen, pin, bracelet &amp; sign</li><li class="wide">Drink ticket for &lsquo;The Phil Collins&rsquo; signature drink in a campaign cup</li><li class="wide">Two raffle tickets: Phil &amp; Genesis-signed items, rare collectibles</li><li>Live Phil Collins tribute &lsquo;One More Night&rsquo;</li><li>Ritz-Carlton catered snacks &amp; cash bar</li></ul>
-      <a class="cta" href="https://fangenie.com" target="_blank" rel="noopener">Get Tickets <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="cta" href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">Get Tickets <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
     </div>
   </article>
   <article class="tile t2">
     <button class="art" type="button" data-full="img/package-2.jpg" aria-label="View full Hello, I Must Be Going&hellip; package card">
-      <span class="badge ">VIP &middot; Very limited</span>
+      <span class="badge ">Presale &middot; $25 off</span>
       <img src="img/package-2.jpg" alt="Hello, I Must Be Going&hellip; package card">
       <span class="zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>Full details</span>
     </button>
     <div class="body">
-      <h3><small>VIP Package</small><a href="https://fangenie.com" target="_blank" rel="noopener">Hello, I Must Be Going&hellip;</a></h3>
+      <h3><small>VIP Package</small><a href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">Hello, I Must Be Going&hellip;</a></h3>
       <div class="price"><b>$175</b><span>per person</span></div>
       <ul class="perks"><li>Collectible laminate for entry</li><li>One raffle ticket: signed items &amp; rare collectibles</li><li class="wide">Limited-edition Promark Phil Collins signature drumsticks &mdash; <b>only 144 in the world</b></li><li class="wide">Limited-edition Remo 14&Prime; drumhead &mdash; <b>only 144 in the world</b></li><li class="wide">Swag bag: blue backpack, keychain, coasters, guitar picks, pin, bracelet &amp; sign</li><li>Live Phil Collins tribute &lsquo;One More Night&rsquo;</li><li>Ritz-Carlton catered snacks &amp; cash bar</li><li class="wide">Network with Phil Collins fans from around the world</li></ul>
-      <a class="cta" href="https://fangenie.com" target="_blank" rel="noopener">Get Tickets <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="cta" href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">Get Tickets <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
     </div>
   </article>
   <article class="tile t3">
@@ -219,10 +256,10 @@ footer a:hover{color:var(--accent)}
       <span class="zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>Full details</span>
     </button>
     <div class="body">
-      <h3><small>Fan Package Plus</small><a href="https://fangenie.com" target="_blank" rel="noopener">No Jacket Required</a></h3>
+      <h3><small>Fan Package Plus</small><a href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">No Jacket Required</a></h3>
       <div class="price"><b>$75</b><span>per person</span></div>
       <ul class="perks"><li>Entry to the fan event</li><li>One raffle ticket: signed items &amp; rare collectibles</li><li class="wide">Swag bag: red backpack, keychain, coasters, pin-button &amp; bracelet</li><li>Live Phil Collins tribute &lsquo;One More Night&rsquo;</li><li>Ritz-Carlton catered snacks &amp; cash bar</li><li class="wide">Network with Phil Collins fans from around the world</li></ul>
-      <a class="cta" href="https://fangenie.com" target="_blank" rel="noopener">Get Tickets <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="cta" href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">Get Tickets <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
     </div>
   </article>
   <article class="tile t4">
@@ -232,10 +269,10 @@ footer a:hover{color:var(--accent)}
       <span class="zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>Full details</span>
     </button>
     <div class="body">
-      <h3><small>Fan Ticket Package</small><a href="https://fangenie.com" target="_blank" rel="noopener">But Seriously&hellip;</a></h3>
+      <h3><small>Fan Ticket Package</small><a href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">But Seriously&hellip;</a></h3>
       <div class="price"><b>$40</b><span>per person</span></div>
       <ul class="perks"><li>Entry to the fan event</li><li>Live Phil Collins tribute &lsquo;One More Night&rsquo;</li><li>Ritz-Carlton catered afternoon snacks</li><li>Cash bar, full Ritz-Carlton service</li><li class="wide">Network with Phil Collins fans from around the world in the heart of the Rock Hall induction weekend</li></ul>
-      <a class="cta" href="https://fangenie.com" target="_blank" rel="noopener">Get Tickets <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="cta" href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">Get Tickets <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
     </div>
   </article>
 
@@ -249,14 +286,14 @@ footer a:hover{color:var(--accent)}
   <div><b>Very limited quantities</b><p>Drumsticks and drumheads are a numbered run of 144. When they&rsquo;re gone, they&rsquo;re gone.</p></div>
 </section>
 
-<footer>&copy; <span id="yr"></span> <a href="/">YourConcertTix</a> &middot; Powered by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a></footer>
+<footer>&copy; <span id="yr"></span> <a href="/">YourConcertTix</a> &middot; Powered by <a href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">FanGenie</a></footer>
 
 <div class="sticky"><a href="#packages">See the 4 packages &darr;</a></div>
 
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Package details">
   <button class="x" type="button" aria-label="Close">&times;</button>
   <img src="" alt="">
-  <a class="go" href="https://fangenie.com" target="_blank" rel="noopener">Get Tickets on FanGenie &rarr;</a>
+  <a class="go" href="https://app.fangenie.com/ritz-carlton---ion-terrace/got-phil-voted-in---fan-event/53XJTbeTQ9" target="_blank" rel="noopener">Get Tickets on FanGenie &rarr;</a>
 </div>
 <script>
 document.getElementById('yr').textContent=new Date().getFullYear();
@@ -272,6 +309,12 @@ document.getElementById('yr').textContent=new Date().getFullYear();
   });
   lb.addEventListener('click',function(e){if(e.target===lb||e.target.classList.contains('x'))close();});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+  var cb=document.querySelector('.code');
+  if(cb){cb.addEventListener('click',function(){
+    var c=cb.getAttribute('data-code'),cp=cb.querySelector('.cp');
+    function done(){cp.textContent='Copied!';setTimeout(function(){cp.textContent='Copy';},1800);}
+    if(navigator.clipboard){navigator.clipboard.writeText(c).then(done,done);}else{done();}
+  });}
 })();
 </script>
 </body>
