@@ -51,9 +51,12 @@ img{max-width:100%;display:block}
   border:1px solid rgba(245,166,35,.35);background:rgba(245,166,35,.08);padding:8px 16px;border-radius:999px;animation:rise .7s ease both}
 .kicker i{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(245,166,35,.7);animation:pulse 1.8s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 10px rgba(245,166,35,0)}100%{box-shadow:0 0 0 0 rgba(245,166,35,0)}}
-.hero h1{font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(30px,8.6vw,104px);line-height:1;letter-spacing:-.04em;margin:22px 0 16px;white-space:nowrap;
-  background:linear-gradient(180deg,#f3f4f6 0%,#9ca3af 45%,#111827 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 0 28px rgba(255,255,255,.28)) drop-shadow(0 12px 40px rgba(0,0,0,.6));animation:rise .8s .1s ease both}
+.plate{display:inline-block;margin:24px 0 18px;padding:14px 40px 18px;border-radius:22px;max-width:100%;
+  background:linear-gradient(180deg,#ffffff 0%,#eceef2 60%,#d9dce3 100%);
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.35) inset,0 0 80px -10px rgba(255,255,255,.25);animation:rise .8s .1s ease both}
+.hero h1{font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(26px,6.8vw,100px);line-height:1;letter-spacing:-.045em;margin:0;white-space:nowrap;
+  background:linear-gradient(180deg,#9ca3af 0%,#4b5563 40%,#000 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (max-width:640px){.plate{padding:10px 16px 13px;border-radius:16px}.hero{padding-left:14px;padding-right:14px}}
 .hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero .sub{font-size:clamp(16px,2.2vw,21px);color:var(--muted);max-width:640px;margin:0 auto;animation:rise .8s .2s ease both}
 .hero .sub strong{color:var(--text)}
@@ -173,6 +176,7 @@ footer a:hover{color:var(--accent)}
   .bar .fg span{display:none}
   .kicker{font-size:10px;letter-spacing:.14em;padding:7px 12px;white-space:nowrap}
 }
+@media (max-width:360px){.kicker{white-space:normal;line-height:1.4}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.tile{opacity:1;transform:none}}
 </style>
 </head>
@@ -188,7 +192,7 @@ footer a:hover{color:var(--accent)}
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="kicker"><i></i> Phil Collins Fans &middot; Fan Event 2026</div>
   <!-- EDIT: headline -->
-  <h1>#gotphilvotedin</h1>
+  <div class="plate"><h1>#gotphilvotedin</h1></div>
   <!-- EDIT: sub-headline -->
   <p class="sub"><strong>Phil Collins &middot; Rock &amp; Roll Hall of Fame Class of 2026.</strong> Celebrate the induction with fans from around the world. Four packages, four ways in. Pick yours.</p>
   <!-- EDIT: event facts (date / venue / city) -->
