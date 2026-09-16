@@ -8,12 +8,17 @@
 // runs this script alongside scripts/sync.mjs every few hours and commits the
 // result. No secrets are needed — the API is public.
 //
+// Posters: when AIRTABLE_PAT is set (it is in the GitHub Action) each show is
+// matched to its CURRENT EVENTS row by venue + date and the 1:1 Poster/Portrait
+// from BANDS-SHOWS is downloaded into <dir>/img/. Without the PAT, or when a
+// band has no poster, FanGenie's own image is used instead.
+//
 // Usage:
 //   node scripts/apache-junction.mjs                  # rebuild every venue page
 //   node scripts/apache-junction.mjs --only lakehavasu # just one (by dir)
 //   node scripts/apache-junction.mjs --dry-run        # just print a summary
 
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -23,15 +28,28 @@ const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > -1 ? 
 const API = 'https://api.fangenie.com/api/v1';
 const SITE_ORIGIN = 'https://yourconcerttix.com';
 
+// Airtable (same base + fields as scripts/sync.mjs). Optional — see header.
+const AIRTABLE_PAT = process.env.AIRTABLE_PAT || '';
+const BASE_ID = 'appEy2dr1ecmzbEpb';
+const EVENTS_TABLE = 'tblu9UIlpXChPdvOB';
+const BANDS_TABLE = 'tblOsZIDmFHt01rJn';
+const F_START_DATE = 'fld0VBiok50LzeKRZ';
+const F_ARTIST_LINK = 'fldRZ99cnPxHyPL18';
+const F_VENUE_LINK = 'fldWNKIABxBYUyX0A';
+const F_NAME = 'fldLzk7pDCwNsBQob';
+const F_WEB_IMG = 'fldmdmT8dvg45MLyn'; // Poster/Portrait (1:1)
+
 // One entry per venue page. `slug` is the venue code in FanGenie's URL
 // (app.fangenie.com/venue/<name>/<slug>), `dir` is the folder under the site
 // root, `headline` fills "<headline> Live" and `tagline` opens the intro line.
 // Adding a venue here is all it takes; the workflow commits every dir listed.
 const VENUES = [
   { slug: 'LbyXyoyVFS', dir: 'apachejunction', headline: 'Apache Junction',
-    tagline: "TAD Management presents Arizona's #1 live concert series" },
+    tagline: "TAD Management presents Arizona's #1 live concert series",
+    airtableVenue: 'rec0tRFvep0mbHE1p' },  // VENUES "Apache Junction PAC"
   { slug: 'AqIHEi8XOu', dir: 'lakehavasu', headline: 'Lake Havasu',
-    tagline: 'The TAD Management concert series roars back to life' },
+    tagline: 'The TAD Management concert series roars back to life',
+    airtableVenue: 'receYZwNa6cnwQQrU' },  // VENUES "Lake Havasu Aquatic Center"
 ];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -93,6 +111,129 @@ async function fetchDetails(events) {
   }
   await Promise.all(Array.from({ length: 4 }, worker));
   return out;
+}
+
+// ---- Airtable posters (optional) ----
+
+async function airtableListAll(tableId, { fields = [], filterByFormula = null } = {}) {
+  const records = [];
+  let offset = null;
+  do {
+    const params = new URLSearchParams();
+    for (const f of fields) params.append('fields[]', f);
+    if (filterByFormula) params.set('filterByFormula', filterByFormula);
+    params.set('returnFieldsByFieldId', 'true');
+    params.set('pageSize', '100');
+    if (offset) params.set('offset', offset);
+    const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}?${params}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_PAT}` },
+    });
+    if (!res.ok) throw new Error(`Airtable ${tableId} ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    const data = await res.json();
+    records.push(...data.records);
+    offset = data.offset;
+  } while (offset);
+  return records;
+}
+
+// Upcoming CURRENT EVENTS rows for one venue: [{ ymd, bandId }]
+async function fetchAirtableShows(venueRecordId) {
+  const rows = await airtableListAll(EVENTS_TABLE, {
+    fields: [F_START_DATE, F_ARTIST_LINK, F_VENUE_LINK],
+    filterByFormula: `IS_AFTER({Start Date}, DATEADD(TODAY(), -2, 'days'))`,
+  });
+  return rows
+    .filter(r => (r.fields[F_VENUE_LINK] || []).includes(venueRecordId))
+    .map(r => ({ ymd: r.fields[F_START_DATE], bandId: (r.fields[F_ARTIST_LINK] || [])[0] || null }))
+    .filter(r => r.ymd && r.bandId);
+}
+
+// BANDS-SHOWS name + Poster/Portrait URL for a set of record ids.
+async function fetchAirtableBands(ids) {
+  const unique = [...new Set(ids.filter(Boolean))];
+  const byId = {};
+  for (let i = 0; i < unique.length; i += 80) {
+    const chunk = unique.slice(i, i + 80);
+    const rows = await airtableListAll(BANDS_TABLE, {
+      fields: [F_NAME, F_WEB_IMG],
+      filterByFormula: `OR(${chunk.map(id => `RECORD_ID()='${id}'`).join(',')})`,
+    });
+    for (const r of rows) {
+      const att = r.fields[F_WEB_IMG];
+      byId[r.id] = { name: (r.fields[F_NAME] || '').trim(), url: att && att[0] ? att[0].url : null };
+    }
+  }
+  return byId;
+}
+
+function nameTokens(s) {
+  return String(s || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(t => t && !['the', 'a', 'an', 'of', 'to', 'and'].includes(t));
+}
+
+// How much of the band name appears in the FanGenie show name (0..1).
+function nameScore(bandName, showName) {
+  const b = nameTokens(bandName), n = new Set(nameTokens(showName));
+  if (!b.length) return 0;
+  return b.filter(t => n.has(t)).length / b.length;
+}
+
+// Pick the Airtable band for a FanGenie show: same local date and the band name
+// must be recognisable in the show title, so two shows on one day can't swap
+// posters. Falls back to a strong name match within a day either side (the two
+// systems occasionally disagree on the date by one).
+function matchShow(event, shows, bandsById) {
+  const dayMs = 86400 * 1000;
+  const t = new Date(event.ymd + 'T12:00:00Z').getTime();
+  let best = null;
+  for (const s of shows) {
+    const band = bandsById[s.bandId];
+    if (!band || !band.name) continue;
+    const dist = Math.abs(new Date(s.ymd + 'T12:00:00Z').getTime() - t) / dayMs;
+    if (dist > 1) continue;
+    const score = nameScore(band.name, event.name);
+    if (dist === 0 ? score < 0.5 : score < 0.8) continue;
+    const rank = score - dist * 0.25;
+    if (!best || rank > best.rank) best = { rank, band, score, dist };
+  }
+  return best;
+}
+
+async function applyAirtablePosters(cfg, events) {
+  if (!AIRTABLE_PAT) { console.log('  AIRTABLE_PAT not set: using FanGenie images'); return; }
+  if (!cfg.airtableVenue) return;
+  const shows = await fetchAirtableShows(cfg.airtableVenue);
+  const bandsById = await fetchAirtableBands(shows.map(s => s.bandId));
+  const imgDir = path.join(repoRoot, cfg.dir, 'img');
+  if (!DRY_RUN) mkdirSync(imgDir, { recursive: true });
+  const keep = new Set();
+  let matched = 0, noPoster = 0, unmatched = 0, failed = 0;
+  for (const e of events) {
+    const m = matchShow(e, shows, bandsById);
+    if (!m) { unmatched++; console.log(`  no Airtable match: ${e.ymd} ${e.name}`); continue; }
+    if (!m.band.url) { noPoster++; console.log(`  no Poster/Portrait: ${m.band.name} (${e.ymd})`); continue; }
+    const file = `${slugify(m.band.name).replace(/-+/g, '-').replace(/^-|-$/g, '')}.jpg`;
+    const target = path.join(imgDir, file);
+    try {
+      if (!keep.has(file)) {
+        const res = await fetch(m.band.url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (!DRY_RUN && !(existsSync(target) && statSync(target).size === buf.length)) writeFileSync(target, buf);
+      }
+      keep.add(file);
+      e.poster = `img/${file}`;
+      e.posterSource = 'airtable';
+      matched++;
+    } catch (err) {
+      failed++;
+      console.log(`  poster download failed for ${m.band.name}: ${err.message}`);
+    }
+  }
+  // Drop posters for shows that are no longer listed.
+  if (!DRY_RUN && existsSync(imgDir)) {
+    for (const f of readdirSync(imgDir)) if (!keep.has(f)) unlinkSync(path.join(imgDir, f));
+  }
+  console.log(`  posters: ${matched} from Airtable, ${noPoster} without Poster/Portrait, ${unmatched} unmatched, ${failed} failed`);
 }
 
 // ---- Helpers ----
@@ -236,7 +377,7 @@ function buildBundles(raw) {
   }).sort((a, b) => (b.price || 0) - (a.price || 0) || a.name.localeCompare(b.name));
 }
 
-function jsonLd(events, venue) {
+function jsonLd(events, venue, cfg) {
   return JSON.stringify(events.map(e => ({
     '@context': 'https://schema.org',
     '@type': 'MusicEvent',
@@ -244,7 +385,7 @@ function jsonLd(events, venue) {
     startDate: e.iso,
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    image: e.poster || undefined,
+    image: e.poster ? (e.poster.startsWith('http') ? e.poster : `${SITE_ORIGIN}/${cfg.dir}/${e.poster}`) : undefined,
     description: e.excerpt || undefined,
     url: e.url,
     location: {
@@ -312,7 +453,7 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">` : ''}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://fangenie.s3.eu-north-1.amazonaws.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-<script type="application/ld+json">${jsonLd(events, venue).replace(/</g, '\\u003c')}</script>
+<script type="application/ld+json">${jsonLd(events, venue, cfg).replace(/</g, '\\u003c')}</script>
 <style>
 :root{
   --bg:#0f0f23; --bg2:#1a1a2e; --card:#16213e; --line:#26264a;
@@ -755,6 +896,11 @@ async function buildVenue(cfg) {
   const [details, rawBundles] = await Promise.all([fetchDetails(list), fetchBundles(cfg.slug)]);
 
   const events = buildEvents(list, details, venue);
+  try {
+    await applyAirtablePosters(cfg, events);
+  } catch (err) {
+    console.warn(`  WARN Airtable posters skipped: ${err.message}`);
+  }
   const bundles = buildBundles(rawBundles);
   const discount = detectDiscount(list.map(e => e.description || ''));
   console.log(`  ${events.length} upcoming events kept; ${bundles.length} bundles${discount ? `; discount code ${discount.code}` : ''}`);

@@ -505,10 +505,11 @@ header .count { color: var(--text-muted); margin-top: 4px; font-size: 14px; }
 .promo .promo-kicker { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent2); }
 .promo .promo-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px; line-height: 1.1; }
 .promo .promo-sub { color: var(--text-muted); font-size: 14px; }
-.promo .promo-btns { display: flex; gap: 8px; flex: 0 0 auto; flex-wrap: wrap; }
-.promo-venues { cursor: default; }
+.promo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1200px; margin: 0 auto 8px; }
+.promo-row .promo { margin: 0; flex-direction: column; align-items: flex-start; }
+.promo-row .promo .promo-btn { align-self: flex-start; }
 .promo .promo-btn { flex: 0 0 auto; padding: 12px 18px; border-radius: 10px; background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff; font-weight: 700; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
-@media (max-width: 600px) { .promo { flex-direction: column; align-items: flex-start; margin: 0 12px 8px; } .promo .promo-btn { width: 100%; text-align: center; } .promo .promo-btns { width: 100%; } .promo .promo-btns .promo-btn { flex: 1; } }
+@media (max-width: 600px) { .promo { flex-direction: column; align-items: flex-start; margin: 0 12px 8px; } .promo .promo-btn { width: 100%; text-align: center; } .promo-row { grid-template-columns: 1fr; gap: 8px; margin: 0 12px 8px; } .promo-row .promo { margin: 0; } .promo-row .promo .promo-btn { align-self: stretch; } }
 footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--card-border); margin-top: 40px; }
 @media (max-width: 600px) {
   .hero h2 { font-size: 28px; }
@@ -532,16 +533,23 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
   <h2>Find Live Shows Near You</h2>
   <p>Tribute bands, classic rock, country &amp; more</p>
 </div>
-<div class="promo promo-venues">
-  <div class="promo-text">
-    <span class="promo-kicker">Arizona 2027 concert series &middot; Tickets on FanGenie</span>
-    <span class="promo-title">Apache Junction &amp; Lake Havasu</span>
-    <span class="promo-sub">Every show in both series, plus Lake Havasu season bundles.</span>
-  </div>
-  <span class="promo-btns">
-    <a class="promo-btn" href="/apachejunction/">Apache Junction &rarr;</a>
-    <a class="promo-btn" href="/lakehavasu/">Lake Havasu &rarr;</a>
-  </span>
+<div class="promo-row">
+  <a class="promo" href="/apachejunction/">
+    <div class="promo-text">
+      <span class="promo-kicker">Apache Junction, AZ &middot; 2027 concert series</span>
+      <span class="promo-title">Apache Junction Live</span>
+      <span class="promo-sub">Every show at the Performing Arts Center. Tickets on FanGenie.</span>
+    </div>
+    <span class="promo-btn">See the Lineup &rarr;</span>
+  </a>
+  <a class="promo" href="/lakehavasu/">
+    <div class="promo-text">
+      <span class="promo-kicker">Lake Havasu City, AZ &middot; 2027 concert series</span>
+      <span class="promo-title">Lake Havasu Live</span>
+      <span class="promo-sub">Every show at the Aquatic Center, plus season bundles.</span>
+    </div>
+    <span class="promo-btn">See the Lineup &rarr;</span>
+  </a>
 </div>
 <a class="promo" href="/gotphilvotedin/">
   <div class="promo-text">

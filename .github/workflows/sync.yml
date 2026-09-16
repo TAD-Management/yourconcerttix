@@ -40,6 +40,8 @@ jobs:
         # Public API, no secrets. On failure the previous page is kept and the
         # main sync still commits, so a FanGenie outage never blocks the site.
         continue-on-error: true
+        env:
+          AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
         run: node scripts/apache-junction.mjs
 
       - name: Commit & push if anything changed
