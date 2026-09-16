@@ -1,29 +1,110 @@
 {
- "one-of-these-nights.jpg": "attIaQHL77hxlL6HX:261658",
- "the-kings-of-queen.jpg": "attug0QSWb6UxCFUp:275485",
- "toby.jpg": "attp3nlTc11mSuWya:663188",
- "voyager.jpg": "attrrQ9oXHSaHYtvg:624677",
- "randy-linder-ccr.jpg": "attwZklVPcWWHAw8t:2347978",
- "total-country.jpg": "attT7ZfzVR0RJ82tJ:259474",
- "hot-august-night.jpg": "attgnVDnMo0RYyZYI:602342",
- "strait-outta-texas.jpg": "attBeztS5aBgV7vSg:325620",
- "let-it-ride.jpg": "attBMwljHL9UGxLgD:424319",
- "rebel.jpg": "attKiIaqiqtwBqStF:2696762",
- "garth-live.jpg": "attZNGHV11cb5wXWu:427762",
- "honky-tonk-man.jpg": "attOeYmEpyJC0XTgn:270610",
- "revisiting-the-orbison-years.jpg": "attfkrKxoiCXg5WSL:1858252",
- "the-big-easy-live.jpg": "attEetv0BXaSTkckM:933947",
- "locked-out-of-heaven.jpg": "attyTK2zCKqoTBAPI:806093",
- "magic-of-manilow.jpg": "attYrg1iSmUmDh1Gp:385884",
- "turn-the-page.jpg": "attlzdh8sMYhIyPSa:671197",
- "shine-on-floyd.jpg": "attlLzu9uMZfElx1Y:103770",
- "abbafab.jpg": "attssw011ChZ62a0I:391393",
- "american-highwaymen.jpg": "attrz7wu6M083JJ7t:418586",
- "southern-rock-explosion.jpg": "attx2H3qeouX82cFY:777905",
- "prince-again.jpg": "attB2CeUWvMctHOrH:451669",
- "piano-men-generations.jpg": "attx27zJorPajoOvk:669145",
- "december-63.jpg": "att9VeK8jKQNJKhX1:300967",
- "springsteen-born-to-run.jpg": "attvlLntNvYR4rE5F:573452",
- "margaritas-in-paradise.jpg": "attpkL6h8A3LgH4Nl:2470734",
- "vegas-mcgraw.jpg": "attO37tqxlKumw2sw:749820"
+ "one-of-these-nights.jpg": {
+  "key": "attIaQHL77hxlL6HX:261658",
+  "resized": true
+ },
+ "the-kings-of-queen.jpg": {
+  "key": "attug0QSWb6UxCFUp:275485",
+  "resized": true
+ },
+ "toby.jpg": {
+  "key": "attp3nlTc11mSuWya:663188",
+  "resized": true
+ },
+ "voyager.jpg": {
+  "key": "attrrQ9oXHSaHYtvg:624677",
+  "resized": true
+ },
+ "randy-linder-ccr.jpg": {
+  "key": "attwZklVPcWWHAw8t:2347978",
+  "resized": true
+ },
+ "total-country.jpg": {
+  "key": "attT7ZfzVR0RJ82tJ:259474",
+  "resized": true
+ },
+ "hot-august-night.jpg": {
+  "key": "attgnVDnMo0RYyZYI:602342",
+  "resized": true
+ },
+ "strait-outta-texas.jpg": {
+  "key": "attBeztS5aBgV7vSg:325620",
+  "resized": true
+ },
+ "let-it-ride.jpg": {
+  "key": "attBMwljHL9UGxLgD:424319",
+  "resized": true
+ },
+ "rebel.jpg": {
+  "key": "attKiIaqiqtwBqStF:2696762",
+  "resized": true
+ },
+ "garth-live.jpg": {
+  "key": "attZNGHV11cb5wXWu:427762",
+  "resized": true
+ },
+ "honky-tonk-man.jpg": {
+  "key": "attOeYmEpyJC0XTgn:270610",
+  "resized": true
+ },
+ "revisiting-the-orbison-years.jpg": {
+  "key": "attfkrKxoiCXg5WSL:1858252",
+  "resized": true
+ },
+ "the-big-easy-live.jpg": {
+  "key": "attEetv0BXaSTkckM:933947",
+  "resized": true
+ },
+ "locked-out-of-heaven.jpg": {
+  "key": "attyTK2zCKqoTBAPI:806093",
+  "resized": true
+ },
+ "magic-of-manilow.jpg": {
+  "key": "attYrg1iSmUmDh1Gp:385884",
+  "resized": true
+ },
+ "turn-the-page.jpg": {
+  "key": "attlzdh8sMYhIyPSa:671197",
+  "resized": true
+ },
+ "shine-on-floyd.jpg": {
+  "key": "attlLzu9uMZfElx1Y:103770",
+  "resized": true
+ },
+ "abbafab.jpg": {
+  "key": "attssw011ChZ62a0I:391393",
+  "resized": true
+ },
+ "american-highwaymen.jpg": {
+  "key": "attrz7wu6M083JJ7t:418586",
+  "resized": true
+ },
+ "southern-rock-explosion.jpg": {
+  "key": "attx2H3qeouX82cFY:777905",
+  "resized": true
+ },
+ "prince-again.jpg": {
+  "key": "attB2CeUWvMctHOrH:451669",
+  "resized": true
+ },
+ "piano-men-generations.jpg": {
+  "key": "attx27zJorPajoOvk:669145",
+  "resized": true
+ },
+ "december-63.jpg": {
+  "key": "att9VeK8jKQNJKhX1:300967",
+  "resized": true
+ },
+ "springsteen-born-to-run.jpg": {
+  "key": "attvlLntNvYR4rE5F:573452",
+  "resized": true
+ },
+ "margaritas-in-paradise.jpg": {
+  "key": "attpkL6h8A3LgH4Nl:2470734",
+  "resized": true
+ },
+ "vegas-mcgraw.jpg": {
+  "key": "attO37tqxlKumw2sw:749820",
+  "resized": true
+ }
 }
