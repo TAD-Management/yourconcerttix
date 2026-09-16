@@ -530,6 +530,14 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
   <h2>Find Live Shows Near You</h2>
   <p>Tribute bands, classic rock, country &amp; more</p>
 </div>
+<a class="promo" href="/apachejunction/">
+  <div class="promo-text">
+    <span class="promo-kicker">Apache Junction, AZ &middot; 2027 concert series</span>
+    <span class="promo-title">Apache Junction Live</span>
+    <span class="promo-sub">Every show at the Performing Arts Center, with tickets on FanGenie.</span>
+  </div>
+  <span class="promo-btn">See the Lineup &rarr;</span>
+</a>
 <a class="promo" href="/gotphilvotedin/">
   <div class="promo-text">
     <span class="promo-kicker">Special event &middot; On sale now</span>
