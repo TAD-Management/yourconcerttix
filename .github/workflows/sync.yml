@@ -36,6 +36,10 @@ jobs:
           rm -f artist-photos/*.jpg
           node scripts/sync.mjs
 
+      - name: Install ImageMagick (downscales venue-page posters)
+        continue-on-error: true
+        run: sudo apt-get install -y --no-install-recommends imagemagick >/dev/null
+
       - name: Rebuild the venue pages (Apache Junction, Lake Havasu) from FanGenie
         # Public API, no secrets. On failure the previous page is kept and the
         # main sync still commits, so a FanGenie outage never blocks the site.

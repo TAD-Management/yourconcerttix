@@ -264,16 +264,22 @@ async function applyAirtablePosters(cfg, events) {
     const target = path.join(imgDir, file);
     try {
       if (!keep.has(file)) {
-        if (manifest[file] && manifest[file] === m.band.key && existsSync(target)) {
+        // Reuse the stored file when the upload is unchanged, unless it was
+        // saved unresized and a resize tool is available now.
+        const prev = manifest[file] || {};
+        const canResize = !!findResizeTool();
+        if (prev.key === m.band.key && existsSync(target) && (prev.resized || !canResize)) {
           reused++;
+          nextManifest[file] = prev;
         } else {
           const res = await fetch(m.band.url);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const buf = Buffer.from(await res.arrayBuffer());
-          if (!DRY_RUN) tools.add(resizePoster(buf, target));
+          const tool = DRY_RUN ? 'dry-run' : resizePoster(buf, target);
+          tools.add(tool);
+          nextManifest[file] = { key: m.band.key, resized: !/^original/.test(tool) };
           downloaded++;
         }
-        nextManifest[file] = m.band.key;
       }
       keep.add(file);
       e.poster = `img/${file}`;
