@@ -18,7 +18,9 @@
 //   node scripts/apache-junction.mjs --only lakehavasu # just one (by dir)
 //   node scripts/apache-junction.mjs --dry-run        # just print a summary
 
-import { writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, statSync } from 'node:fs';
+import { writeFileSync, readFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, renameSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -160,7 +162,13 @@ async function fetchAirtableBands(ids) {
     });
     for (const r of rows) {
       const att = r.fields[F_WEB_IMG];
-      byId[r.id] = { name: (r.fields[F_NAME] || '').trim(), url: att && att[0] ? att[0].url : null };
+      byId[r.id] = {
+        name: (r.fields[F_NAME] || '').trim(),
+        url: att && att[0] ? att[0].url : null,
+        // Attachment id + byte size identify the upload, so an unchanged
+        // poster is not re-downloaded and re-encoded on every run.
+        key: att && att[0] ? `${att[0].id}:${att[0].size || 0}` : null,
+      };
     }
   }
   return byId;
@@ -198,6 +206,42 @@ function matchShow(event, shows, bandsById) {
   return best;
 }
 
+// Downscale a poster to a web-sized JPEG (max 900px, ~100KB) with whatever
+// image tool the machine has. Source files from Airtable run to 2-3MB each.
+const POSTER_MAX = 900;
+let resizeTool; // resolved once: 'magick' | 'convert' | 'sips' | null
+function findResizeTool() {
+  if (resizeTool !== undefined) return resizeTool;
+  resizeTool = null;
+  for (const t of ['magick', 'convert', 'sips']) {
+    try { execFileSync(t, t === 'sips' ? ['--help'] : ['-version'], { stdio: 'ignore' }); resizeTool = t; break; } catch {}
+  }
+  return resizeTool;
+}
+function resizePoster(buf, target) {
+  const tool = findResizeTool();
+  const src = path.join(tmpdir(), `yct-poster-${process.pid}-${Math.random().toString(36).slice(2)}`);
+  writeFileSync(src, buf);
+  try {
+    if (tool === 'magick' || tool === 'convert') {
+      execFileSync(tool, [src, '-auto-orient', '-resize', `${POSTER_MAX}x${POSTER_MAX}>`, '-strip', '-interlace', 'Plane', '-quality', '82', `jpg:${target}`], { stdio: 'ignore' });
+    } else if (tool === 'sips') {
+      const tmpOut = `${target}.tmp.jpg`;
+      execFileSync('sips', ['--resampleHeightWidthMax', String(POSTER_MAX), '-s', 'format', 'jpeg', '-s', 'formatOptions', '82', src, '--out', tmpOut], { stdio: 'ignore' });
+      renameSync(tmpOut, target);
+    } else {
+      writeFileSync(target, buf);
+      return 'original';
+    }
+    return tool;
+  } catch (err) {
+    writeFileSync(target, buf); // never lose the poster over a tooling problem
+    return `original (${tool} failed: ${err.message.split('\n')[0]})`;
+  } finally {
+    try { unlinkSync(src); } catch {}
+  }
+}
+
 async function applyAirtablePosters(cfg, events) {
   if (!AIRTABLE_PAT) { console.log('  AIRTABLE_PAT not set: using FanGenie images'); return; }
   if (!cfg.airtableVenue) return;
@@ -205,8 +249,13 @@ async function applyAirtablePosters(cfg, events) {
   const bandsById = await fetchAirtableBands(shows.map(s => s.bandId));
   const imgDir = path.join(repoRoot, cfg.dir, 'img');
   if (!DRY_RUN) mkdirSync(imgDir, { recursive: true });
-  const keep = new Set();
-  let matched = 0, noPoster = 0, unmatched = 0, failed = 0;
+  const manifestPath = path.join(imgDir, 'manifest.json');
+  let manifest = {};
+  try { manifest = JSON.parse(readFileSync(manifestPath, 'utf8')); } catch {}
+  const nextManifest = {};
+  const keep = new Set(['manifest.json']);
+  let matched = 0, noPoster = 0, unmatched = 0, failed = 0, downloaded = 0, reused = 0;
+  const tools = new Set();
   for (const e of events) {
     const m = matchShow(e, shows, bandsById);
     if (!m) { unmatched++; console.log(`  no Airtable match: ${e.ymd} ${e.name}`); continue; }
@@ -215,10 +264,16 @@ async function applyAirtablePosters(cfg, events) {
     const target = path.join(imgDir, file);
     try {
       if (!keep.has(file)) {
-        const res = await fetch(m.band.url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const buf = Buffer.from(await res.arrayBuffer());
-        if (!DRY_RUN && !(existsSync(target) && statSync(target).size === buf.length)) writeFileSync(target, buf);
+        if (manifest[file] && manifest[file] === m.band.key && existsSync(target)) {
+          reused++;
+        } else {
+          const res = await fetch(m.band.url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const buf = Buffer.from(await res.arrayBuffer());
+          if (!DRY_RUN) tools.add(resizePoster(buf, target));
+          downloaded++;
+        }
+        nextManifest[file] = m.band.key;
       }
       keep.add(file);
       e.poster = `img/${file}`;
@@ -232,8 +287,9 @@ async function applyAirtablePosters(cfg, events) {
   // Drop posters for shows that are no longer listed.
   if (!DRY_RUN && existsSync(imgDir)) {
     for (const f of readdirSync(imgDir)) if (!keep.has(f)) unlinkSync(path.join(imgDir, f));
+    writeFileSync(manifestPath, JSON.stringify(nextManifest, null, 1) + '\n');
   }
-  console.log(`  posters: ${matched} from Airtable, ${noPoster} without Poster/Portrait, ${unmatched} unmatched, ${failed} failed`);
+  console.log(`  posters: ${matched} from Airtable (${downloaded} downloaded, ${reused} unchanged), ${noPoster} without Poster/Portrait, ${unmatched} unmatched, ${failed} failed${tools.size ? `; resized with ${[...tools].join(', ')}` : ''}`);
 }
 
 // ---- Helpers ----
