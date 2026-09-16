@@ -36,7 +36,7 @@ jobs:
           rm -f artist-photos/*.jpg
           node scripts/sync.mjs
 
-      - name: Rebuild the Apache Junction page from FanGenie
+      - name: Rebuild the venue pages (Apache Junction, Lake Havasu) from FanGenie
         # Public API, no secrets. On failure the previous page is kept and the
         # main sync still commits, so a FanGenie outage never blocks the site.
         continue-on-error: true
@@ -46,7 +46,7 @@ jobs:
         run: |
           git config user.name  "yct-sync-bot"
           git config user.email "yct-sync-bot@users.noreply.github.com"
-          git add -A artist-photos index.html events apachejunction
+          git add -A artist-photos index.html events apachejunction lakehavasu
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

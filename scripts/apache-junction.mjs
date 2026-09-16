@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Apache Junction Performing Arts Center page — pulls the venue's upcoming shows
-// straight from FanGenie's public API and rebuilds /apachejunction/index.html.
+// Venue pages (Apache Junction, Lake Havasu, ...) — pulls each venue's upcoming
+// shows and season bundles straight from FanGenie's public API and rebuilds
+// /<dir>/index.html for every entry in VENUES below.
 //
 // FanGenie only allows browser calls to its API from app.fangenie.com, so the
 // page can't fetch live in the visitor's browser. Instead the GitHub Action
@@ -8,25 +9,33 @@
 // result. No secrets are needed — the API is public.
 //
 // Usage:
-//   node scripts/apache-junction.mjs            # write apachejunction/index.html
-//   node scripts/apache-junction.mjs --dry-run  # just print a summary
+//   node scripts/apache-junction.mjs                  # rebuild every venue page
+//   node scripts/apache-junction.mjs --only lakehavasu # just one (by dir)
+//   node scripts/apache-junction.mjs --dry-run        # just print a summary
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const DRY_RUN = process.argv.includes('--dry-run');
+const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > -1 ? process.argv[i + 1] : null; })();
 
 const API = 'https://api.fangenie.com/api/v1';
-const VENUE_SLUG = 'LbyXyoyVFS';
-const VENUE_PAGE = `https://app.fangenie.com/venue/apache-junction-performing-arts-center/${VENUE_SLUG}`;
 const SITE_ORIGIN = 'https://yourconcerttix.com';
-const PAGE_PATH = '/apachejunction/';
+
+// One entry per venue page. `slug` is the venue code in FanGenie's URL
+// (app.fangenie.com/venue/<name>/<slug>), `dir` is the folder under the site
+// root, `headline` fills "<headline> Live" and `tagline` opens the intro line.
+// Adding a venue here is all it takes; the workflow commits every dir listed.
+const VENUES = [
+  { slug: 'LbyXyoyVFS', dir: 'apachejunction', headline: 'Apache Junction',
+    tagline: "TAD Management presents Arizona's #1 live concert series" },
+  { slug: 'AqIHEi8XOu', dir: 'lakehavasu', headline: 'Lake Havasu',
+    tagline: 'The TAD Management concert series roars back to life' },
+];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
-const outDir = path.join(repoRoot, 'apachejunction');
-const outPath = path.join(outDir, 'index.html');
 
 // ---- FanGenie API ----
 
@@ -36,9 +45,20 @@ async function getJson(url) {
   return res.json();
 }
 
-async function fetchVenue() {
-  const v = await getJson(`${API}/venue/slug/${VENUE_SLUG}`);
+async function fetchVenue(slug) {
+  const v = await getJson(`${API}/venue/slug/${slug}`);
   return v.data || v.venue || v;
+}
+
+// Season bundles ("season tickets") sold for the venue, if any.
+async function fetchBundles(slug) {
+  try {
+    const r = await getJson(`${API}/season-tickets/venue/${slug}`);
+    return (r.data || []).filter(b => b && !b.isDeleted);
+  } catch (err) {
+    console.warn(`  WARN season bundles failed: ${err.message}`);
+    return [];
+  }
 }
 
 async function fetchEventList(venueId) {
@@ -108,25 +128,36 @@ function isPromoLine(p) {
 // note at the top of every show). Returned as null when nothing is found.
 function detectDiscount(descriptions) {
   const counts = new Map();
-  let amount = null, expiresText = null;
+  let amount = null, expiresText = null, note = null;
   for (const d of descriptions) {
     const text = htmlToParagraphs(d).join(' ');
-    const m = text.match(/discount code\s+([A-Z0-9]{4,})/i);
+    const m = text.match(/discount code\s*[-\u2013:]?\s*([A-Z0-9]{4,})/i);
     if (m) counts.set(m[1].toUpperCase(), (counts.get(m[1].toUpperCase()) || 0) + 1);
     const a = text.match(/\$(\d+(?:\.\d+)?)\s+off/i);
     if (a && !amount) amount = a[1];
-    const x = text.match(/expires\s+(?:at\s+midnight\s+)?on\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})/i);
-    if (x && !expiresText) expiresText = x[1];
+    // "expires at midnight on November 11th, 2026" or "before October 31st"
+    const x = text.match(/(?:expires\s+(?:at\s+midnight\s+)?on|before)\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?)(?:,?\s+(\d{4}))?/i);
+    if (x && !expiresText) expiresText = x[1] + (x[2] ? `, ${x[2]}` : '');
+    const n = text.match(/not (?:valid|applicable) (?:on|for) ([A-Za-z' ]+?)(?:\s*[*.]|$)/i);
+    if (n && !note) note = `Not valid on ${n[1].trim()}.`;
   }
   if (!counts.size) return null;
   const [code] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
   let expiresIso = null;
   if (expiresText) {
-    const clean = expiresText.replace(/(\d)(st|nd|rd|th)/, '$1');
+    let clean = expiresText.replace(/(\d)(st|nd|rd|th)/, '$1');
+    if (!/\d{4}/.test(clean)) {
+      // No year given: the first year that puts the deadline in the future.
+      const y = new Date().getFullYear();
+      const guess = new Date(`${clean}, ${y} 23:59:59 GMT-0700`);
+      clean = `${clean}, ${!isNaN(guess) && guess.getTime() < Date.now() ? y + 1 : y}`;
+      expiresText = clean;
+    }
     const d = new Date(`${clean} 23:59:59 GMT-0700`); // midnight, Arizona time
     if (!isNaN(d)) expiresIso = d.toISOString();
   }
-  return { code, amount, expiresText, expiresIso };
+  if (expiresText) expiresText = expiresText.replace(/^[a-z]+/i, m => m[0].toUpperCase() + m.slice(1).toLowerCase());
+  return { code, amount, expiresText, expiresIso, note };
 }
 
 function youtubeId(url) {
@@ -157,6 +188,9 @@ function buildEvents(list, details, venue) {
     const paragraphs = htmlToParagraphs(e.description || d.description || '').filter(p => !isPromoLine(p));
     const venueSlug = slugify(venue.name || 'venue').replace(/-+/g, '-').replace(/^-|-$/g, '');
     const url = d.website || `https://app.fangenie.com/${venueSlug}/${slugify(e.name)}/${e.slug}`;
+    // Square poster first; some venues only upload a landscape gallery image.
+    const gallery = (e.galleryImages || []).filter(Boolean);
+    const poster = e.heroBannerImageMobile || gallery[0] || e.heroBannerImage || '';
     events.push({
       name: e.name,
       slug: e.slug,
@@ -170,7 +204,7 @@ function buildEvents(list, details, venue) {
       monLong: fmt(when, tz, { month: 'long' }),
       year: fmt(when, tz, { year: 'numeric' }),
       time: fmt(when, tz, { hour: 'numeric', minute: '2-digit' }),
-      poster: e.heroBannerImageMobile || (e.galleryImages && e.galleryImages[e.galleryImages.length - 1]) || '',
+      poster,
       banner: e.heroBannerImage || '',
       category: (d.category && d.category[0] && d.category[0].name) || '',
       video: youtubeId(d.video),
@@ -181,6 +215,25 @@ function buildEvents(list, details, venue) {
   }
   events.sort((a, b) => a.iso.localeCompare(b.iso));
   return events;
+}
+
+function buildBundles(raw) {
+  return raw.map(b => {
+    const paragraphs = htmlToParagraphs(b.description || '');
+    const shows = (b.eventIds || []).map(x => (x && x.name) || '').filter(Boolean);
+    const seating = (b.name.match(/reserved/i) && 'Reserved seating') || (b.name.match(/general admission/i) && 'General admission') || '';
+    const cleanName = b.name.replace(/\s*[()]\s*(reserved seating|general admission)\s*[()]?\s*$/i, '').trim();
+    return {
+      name: cleanName || b.name,
+      seating,
+      url: `https://app.fangenie.com/season-ticket/${slugify(b.name).replace(/-+/g, '-').replace(/^-|-$/g, '')}/${b.slug}`,
+      price: typeof b.price === 'number' ? b.price : null,
+      count: shows.length || ((b.eventIds || []).length),
+      shows,
+      image: b.heroBannerImageMobile || (b.images && b.images[0] && (b.images[0].url || b.images[0])) || '',
+      blurb: paragraphs.find(p => !/^(this season ticket|six shows|one great price)/i.test(p)) || '',
+    };
+  }).sort((a, b) => (b.price || 0) - (a.price || 0) || a.name.localeCompare(b.name));
 }
 
 function jsonLd(events, venue) {
@@ -204,7 +257,9 @@ function jsonLd(events, venue) {
   })));
 }
 
-function renderPage({ venue, events, discount }) {
+function renderPage({ cfg, venue, events, discount, bundles }) {
+  const PAGE_PATH = `/${cfg.dir}/`;
+  const VENUE_PAGE = venue.website || `https://app.fangenie.com/venue/${slugify(venue.name).replace(/-+/g, '-')}/${cfg.slug}`;
   const seasons = [...new Set(events.map(e => e.year))];
   const seasonLabel = seasons.length ? `${seasons[0]}${seasons.length > 1 ? '–' + seasons[seasons.length - 1] : ''} Season` : 'Upcoming Shows';
   const first = events[0], last = events[events.length - 1];
@@ -228,6 +283,7 @@ function renderPage({ venue, events, discount }) {
 
   const dataJs = JSON.stringify({
     venue: { name: venue.name, address: fullAddress, phone: venue.phone || '', page: VENUE_PAGE, tz: venue.timezone || 'America/Phoenix' },
+    bundles: bundles.length,
     discount,
     firstOnSale,
     events: events.map(e => ({
@@ -389,6 +445,30 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .c0{--c1:#e94560;--c2:#f5a623}.c1{--c1:#6a11cb;--c2:#2575fc}.c2{--c1:#ff512f;--c2:#dd2476}.c3{--c1:#11998e;--c2:#38ef7d}.c4{--c1:#f12711;--c2:#f5af19}
 .c5{--c1:#8e2de2;--c2:#4a00e0}.c6{--c1:#ee0979;--c2:#ff6a00}.c7{--c1:#4568dc;--c2:#b06ab3}.c8{--c1:#c94b4b;--c2:#4b134f}.c9{--c1:#ff9966;--c2:#ff5e62}
 
+/* ---------- season bundles ---------- */
+.bundles{max-width:1240px;margin:56px auto 0;padding:0 20px}
+.section-head{text-align:center;padding:0 0 18px}
+.section-head h2{font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(26px,4vw,40px);letter-spacing:-.03em;margin-top:16px}
+.section-head p{color:var(--muted);margin-top:8px;max-width:560px;margin-left:auto;margin-right:auto}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
+.bundle{position:relative;display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.bundle:hover{transform:translateY(-6px);box-shadow:0 26px 50px -20px rgba(0,0,0,.7),0 0 50px -20px var(--c1)}
+.bart{position:relative;aspect-ratio:16/10;overflow:hidden;background:radial-gradient(80% 80% at 50% 30%,rgba(255,255,255,.10),transparent 70%),linear-gradient(135deg,var(--c1),var(--c2))}
+.bart img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover}
+.bart .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;font-family:'Montserrat',sans-serif;font-weight:900;font-size:20px;text-transform:uppercase;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,.4)}
+.bart .tag{top:10px;right:10px;max-width:70%}
+.bbody{display:flex;flex-direction:column;gap:10px;padding:14px 14px 16px;flex:1}
+.bbody h3{font-family:'Montserrat',sans-serif;font-weight:800;font-size:17px;line-height:1.15}
+.bbody ul{list-style:none;display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:#c6c6dd;flex:1}
+.bbody li{position:relative;padding-left:14px}
+.bbody li::before{content:"";position:absolute;left:0;top:7px;width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2))}
+.bbody p{font-size:13px;color:#c6c6dd;flex:1}
+.bfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.bprice{font-size:12px;color:var(--muted)}
+.bprice b{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;letter-spacing:-.02em;color:var(--text);margin-right:4px;background:linear-gradient(90deg,var(--c1),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.bcta{display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:10px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:#fff;background:linear-gradient(90deg,var(--c1),var(--c2));white-space:nowrap}
+.bcta svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
 /* ---------- trust / footer ---------- */
 .trust{max-width:1000px;margin:52px auto 0;padding:0 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .trust div{padding:18px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);text-align:center}
@@ -443,6 +523,8 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
   .count b{min-width:54px;font-size:22px;padding:8px 6px}
   .filters .title{width:100%}.search{flex:1 1 100%}
   .sheet .inner{padding:18px 16px 22px}
+  .bgrid{grid-template-columns:1fr 1fr;gap:12px}.bbody{padding:10px 10px 12px}.bbody h3{font-size:14px}.bbody ul{display:none}.bbody p{display:none}
+  .bfoot{flex-direction:column;align-items:stretch;text-align:center}.bcta{justify-content:center}.bart .tag{display:inline-block;font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -458,12 +540,13 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
 <section class="hero" ${ogImage ? `style="--hero-img:url('${esc(ogImage)}')"` : ''}>
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="kicker"><i></i> ${esc(venue.city)}, Arizona &middot; ${esc(seasonLabel)}</div>
-  <h1>Apache Junction <em>Live</em></h1>
-  <p class="sub"><strong>TAD Management presents Arizona's #1 live concert series</strong> at the ${esc(venue.name)}. ${events.length} nights of tribute concerts and live music. Pick your shows and grab tickets straight from FanGenie.</p>
+  <h1>${esc(cfg.headline)} <em>Live</em></h1>
+  <p class="sub"><strong>${esc(cfg.tagline)}</strong> at the ${esc(venue.name)}. ${events.length} nights of tribute concerts and live music. Pick your shows and grab tickets straight from FanGenie${bundles.length ? ', or save with a season bundle' : ''}.</p>
   <div class="facts">
     <span><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${esc(range)}</span>
     <span><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>${events.length} shows${timeNote}</span>
     <a href="https://maps.google.com/?q=${encodeURIComponent(`${venue.name}, ${fullAddress}`)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(venue.address)}, ${esc(venue.city)}</a>
+    ${bundles.length ? `<a href="#bundles"><svg viewBox="0 0 24 24"><path d="M3 9a2 2 0 002-2 2 2 0 012-2h10a2 2 0 012 2 2 2 0 002 2v6a2 2 0 00-2 2 2 2 0 01-2 2H7a2 2 0 01-2-2 2 2 0 00-2-2z"/><path d="M13 5v14"/></svg>${bundles.length} season bundles</a>` : ''}
   </div>
 </section>
 
@@ -476,7 +559,7 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
     <div class="lbl">Season discount</div>
     <div class="big">${discount.amount ? `<em>$${esc(discount.amount)} off</em> every ticket, every show` : `<em>Discount</em> on every ticket`}</div>
     <div class="code"><span id="code-text">${esc(discount.code)}</span><button type="button" id="copy">Copy</button></div>
-    <div class="fine">Enter the code at checkout on FanGenie, once per show.${discount.expiresText ? ` Expires ${esc(discount.expiresText)}.` : ''}</div>
+    <div class="fine">Enter the code at checkout on FanGenie, once per show.${discount.expiresText ? ` Expires ${esc(discount.expiresText)}.` : ''}${discount.note ? ` ${esc(discount.note)}` : ''}</div>
   </div>` : ''}
 </section>
 
@@ -487,6 +570,24 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
 </div>
 
 <div class="grid" id="grid"></div>
+
+${bundles.length ? `<section class="bundles" id="bundles">
+  <div class="section-head">
+    <div class="kicker"><i></i> Season bundles</div>
+    <h2>${esc(String(bundles[0].count || 6))} shows. One price.</h2>
+    <p>Pick a themed bundle and lock in every night${bundles.some(b => b.seating) ? ' with reserved or general admission seating' : ''}. Bundles are sold on FanGenie.</p>
+  </div>
+  <div class="bgrid">
+    ${bundles.map((b, i) => `<a class="bundle c${(i + 3) % 10}" href="${esc(b.url)}" target="_blank" rel="noopener">
+      <div class="bart">${b.image ? `<img src="${esc(b.image)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<div class="ph" aria-hidden="true">${esc(b.name)}</div>${b.seating ? `<span class="tag">${esc(b.seating)}</span>` : ''}</div>
+      <div class="bbody">
+        <h3>${esc(b.name)}</h3>
+        ${b.shows.length ? `<ul>${b.shows.map(sh => `<li>${esc(sh)}</li>`).join('')}</ul>` : (b.blurb ? `<p>${esc(b.blurb)}</p>` : '')}
+        <div class="bfoot">${b.price != null ? `<span class="bprice"><b>$${esc(b.price)}</b> for ${esc(String(b.count))} shows</span>` : `<span class="bprice">${esc(String(b.count))} shows</span>`}<span class="bcta">Get Bundle ${'<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'}</span></div>
+      </div>
+    </a>`).join('')}
+  </div>
+</section>` : ''}
 
 <div class="trust">
   <div><b>Official tickets</b><p>Every link goes straight to the show's page on FanGenie, the venue's official ticketing partner.</p></div>
@@ -640,37 +741,60 @@ document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeModal();});
 
 // ---- Main ----
 
-async function main() {
-  console.log('Apache Junction: pulling venue from FanGenie...');
-  const venue = await fetchVenue();
+async function buildVenue(cfg) {
+  const tag = cfg.headline;
+  console.log(`${tag}: pulling venue from FanGenie...`);
+  const venue = await fetchVenue(cfg.slug);
   console.log(`  ${venue.name} (${venue._id})`);
 
-  console.log('Apache Junction: pulling events...');
+  console.log(`${tag}: pulling events...`);
   const list = await fetchEventList(venue._id);
   console.log(`  ${list.length} events listed`);
 
-  console.log('Apache Junction: pulling event details...');
-  const details = await fetchDetails(list);
+  console.log(`${tag}: pulling event details + season bundles...`);
+  const [details, rawBundles] = await Promise.all([fetchDetails(list), fetchBundles(cfg.slug)]);
 
   const events = buildEvents(list, details, venue);
+  const bundles = buildBundles(rawBundles);
   const discount = detectDiscount(list.map(e => e.description || ''));
-  console.log(`  ${events.length} upcoming events kept${discount ? `; discount code ${discount.code}` : ''}`);
+  console.log(`  ${events.length} upcoming events kept; ${bundles.length} bundles${discount ? `; discount code ${discount.code}` : ''}`);
   for (const e of events) console.log(`  ${e.ymd} ${e.time.padEnd(8)} ${e.name}  -> ${e.url}`);
+  for (const b of bundles) console.log(`  BUNDLE $${b.price} ${b.name} (${b.seating || 'n/a'})  -> ${b.url}`);
 
   if (events.length === 0) {
     // Never blank the page because of a transient API hiccup — keep the last good build.
-    console.warn('WARNING: no upcoming events returned; leaving the existing page untouched.');
-    return;
+    console.warn(`WARNING: ${tag}: no upcoming events returned; leaving the existing page untouched.`);
+    return false;
   }
 
-  const html = renderPage({ venue, events, discount });
+  const outDir = path.join(repoRoot, cfg.dir);
+  const outPath = path.join(outDir, 'index.html');
+  const html = renderPage({ cfg, venue, events, discount, bundles });
   if (DRY_RUN) {
     console.log(`[DRY RUN] would write ${outPath} (${html.length} bytes)`);
-    return;
+    return true;
   }
   mkdirSync(outDir, { recursive: true });
   writeFileSync(outPath, html);
   console.log(`Wrote ${outPath} (${html.length} bytes)`);
+  return true;
+}
+
+async function main() {
+  const targets = VENUES.filter(v => !ONLY || v.dir === ONLY);
+  if (!targets.length) throw new Error(`no venue with dir "${ONLY}"`);
+  let failures = 0;
+  for (const cfg of targets) {
+    try {
+      await buildVenue(cfg);
+    } catch (err) {
+      // One venue failing must not stop the others from rebuilding.
+      failures++;
+      console.error(`ERROR: ${cfg.headline}: ${err.message}`);
+    }
+    console.log('');
+  }
+  if (failures === targets.length) process.exit(1);
 }
 
 main().catch(err => {
