@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Affiliate Links | YourConcertTix</title>
+<meta name="description" content="Sign in with your FanGenie account to create affiliate ticket links for every show and get your own YourConcertTix page.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0f23;--accent:#e94560;--gold:#f5a623;--green:#38ef7d;--text:#e8e8f0;--muted:#9a9ab8;--line:rgba(255,255,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+.stage{position:fixed;inset:0;z-index:-1;background:
+  radial-gradient(60% 45% at 15% 0%, rgba(233,69,96,.3), transparent 70%),
+  radial-gradient(55% 45% at 85% 10%, rgba(142,45,226,.3), transparent 70%),var(--bg)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 24px;max-width:1100px;margin:0 auto}
+.bar .brand{font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.3px}
+.bar .brand span{color:var(--accent)}
+.bar .fg{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:500}
+.bar .fg img{height:16px}
+main{max-width:1100px;margin:0 auto;padding:16px 20px 80px}
+h1{font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(28px,5vw,44px);letter-spacing:-.03em;line-height:1.05}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--muted);max-width:620px;margin-top:10px;font-size:16px}
+.panel{border-radius:20px;padding:24px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid var(--line);margin-top:22px}
+.panel h2{font-family:'Montserrat',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.panel .hint{color:var(--muted);font-size:14px;margin-top:6px}
+form{display:grid;gap:14px;max-width:420px;margin-top:18px}
+label{display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(10,10,30,.6);color:var(--text);outline:0}
+input:focus{border-color:rgba(245,166,35,.6)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;border-radius:12px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;color:#fff;
+  background:linear-gradient(90deg,var(--accent),var(--gold));box-shadow:0 10px 30px -10px var(--accent);transition:transform .2s,filter .2s}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.btn:disabled{opacity:.55;cursor:wait;transform:none}
+.btn.ghost{background:rgba(255,255,255,.06);border:1px solid var(--line);box-shadow:none;font-family:'Inter',sans-serif;font-weight:600;font-size:14px}
+.btn.small{padding:8px 12px;font-size:13px}
+.err{display:none;margin-top:12px;padding:12px 14px;border-radius:12px;background:rgba(233,69,96,.15);border:1px solid rgba(233,69,96,.4);font-size:14px}
+.err.on{display:block}
+.ok{display:none;margin-top:12px;padding:12px 14px;border-radius:12px;background:rgba(56,239,125,.12);border:1px solid rgba(56,239,125,.4);font-size:14px}
+.ok.on{display:block}
+.who{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.who .name{font-family:'Montserrat',sans-serif;font-weight:800;font-size:22px}
+.who .url{display:inline-flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-radius:12px;background:rgba(10,10,30,.6);border:1px dashed rgba(245,166,35,.5);font-size:14px;font-weight:600}
+.who .url button{padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}
+.who .spacer{flex:1}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.stat{padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:14px;font-weight:600}
+.stat b{font-family:'Montserrat',sans-serif;font-size:18px;margin-right:6px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;align-items:center}
+.venue{margin-top:18px}
+.venue-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:6px 0 10px}
+.venue-head h3{font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px}
+.venue-head .count{color:var(--muted);font-size:13px;font-weight:600}
+.venue-head .spacer{flex:1}
+.rows{display:grid;gap:6px}
+.row{display:grid;grid-template-columns:28px 64px 1fr auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.row:hover{background:rgba(255,255,255,.06)}
+.row input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold)}
+.row .d{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;line-height:1.1;color:var(--gold)}
+.row .d small{display:block;font-family:'Inter',sans-serif;font-weight:600;font-size:11px;color:var(--muted)}
+.row .n{font-weight:600;font-size:14px}
+.row .n small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.pill.ready{background:rgba(56,239,125,.14);color:var(--green);border:1px solid rgba(56,239,125,.35)}
+.pill.none{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--line)}
+.pill.hidden{background:rgba(233,69,96,.14);color:var(--accent);border:1px solid rgba(233,69,96,.35)}
+.right{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.copy{padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.08);font-size:12px;font-weight:700;white-space:nowrap}
+.copy:hover{background:rgba(255,255,255,.14)}
+.foot{color:var(--muted);font-size:13px;margin-top:20px}
+.foot a{color:var(--gold)}
+#app{display:none}
+@media (max-width:640px){
+  .row{grid-template-columns:24px 52px 1fr;gap:8px;padding:10px}
+  .row .right{grid-column:1/-1;justify-content:flex-start;padding-left:0}
+  .panel{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="stage"></div>
+<nav class="bar">
+  <a class="brand" href="/">Your<span>Concert</span>Tix</a>
+  <a class="fg" href="https://app.fangenie.com" target="_blank" rel="noopener"><span>Affiliate links by</span><img src="https://app.fangenie.com/assets/images/newlogo.png" alt="FanGenie"></a>
+</nav>
+
+<main>
+  <section id="login">
+    <h1>Your shows. Your links. <em>One page.</em></h1>
+    <p class="lead">Sign in with your FanGenie account and we'll create your affiliate link for every show in one go, then publish them on your own YourConcertTix page.</p>
+    <div class="panel">
+      <h2>Sign in with FanGenie</h2>
+      <p class="hint">Use the same email and password as the FanGenie app. We pass them to FanGenie once to create your links and never store them.</p>
+      <form id="form" autocomplete="on">
+        <label>FanGenie email<input type="email" name="email" id="email" required autocomplete="username"></label>
+        <label>Password<input type="password" name="password" id="password" required autocomplete="current-password"></label>
+        <button class="btn" type="submit" id="submit">Sign in &amp; load my shows</button>
+      </form>
+      <div class="err" id="login-err"></div>
+      <p class="foot">Invite only for now. Not on the list yet? <a href="mailto:info@tadshows.com?subject=YourConcertTix%20affiliate%20page">Ask TAD to add you.</a></p>
+    </div>
+  </section>
+
+  <section id="app">
+    <div class="panel">
+      <div class="who">
+        <div class="name" id="who-name"></div>
+        <div class="url"><a id="page-link" href="#" target="_blank" rel="noopener"></a><button type="button" id="copy-page">Copy</button></div>
+        <div class="spacer"></div>
+        <button class="btn ghost small" type="button" id="signout">Sign out</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="st-with">0</b>shows have your link</div>
+        <div class="stat"><b id="st-without">0</b>still need one</div>
+        <div class="stat"><b id="st-venues">0</b>venues</div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" id="gen-all">Create links for every show</button>
+        <button class="btn ghost" type="button" id="gen-selected">Create links for selected</button>
+        <span class="hint" id="rebuild-note"></span>
+      </div>
+      <div class="ok" id="app-ok"></div>
+      <div class="err" id="app-err"></div>
+    </div>
+    <div id="venues"></div>
+    <p class="foot">Links are created on your FanGenie account, so they also show up in the FanGenie app. Your page lists every show you hold a link for and refreshes itself as shows come and go. Hide a show by asking TAD.</p>
+  </section>
+</main>
+
+<script>
+const API = '/api/affiliate';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let token = sessionStorage.getItem('yct_fg_token') || '';
+let data = null;
+
+async function api(body) {
+  const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  let json = null;
+  try { json = await res.json(); } catch {}
+  if (!res.ok || !json || !json.ok) {
+    const err = new Error((json && json.message) || 'Request failed'); err.code = json && json.error; err.status = res.status; throw err;
+  }
+  return json;
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return { day: d.toLocaleDateString('en-US', { timeZone: 'America/Phoenix', month: 'short', day: 'numeric' }), dow: d.toLocaleDateString('en-US', { timeZone: 'America/Phoenix', weekday: 'short' }), time: d.toLocaleTimeString('en-US', { timeZone: 'America/Phoenix', hour: 'numeric', minute: '2-digit' }) };
+}
+
+function show(el, msg) { el.textContent = msg; el.classList.toggle('on', !!msg); }
+
+function render() {
+  $('#login').style.display = 'none';
+  $('#app').style.display = 'block';
+  $('#who-name').textContent = data.affiliate.displayName;
+  const link = $('#page-link'); link.href = data.affiliate.pageUrl; link.textContent = data.affiliate.pageUrl.replace(/^https?:\/\//, '');
+  $('#st-with').textContent = data.totals.withLink;
+  $('#st-without').textContent = data.totals.events - data.totals.withLink;
+  $('#st-venues').textContent = data.venues.length;
+  $('#gen-all').disabled = data.totals.events === data.totals.withLink;
+  $('#gen-all').textContent = data.totals.events === data.totals.withLink ? 'Every show has your link' : `Create links for all ${data.totals.events - data.totals.withLink} shows without one`;
+  $('#venues').innerHTML = data.venues.map(v => `
+    <div class="panel venue" data-venue="${esc(v.id)}">
+      <div class="venue-head">
+        <h3>${esc(v.name)}</h3>
+        <span class="count">${v.withLink} of ${v.events.length} linked</span>
+        <span class="spacer"></span>
+        <button class="btn ghost small" type="button" data-select="${esc(v.id)}">Select all here</button>
+        ${v.withLink < v.events.length ? `<button class="btn small" type="button" data-venue-gen="${esc(v.id)}">Create ${v.events.length - v.withLink} link${v.events.length - v.withLink === 1 ? '' : 's'}</button>` : ''}
+      </div>
+      <div class="rows">${v.events.map(e => {
+        const d = fmtDate(e.date);
+        return `<div class="row">
+          <input type="checkbox" value="${esc(e.id)}" ${e.link ? 'disabled' : ''} aria-label="Select ${esc(e.name)}">
+          <div class="d">${esc(d.day)}<small>${esc(d.dow)} ${esc(d.time)}</small></div>
+          <div class="n">${esc(e.name)}<small>${esc(v.name)}</small></div>
+          <div class="right">${e.link
+            ? (e.hidden ? '<span class="pill hidden">Hidden</span>' : '<span class="pill ready">Ready</span>') + `<button class="copy" type="button" data-copy="${esc(e.link)}">Copy link</button>`
+            : '<span class="pill none">No link yet</span>'}</div>
+        </div>`; }).join('')}</div>
+    </div>`).join('') || '<div class="panel"><p class="hint">FanGenie has no commissionable shows listed right now.</p></div>';
+}
+
+async function generate(ids, note) {
+  if (!ids.length) { show($('#app-err'), 'Pick at least one show first.'); return; }
+  show($('#app-err'), ''); show($('#app-ok'), '');
+  const btns = document.querySelectorAll('.btn'); btns.forEach(b => b.disabled = true);
+  $('#rebuild-note').textContent = `Creating ${ids.length} link${ids.length === 1 ? '' : 's'} on FanGenie…`;
+  try {
+    const r = await api({ action: 'generate', token, eventIds: ids });
+    data = r;
+    render();
+    const parts = [];
+    if (r.created) parts.push(`${r.created} new link${r.created === 1 ? '' : 's'} created`);
+    if (r.existing) parts.push(`${r.existing} already existed`);
+    if (r.failed && r.failed.length) parts.push(`${r.failed.length} failed`);
+    const when = r.rebuild === 'queued' ? 'Your page is rebuilding now and will be live in a few minutes.' : 'Your page updates on the next refresh (within 4 hours).';
+    show($('#app-ok'), `${parts.join(', ') || 'Done'}. ${when}`);
+  } catch (err) {
+    if (err.status === 401) return signOut(err.message);
+    show($('#app-err'), err.message);
+  } finally {
+    btns.forEach(b => b.disabled = false);
+    $('#rebuild-note').textContent = '';
+    render();
+  }
+}
+
+function signOut(msg) {
+  token = ''; sessionStorage.removeItem('yct_fg_token'); data = null;
+  $('#app').style.display = 'none'; $('#login').style.display = 'block';
+  show($('#login-err'), msg || '');
+}
+
+$('#form').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  show($('#login-err'), '');
+  const btn = $('#submit'); btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const r = await api({ action: 'login', email: $('#email').value, password: $('#password').value });
+    token = r.token; sessionStorage.setItem('yct_fg_token', token);
+    $('#password').value = '';
+    data = r; render();
+    if (r.imported) show($('#app-ok'), `Found ${r.imported} link${r.imported === 1 ? '' : 's'} you already made in the FanGenie app and added them to your page.`);
+  } catch (err) {
+    show($('#login-err'), err.code === 'not_invited' ? err.message : (err.message || 'Sign-in failed'));
+  } finally { btn.disabled = false; btn.textContent = 'Sign in & load my shows'; }
+});
+
+$('#signout').addEventListener('click', () => signOut(''));
+$('#copy-page').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(data.affiliate.pageUrl); $('#copy-page').textContent = 'Copied!'; } catch { $('#copy-page').textContent = 'Select it'; }
+  setTimeout(() => $('#copy-page').textContent = 'Copy', 1800);
+});
+$('#gen-all').addEventListener('click', () => generate(data.venues.flatMap(v => v.events.filter(e => !e.link).map(e => e.id))));
+$('#gen-selected').addEventListener('click', () => generate([...document.querySelectorAll('.row input:checked')].map(i => i.value)));
+document.addEventListener('click', async ev => {
+  const c = ev.target.closest('[data-copy]');
+  if (c) { try { await navigator.clipboard.writeText(c.dataset.copy); c.textContent = 'Copied!'; } catch { c.textContent = c.dataset.copy; } setTimeout(() => c.textContent = 'Copy link', 1800); return; }
+  const s = ev.target.closest('[data-select]');
+  if (s) { document.querySelectorAll(`[data-venue="${CSS.escape(s.dataset.select)}"] .row input:not(:disabled)`).forEach(i => i.checked = true); return; }
+  const g = ev.target.closest('[data-venue-gen]');
+  if (g) { const v = data.venues.find(x => x.id === g.dataset.venueGen); generate(v.events.filter(e => !e.link).map(e => e.id)); }
+});
+
+// Returning visit within the 24-hour FanGenie session.
+if (token) {
+  api({ action: 'status', token }).then(r => { data = r; render(); }).catch(err => signOut(err.status === 401 ? '' : err.message));
+}
+</script>
+</body>
+</html>

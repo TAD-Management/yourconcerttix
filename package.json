@@ -1,0 +1,11 @@
+{
+  "name": "yourconcerttix",
+  "private": true,
+  "type": "module",
+  "description": "Static site generated from Airtable + FanGenie, plus the affiliate sign-in function in api/.",
+  "scripts": {
+    "sync": "node scripts/sync.mjs",
+    "venues": "node scripts/apache-junction.mjs",
+    "affiliates": "node scripts/affiliates.mjs"
+  }
+}

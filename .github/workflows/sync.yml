@@ -6,16 +6,27 @@ on:
     - cron: '0 */4 * * *'
   # Allow manual runs from the Actions tab
   workflow_dispatch: {}
+  # Fired by api/affiliate.js when an affiliate creates links, so their page
+  # goes live in minutes instead of waiting for the next scheduled run.
+  repository_dispatch:
+    types: [affiliate-rebuild]
   # Run after each push to main that touches the script or workflow itself
   push:
     branches: [main]
     paths:
       - 'scripts/sync.mjs'
       - 'scripts/apache-junction.mjs'
+      - 'scripts/affiliates.mjs'
+      - 'lib/**'
       - '.github/workflows/sync.yml'
 
 permissions:
   contents: write
+
+# Runs must not overlap: two pushes from one checkout would fight each other.
+concurrency:
+  group: sync
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -48,11 +59,17 @@ jobs:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
         run: node scripts/apache-junction.mjs
 
+      - name: Rebuild the affiliate pages (/a/<handle>/) from Airtable + FanGenie
+        continue-on-error: true
+        env:
+          AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+        run: node scripts/affiliates.mjs
+
       - name: Commit & push if anything changed
         run: |
           git config user.name  "yct-sync-bot"
           git config user.email "yct-sync-bot@users.noreply.github.com"
-          git add -A artist-photos index.html events apachejunction lakehavasu
+          git add -A artist-photos index.html events apachejunction lakehavasu a
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
