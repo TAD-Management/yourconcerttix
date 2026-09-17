@@ -197,7 +197,7 @@ async function generate(ids, note) {
   $('#rebuild-note').textContent = `Creating ${ids.length} link${ids.length === 1 ? '' : 's'} on FanGenie…`;
   try {
     const r = await api({ action: 'generate', token, eventIds: ids });
-    data = r;
+    data = { ...data, ...r, affiliate: r.affiliate || data.affiliate };
     render();
     const parts = [];
     if (r.created) parts.push(`${r.created} new link${r.created === 1 ? '' : 's'} created`);
@@ -211,7 +211,7 @@ async function generate(ids, note) {
   } finally {
     btns.forEach(b => b.disabled = false);
     $('#rebuild-note').textContent = '';
-    render();
+    if (data) render();
   }
 }
 

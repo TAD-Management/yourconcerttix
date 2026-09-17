@@ -139,7 +139,7 @@ async function doGenerate({ token, eventIds }) {
   await refreshRows(affiliate, state);
 
   const rebuild = await triggerRebuild();
-  return { ...results, rebuild, ...lineup(state) };
+  return { affiliate: publicAffiliate(affiliate), ...results, rebuild, ...lineup(state) };
 }
 
 // Reload the lineup for an existing session (page refresh).
