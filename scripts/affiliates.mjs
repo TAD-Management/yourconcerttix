@@ -123,7 +123,7 @@ function renderPage({ affiliate, venues, shows, current }) {
   const base = `/a/${handle}/`;
   const pagePath = current ? `${base}${current.dir}/` : base;
   const listed = current ? current.shows : shows;
-  const title = current ? `${name}'s picks at ${current.short}` : `${name}'s picks`;
+  const title = current ? `Don't miss these shows at ${current.short}, picked by ${name}` : `Don't miss these shows, picked by ${name}`;
   const first = listed[0], last = listed[listed.length - 1];
   const range = first && last ? (first.mon === last.mon && first.year === last.year
     ? `${first.monLong} ${first.year}`
@@ -139,7 +139,7 @@ function renderPage({ affiliate, venues, shows, current }) {
   // quiet way back to the rest.
   const nav = current
     ? `<div class="vp on full"><b>${esc(current.name)}</b><small>${esc([current.city, current.state].filter(Boolean).join(', ') || current.short)} &middot; ${current.shows.length} show${current.shows.length === 1 ? '' : 's'}</small></div>
-  <a class="other" href="${esc(base)}">See ${esc(name)}'s picks at all ${venues.length} venues &rarr;</a>`
+  <a class="other" href="${esc(base)}">See all ${venues.length} venues &rarr;</a>`
     : [`<a class="vp on" href="${esc(base)}"><b>All venues</b><small>${shows.length} show${shows.length === 1 ? '' : 's'}</small></a>`]
       .concat(venues.map(v => `<a class="vp" href="${esc(base + v.dir + '/')}"><b>${esc(v.short)}</b><small>${esc(v.city || v.name)} &middot; ${v.shows.length} show${v.shows.length === 1 ? '' : 's'}</small></a>`))
       .join('');
@@ -295,8 +295,8 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
 
 <section class="hero">
   <div class="avatar">${photoUrl ? `<img src="${esc(photoUrl)}" alt="${esc(name)}">` : esc(name.trim()[0] || 'Y').toUpperCase()}</div>
-  <div class="kicker"><i></i> ${current ? esc(current.short) + ' &middot; ' : ''}${esc(range || 'Upcoming shows')}</div>
-  <h1>${esc(name)}'s <em>picks</em></h1>
+  <div class="kicker"><i></i> Picked by ${esc(name)} &middot; ${esc(range || 'Upcoming shows')}</div>
+  <h1>Don't Miss <em>These Shows</em></h1>
   <p class="sub">${headline ? `<strong>${esc(headline)}</strong> ` : ''}${current
     ? `${listed.length} show${listed.length === 1 ? '' : 's'} at the ${esc(current.name)}${current.city ? `, ${esc(current.city)}` : ''}. Grab tickets straight from FanGenie.`
     : `${listed.length} show${listed.length === 1 ? '' : 's'} across ${venues.length} venue${venues.length === 1 ? '' : 's'}. Pick a venue below and grab tickets straight from FanGenie.`}</p>

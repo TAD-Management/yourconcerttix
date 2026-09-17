@@ -56,6 +56,17 @@ input:focus{border-color:rgba(245,166,35,.6)}
 .links .lrow b{font-weight:700}
 .links .lrow a{color:var(--gold);font-weight:600;word-break:break-all}
 .links .lrow .soon{color:var(--muted);font-size:13px}
+.who .url #edit-handle{background:transparent;color:var(--muted)}
+.who .url #edit-handle:hover{color:var(--gold)}
+.pill.live{background:rgba(56,239,125,.14);color:var(--green);border:1px solid rgba(56,239,125,.35)}
+.pill.building{background:rgba(245,166,35,.14);color:var(--gold);border:1px solid rgba(245,166,35,.4)}
+.handle[hidden]{display:none}
+.handle{display:grid;gap:10px;margin-top:16px;padding:16px;border-radius:14px;background:rgba(10,10,30,.5);border:1px solid var(--line);max-width:560px}
+.handle label{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:var(--text)}
+.handle .prefix{color:var(--muted);font-weight:500;font-size:14px}
+.handle input{width:auto;flex:1;min-width:140px;padding:9px 12px}
+.handle .hint{margin-top:0}
+.handle button{justify-self:start}
 .stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
 .stat{padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:14px;font-weight:600}
 .stat b{font-family:'Montserrat',sans-serif;font-size:18px;margin-right:6px}
@@ -119,10 +130,17 @@ input:focus{border-color:rgba(245,166,35,.6)}
     <div class="panel">
       <div class="who">
         <div class="name" id="who-name"></div>
-        <div class="url"><a id="page-link" href="#" target="_blank" rel="noopener"></a><button type="button" id="copy-page">Copy</button></div>
+        <div class="url"><a id="page-link" href="#" target="_blank" rel="noopener"></a><button type="button" id="copy-page">Copy</button><button type="button" id="edit-handle" title="Change your page address">Change</button></div>
+        <span class="pill none" id="page-status"></span>
         <div class="spacer"></div>
         <button class="btn ghost small" type="button" id="signout">Sign out</button>
       </div>
+      <form class="handle" id="handle-form" hidden>
+        <label>New page address<span class="prefix">yourconcerttix.com/a/</span><input id="handle-input" maxlength="30" pattern="[a-z0-9-]+" autocomplete="off" spellcheck="false"></label>
+        <button class="btn small" type="submit">Save address</button>
+        <button class="btn ghost small" type="button" id="handle-cancel">Cancel</button>
+        <p class="hint">Lowercase letters, numbers and hyphens. Your old address stops working once the page rebuilds, so update anything you've already posted.</p>
+      </form>
       <div class="links" id="links"></div>
       <div class="stats">
         <div class="stat"><b id="st-with">0</b>shows have your link</div>
@@ -131,9 +149,10 @@ input:focus{border-color:rgba(245,166,35,.6)}
       </div>
       <div class="actions">
         <button class="btn" type="button" id="gen-all">Create links for every show</button>
-        <button class="btn ghost" type="button" id="gen-selected">Create links for selected</button>
+        <button class="btn ghost small" type="button" id="clear-sel" hidden>Clear selection</button>
         <span class="hint" id="rebuild-note"></span>
       </div>
+      <p class="hint" id="sel-hint">Tick shows to create links for just those. With nothing ticked, the buttons create links for every show that still needs one.</p>
       <div class="ok" id="app-ok"></div>
       <div class="err" id="app-err"></div>
     </div>
@@ -179,8 +198,8 @@ function render() {
   $('#st-with').textContent = data.totals.withLink;
   $('#st-without').textContent = data.totals.events - data.totals.withLink;
   $('#st-venues').textContent = data.venues.length;
-  $('#gen-all').disabled = data.totals.events === data.totals.withLink;
-  $('#gen-all').textContent = data.totals.events === data.totals.withLink ? 'Every show has your link' : `Create links for all ${data.totals.events - data.totals.withLink} shows without one`;
+  updateButtons();
+  watchPageStatus();
   $('#venues').innerHTML = data.venues.map(v => `
     <div class="panel venue" data-venue="${esc(v.id)}">
       <div class="venue-head">
@@ -188,7 +207,7 @@ function render() {
         <span class="count">${v.withLink} of ${v.events.length} linked</span>
         <span class="spacer"></span>
         <button class="btn ghost small" type="button" data-select="${esc(v.id)}">Select all here</button>
-        ${v.withLink < v.events.length ? `<button class="btn small" type="button" data-venue-gen="${esc(v.id)}">Create ${v.events.length - v.withLink} link${v.events.length - v.withLink === 1 ? '' : 's'}</button>` : ''}
+        ${v.withLink < v.events.length ? `<button class="btn small" type="button" data-venue-gen="${esc(v.id)}"></button>` : ''}
       </div>
       <div class="rows">${v.events.map(e => {
         const d = fmtDate(e.date);
@@ -201,6 +220,44 @@ function render() {
             : '<span class="pill none">No link yet</span>'}</div>
         </div>`; }).join('')}</div>
     </div>`).join('') || '<div class="panel"><p class="hint">FanGenie has no commissionable shows listed right now.</p></div>';
+}
+
+function selectedIds(venueId) {
+  const scope = venueId ? `[data-venue="${CSS.escape(venueId)}"] ` : '';
+  return [...document.querySelectorAll(`${scope}.row input:checked`)].map(i => i.value);
+}
+function unlinkedIds(venueId) {
+  return data.venues.filter(v => !venueId || v.id === venueId).flatMap(v => v.events.filter(e => !e.link).map(e => e.id));
+}
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+// Every "create" button follows the ticked shows; with nothing ticked it
+// covers every show that still needs a link.
+function updateButtons() {
+  const sel = selectedIds();
+  const missing = data.totals.events - data.totals.withLink;
+  const all = $('#gen-all');
+  if (sel.length) { all.disabled = false; all.textContent = `Create links for ${plural(sel.length, 'ticked show')}`; }
+  else { all.disabled = missing === 0; all.textContent = missing ? `Create links for all ${plural(missing, 'show')} without one` : 'Every show has your link'; }
+  $('#clear-sel').hidden = !sel.length;
+  for (const b of document.querySelectorAll('[data-venue-gen]')) {
+    const vs = selectedIds(b.dataset.venueGen);
+    const vm = unlinkedIds(b.dataset.venueGen).length;
+    b.textContent = vs.length ? `Create ${plural(vs.length, 'ticked link')}` : `Create ${plural(vm, 'link')}`;
+  }
+}
+
+// "Building" until the public page answers, then "Live".
+let statusTimer = null;
+async function watchPageStatus() {
+  clearTimeout(statusTimer);
+  const badge = $('#page-status');
+  if (!data.totals.withLink) { badge.className = 'pill none'; badge.textContent = 'No page yet'; return; }
+  let live = false;
+  try { live = (await fetch(data.affiliate.pageUrl, { method: 'HEAD', cache: 'no-store' })).ok; } catch {}
+  badge.className = live ? 'pill live' : 'pill building';
+  badge.textContent = live ? 'Live' : 'Building, a few minutes';
+  if (!live) statusTimer = setTimeout(watchPageStatus, 20000);
 }
 
 async function generate(ids, note) {
@@ -254,15 +311,35 @@ $('#copy-page').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(data.affiliate.pageUrl); $('#copy-page').textContent = 'Copied!'; } catch { $('#copy-page').textContent = 'Select it'; }
   setTimeout(() => $('#copy-page').textContent = 'Copy', 1800);
 });
-$('#gen-all').addEventListener('click', () => generate(data.venues.flatMap(v => v.events.filter(e => !e.link).map(e => e.id))));
-$('#gen-selected').addEventListener('click', () => generate([...document.querySelectorAll('.row input:checked')].map(i => i.value)));
+$('#gen-all').addEventListener('click', () => { const sel = selectedIds(); generate(sel.length ? sel : unlinkedIds()); });
+$('#clear-sel').addEventListener('click', () => { document.querySelectorAll('.row input:checked').forEach(i => i.checked = false); updateButtons(); });
+document.addEventListener('change', ev => { if (ev.target.matches('.row input[type=checkbox]')) updateButtons(); });
+$('#edit-handle').addEventListener('click', () => { $('#handle-form').hidden = false; $('#handle-input').value = data.affiliate.handle; $('#handle-input').focus(); });
+$('#handle-cancel').addEventListener('click', () => { $('#handle-form').hidden = true; });
+$('#handle-form').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  show($('#app-err'), ''); show($('#app-ok'), '');
+  const handle = $('#handle-input').value.trim().toLowerCase();
+  if (handle === data.affiliate.handle) { $('#handle-form').hidden = true; return; }
+  try {
+    const old = data.affiliate.pageUrl;
+    const r = await api({ action: 'handle', token, handle });
+    data = { ...data, ...r };
+    $('#handle-form').hidden = true;
+    render();
+    show($('#app-ok'), `Your page is moving to ${r.affiliate.pageUrl}. ${r.rebuild === 'queued' ? 'It will be live in a few minutes' : 'It goes live on the next refresh (within 4 hours)'}, and ${old} will stop working then.`);
+  } catch (err) {
+    if (err.status === 401) return signOut(err.message);
+    show($('#app-err'), err.message);
+  }
+});
 document.addEventListener('click', async ev => {
   const c = ev.target.closest('[data-copy]');
   if (c) { try { await navigator.clipboard.writeText(c.dataset.copy); c.textContent = 'Copied!'; } catch { c.textContent = c.dataset.copy; } setTimeout(() => c.textContent = 'Copy link', 1800); return; }
   const s = ev.target.closest('[data-select]');
-  if (s) { document.querySelectorAll(`[data-venue="${CSS.escape(s.dataset.select)}"] .row input:not(:disabled)`).forEach(i => i.checked = true); return; }
+  if (s) { document.querySelectorAll(`[data-venue="${CSS.escape(s.dataset.select)}"] .row input:not(:disabled)`).forEach(i => i.checked = true); updateButtons(); return; }
   const g = ev.target.closest('[data-venue-gen]');
-  if (g) { const v = data.venues.find(x => x.id === g.dataset.venueGen); generate(v.events.filter(e => !e.link).map(e => e.id)); }
+  if (g) { const sel = selectedIds(g.dataset.venueGen); generate(sel.length ? sel : unlinkedIds(g.dataset.venueGen)); }
 });
 
 // Returning visit within the 24-hour FanGenie session.

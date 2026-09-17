@@ -17,6 +17,10 @@
 // POST { action: 'status', token }
 //   Same lineup for an existing session (used when the page is reloaded).
 //
+// POST { action: 'handle', token, handle }
+//   Changes the affiliate's page address (/a/<handle>/). The old address stops
+//   working at the next rebuild.
+//
 // POST { action: 'rebuild', token }
 //   Just triggers the rebuild.
 //
@@ -49,6 +53,7 @@ export default async function handler(req, res) {
     if (action === 'login') out = await doLogin(body);
     else if (action === 'generate') out = await doGenerate(body);
     else if (action === 'status') out = await doStatus(body);
+    else if (action === 'handle') out = await doHandle(body);
     else if (action === 'rebuild') out = await doRebuild(body);
     else throw new HttpError(400, 'bad_action', 'Unknown action');
     return res.status(200).json({ ok: true, ...out });
@@ -148,6 +153,26 @@ async function doStatus({ token }) {
   const { affiliate } = await authed(token);
   const state = await loadState(token, affiliate);
   return { affiliate: publicAffiliate(affiliate), ...lineup(state, affiliate) };
+}
+
+const RESERVED_HANDLES = new Set(['a', 'api', 'affiliate', 'affiliates', 'admin', 'index', 'tad', 'fangenie', 'yourconcerttix', 'events', 'venues']);
+
+async function doHandle({ token, handle }) {
+  const { affiliate } = await authed(token);
+  handle = String(handle || '').trim().toLowerCase();
+  if (!/^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])$/.test(handle)) {
+    throw new HttpError(400, 'bad_handle', 'Use 3 to 30 lowercase letters, numbers or hyphens, starting and ending with a letter or number.');
+  }
+  if (RESERVED_HANDLES.has(handle)) throw new HttpError(400, 'bad_handle', 'That address is reserved. Try another.');
+  if (handle !== affiliate.fields.Handle) {
+    const clash = await listAll(AFFILIATES_TABLE, { filterByFormula: `LOWER({Handle})='${q(handle)}'` });
+    if (clash.some(r => r.id !== affiliate.id)) throw new HttpError(409, 'handle_taken', 'Someone already has that address. Try another.');
+    await updateAll(AFFILIATES_TABLE, [{ id: affiliate.id, fields: { Handle: handle, 'Page URL': null } }]);
+    affiliate.fields.Handle = handle;
+  }
+  const state = await loadState(token, affiliate);
+  const rebuild = await triggerRebuild();
+  return { affiliate: publicAffiliate(affiliate), rebuild, ...lineup(state, affiliate) };
 }
 
 async function doRebuild({ token }) {
