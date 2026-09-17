@@ -33,6 +33,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          # Always start from the branch tip. A run that queued behind another
+          # is otherwise pinned to the commit it was triggered on and its push
+          # gets rejected.
+          ref: main
+          fetch-depth: 0
 
       - uses: actions/setup-node@v5
         with:
@@ -74,5 +80,8 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "Auto-sync from Airtable ($(date -u +%Y-%m-%dT%H:%MZ))"
+            # If something landed on main meanwhile, replay our commit on top.
+            # Generated files always take this run's version (it is fresher).
+            git pull --rebase -X theirs origin main
             git push
           fi
