@@ -11,7 +11,7 @@
 //   node scripts/affiliates.mjs                    # rebuild every affiliate page
 //   node scripts/affiliates.mjs --only terry       # just one handle
 //   node scripts/affiliates.mjs --dry-run          # summary only, write nothing
-//   node scripts/affiliates.mjs --fixture f.json   # local preview without a PAT:
+//   node scripts/affiliates.mjs --fixture f.json --out /tmp/preview   # local preview without a PAT:
 //        { "affiliates": [{ "id": "recX", "fields": {...} }], "links": [{ "fields": {...} }] }
 
 import { writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, readFileSync, statSync } from 'node:fs';
@@ -30,7 +30,9 @@ const FIXTURE = flag('--fixture');
 const SITE_ORIGIN = 'https://yourconcerttix.com';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
-const OUT_ROOT = path.join(repoRoot, 'a');
+// --out <dir> writes somewhere else (local previews must never touch the
+// repo's a/ folder, which holds the live pages from the last sync).
+const OUT_ROOT = flag('--out') ? path.resolve(flag('--out')) : path.join(repoRoot, 'a');
 
 // ---- data ----
 
@@ -123,14 +125,14 @@ function renderPage({ affiliate, venues, shows, current }) {
   const base = `/a/${handle}/`;
   const pagePath = current ? `${base}${current.dir}/` : base;
   const listed = current ? current.shows : shows;
-  const title = current ? `Don't miss these shows at ${current.short}, picked by ${name}` : `Don't miss these shows, picked by ${name}`;
+  const title = current ? `Don't miss these shows at ${current.short}` : `Don't miss these shows`;
   const first = listed[0], last = listed[listed.length - 1];
   const range = first && last ? (first.mon === last.mon && first.year === last.year
     ? `${first.monLong} ${first.year}`
     : `${first.mon} ${first.year === last.year ? '' : first.year + ' '}– ${last.mon} ${last.year}`) : '';
   const descLine = current
-    ? `${listed.length} upcoming shows at ${current.name}, ${current.city}, ${current.state}, picked by ${name}. Tickets on FanGenie.`
-    : `${listed.length} upcoming shows across ${venues.length} venue${venues.length === 1 ? '' : 's'}, picked by ${name}. Tickets on FanGenie.`;
+    ? `${listed.length} upcoming shows at ${current.name}, ${current.city}, ${current.state}. Tickets on FanGenie.`
+    : `${listed.length} upcoming shows across ${venues.length} venue${venues.length === 1 ? '' : 's'}. Tickets on FanGenie.`;
   const ogImage = (first && first.poster) || photoUrl || '';
   const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
   const ARROW = '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
@@ -202,6 +204,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .hero{position:relative;text-align:center;padding:40px 20px 10px;max-width:900px;margin:0 auto}
 .avatar{width:96px;height:96px;border-radius:50%;margin:0 auto 18px;overflow:hidden;border:3px solid rgba(255,255,255,.15);box-shadow:0 20px 50px -20px rgba(233,69,96,.6);background:linear-gradient(135deg,var(--accent),var(--gold));display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:900;font-size:36px;animation:rise .7s ease both}
 .avatar img{width:100%;height:100%;object-fit:cover}
+.avatar svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .kicker{display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);
   border:1px solid rgba(245,166,35,.35);background:rgba(245,166,35,.08);padding:8px 16px;border-radius:999px;animation:rise .7s ease both}
 .kicker i{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(245,166,35,.7);animation:pulse 1.8s infinite}
@@ -294,8 +297,8 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
 </nav>
 
 <section class="hero">
-  <div class="avatar">${photoUrl ? `<img src="${esc(photoUrl)}" alt="${esc(name)}">` : esc(name.trim()[0] || 'Y').toUpperCase()}</div>
-  <div class="kicker"><i></i> Picked by ${esc(name)} &middot; ${esc(range || 'Upcoming shows')}</div>
+  <div class="avatar">${photoUrl ? `<img src="${esc(photoUrl)}" alt="">` : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'}</div>
+  <div class="kicker"><i></i> ${current ? esc(current.short) + ' &middot; ' : ''}${esc(range || 'Upcoming shows')}</div>
   <h1>Don't Miss <em>These Shows</em></h1>
   <p class="sub">${headline ? `<strong>${esc(headline)}</strong> ` : ''}${current
     ? `${listed.length} show${listed.length === 1 ? '' : 's'} at the ${esc(current.name)}${current.city ? `, ${esc(current.city)}` : ''}. Grab tickets straight from FanGenie.`
@@ -312,7 +315,7 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
 
 <div class="trust">
   <div><b>Official tickets</b><p>Every link goes straight to the show's page on FanGenie, the venue's official ticketing partner.</p></div>
-  <div><b>Same price</b><p>You pay exactly what you would on FanGenie. Buying through this page supports ${esc(name)}.</p></div>
+  <div><b>Same price</b><p>You pay exactly what you would on FanGenie. Buying through this page supports the person who shared it with you.</p></div>
   <div><b>Questions?</b><p>See the show's page on FanGenie or visit <a href="/">YourConcertTix</a> for the full calendar.</p></div>
 </div>
 
