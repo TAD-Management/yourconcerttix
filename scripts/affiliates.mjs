@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import * as fg from '../lib/fangenie.mjs';
 import { AFFILIATES_TABLE, LINKS_TABLE, listAll, updateAll } from '../lib/airtable.mjs';
+import { venueInfo } from '../lib/venues.mjs';
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
@@ -30,12 +31,6 @@ const SITE_ORIGIN = 'https://yourconcerttix.com';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 const OUT_ROOT = path.join(repoRoot, 'a');
-
-// Short folder names for venues we know; anything else gets a slug of its name.
-const VENUE_DIRS = {
-  '68b25c59bdd034984c663b65': { dir: 'apachejunction', short: 'Apache Junction' },
-  '68b2572dbdd034984c663b0f': { dir: 'lakehavasu', short: 'Lake Havasu' },
-};
 
 // ---- data ----
 
@@ -55,10 +50,6 @@ async function loadAirtable() {
   return { affiliates, links };
 }
 
-function slugify(s) {
-  return String(s || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-}
-
 function fmt(date, tz, opts) {
   return new Intl.DateTimeFormat('en-US', { timeZone: tz, ...opts }).format(date);
 }
@@ -76,7 +67,7 @@ function buildShows(rows, eventsById) {
     const tz = ev.timezone || 'America/Phoenix';
     const venue = ev.venueId || {};
     const vid = String(venue._id || '');
-    const known = VENUE_DIRS[vid];
+    const known = venueInfo(vid, venue.name);
     const gallery = (ev.galleryImages || []).filter(Boolean);
     shows.push({
       id: String(ev._id),
@@ -94,8 +85,8 @@ function buildShows(rows, eventsById) {
       venue: {
         id: vid,
         name: venue.name || 'Venue',
-        short: known ? known.short : (venue.name || 'Venue'),
-        dir: known ? known.dir : slugify(venue.name || vid || 'venue'),
+        short: known.short,
+        dir: known.dir,
         city: ev.city || '',
         state: ev.state || '',
         address: ev.address || '',
@@ -144,8 +135,8 @@ function renderPage({ affiliate, venues, shows, current }) {
   const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
   const ARROW = '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
-  const pills = [`<a class="chip${current ? '' : ' on'}" href="${esc(base)}">All venues <small>${shows.length}</small></a>`]
-    .concat(venues.map(v => `<a class="chip${current && current.dir === v.dir ? ' on' : ''}" href="${esc(base + v.dir + '/')}">${esc(v.short)} <small>${v.shows.length}</small></a>`))
+  const nav = [`<a class="vp${current ? '' : ' on'}" href="${esc(base)}"><b>All venues</b><small>${shows.length} show${shows.length === 1 ? '' : 's'}</small></a>`]
+    .concat(venues.map(v => `<a class="vp${current && current.dir === v.dir ? ' on' : ''}" href="${esc(base + v.dir + '/')}"><b>${esc(v.short)}</b><small>${esc(v.city || v.name)} &middot; ${v.shows.length} show${v.shows.length === 1 ? '' : 's'}</small></a>`))
     .join('');
 
   const cards = listed.map((s, i) => `<article class="card c${hash(s.name) % 10}" style="animation-delay:${(0.05 * Math.min(i, 12)).toFixed(2)}s">
@@ -214,18 +205,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero .sub{font-size:clamp(15px,2vw,19px);color:var(--muted);max-width:600px;margin:0 auto;animation:rise .8s .2s ease both}
 .hero .sub strong{color:var(--text)}
-.share{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:13px;font-weight:600;animation:rise .8s .3s ease both}
+.share{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:13px;font-weight:600;animation:rise .8s .3s ease both}
 .share svg{width:15px;height:15px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .share:hover{border-color:rgba(245,166,35,.5)}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 .filters{max-width:1240px;margin:30px auto 0;padding:0 20px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;animation:rise .8s .35s ease both}
 .filters .title{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(18px,3vw,26px);letter-spacing:-.02em;margin-right:auto}
 .filters .title span{color:var(--muted);font-family:'Inter',sans-serif;font-weight:500;font-size:14px;margin-left:8px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);font-size:13px;font-weight:600;color:var(--muted);transition:all .2s}
-.chip:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
-.chip.on{color:#fff;background:linear-gradient(90deg,var(--accent),var(--gold));border-color:transparent;box-shadow:0 8px 24px -10px var(--accent)}
-.chip small{opacity:.7;margin-left:4px}
+.venues{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:24px;animation:rise .8s .3s ease both}
+.vp{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:150px;padding:12px 18px;border-radius:16px;text-align:left;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);transition:all .2s;backdrop-filter:blur(8px)}
+.vp b{font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;letter-spacing:-.01em}
+.vp small{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.vp:hover{border-color:rgba(245,166,35,.6);transform:translateY(-2px)}
+.vp.on{background:linear-gradient(90deg,var(--accent),var(--gold));border-color:transparent;box-shadow:0 12px 30px -12px var(--accent)}
+.vp.on b,.vp.on small{color:#fff}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;max-width:1240px;margin:20px auto 0;padding:0 20px}
 .card{position:relative;display:flex;flex-direction:column;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.1);overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s;animation:rise .6s ease both}
@@ -275,6 +269,7 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
   .cta{padding:11px;font-size:13px}.date{min-width:48px;padding:6px 6px 5px}.date b{font-size:19px}.tag{display:none}
   .bar .fg span{display:none}.kicker{font-size:10px;letter-spacing:.14em;padding:7px 12px}
   .filters .title{width:100%}
+  .venues{gap:8px}.vp{min-width:0;flex:1 1 calc(50% - 8px);padding:10px 12px}.vp b{font-size:13.5px}.vp small{font-size:10.5px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -294,12 +289,12 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
   <p class="sub">${headline ? `<strong>${esc(headline)}</strong> ` : ''}${current
     ? `${listed.length} show${listed.length === 1 ? '' : 's'} at the ${esc(current.name)}${current.city ? `, ${esc(current.city)}` : ''}. Grab tickets straight from FanGenie.`
     : `${listed.length} show${listed.length === 1 ? '' : 's'} across ${venues.length} venue${venues.length === 1 ? '' : 's'}. Pick a venue below and grab tickets straight from FanGenie.`}</p>
+  <nav class="venues" aria-label="Venues">${nav}</nav>
   <button class="share" type="button" id="share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Share this page</span></button>
 </section>
 
 <div class="filters">
-  <div class="title">${current ? esc(current.short) : 'All Shows'} <span>${listed.length} show${listed.length === 1 ? '' : 's'}</span></div>
-  <div class="chips">${pills}</div>
+  <div class="title">${current ? esc(current.name) : 'All Shows'} <span>${listed.length} show${listed.length === 1 ? '' : 's'}</span></div>
 </div>
 
 <div class="grid">${cards || '<div class="empty">No upcoming shows listed right now. Check back soon.</div>'}</div>

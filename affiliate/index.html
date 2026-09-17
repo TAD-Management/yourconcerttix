@@ -50,6 +50,12 @@ input:focus{border-color:rgba(245,166,35,.6)}
 .who .url{display:inline-flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-radius:12px;background:rgba(10,10,30,.6);border:1px dashed rgba(245,166,35,.5);font-size:14px;font-weight:600}
 .who .url button{padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}
 .who .spacer{flex:1}
+.links{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.links h4{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.links .lrow{display:grid;grid-template-columns:150px 1fr auto;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}
+.links .lrow b{font-weight:700}
+.links .lrow a{color:var(--gold);font-weight:600;word-break:break-all}
+.links .lrow .soon{color:var(--muted);font-size:13px}
 .stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
 .stat{padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:14px;font-weight:600}
 .stat b{font-family:'Montserrat',sans-serif;font-size:18px;margin-right:6px}
@@ -78,6 +84,7 @@ input:focus{border-color:rgba(245,166,35,.6)}
 .foot a{color:var(--gold)}
 #app{display:none}
 @media (max-width:640px){
+  .links .lrow{grid-template-columns:1fr auto}.links .lrow a,.links .lrow .soon{grid-column:1/-1}
   .row{grid-template-columns:24px 52px 1fr;gap:8px;padding:10px}
   .row .right{grid-column:1/-1;justify-content:flex-start;padding-left:0}
   .panel{padding:18px}
@@ -116,6 +123,7 @@ input:focus{border-color:rgba(245,166,35,.6)}
         <div class="spacer"></div>
         <button class="btn ghost small" type="button" id="signout">Sign out</button>
       </div>
+      <div class="links" id="links"></div>
       <div class="stats">
         <div class="stat"><b id="st-with">0</b>shows have your link</div>
         <div class="stat"><b id="st-without">0</b>still need one</div>
@@ -163,6 +171,11 @@ function render() {
   $('#app').style.display = 'block';
   $('#who-name').textContent = data.affiliate.displayName;
   const link = $('#page-link'); link.href = data.affiliate.pageUrl; link.textContent = data.affiliate.pageUrl.replace(/^https?:\/\//, '');
+  $('#links').innerHTML = '<h4>Links to promote</h4>' +
+    `<div class="lrow"><b>All venues</b><a href="${esc(data.affiliate.pageUrl)}" target="_blank" rel="noopener">${esc(data.affiliate.pageUrl.replace(/^https?:\/\//, ''))}</a><button class="copy" type="button" data-copy="${esc(data.affiliate.pageUrl)}">Copy link</button></div>` +
+    data.venues.map(v => v.withLink
+      ? `<div class="lrow"><b>${esc(v.short)}</b><a href="${esc(v.pageUrl)}" target="_blank" rel="noopener">${esc(v.pageUrl.replace(/^https?:\/\//, ''))}</a><button class="copy" type="button" data-copy="${esc(v.pageUrl)}">Copy link</button></div>`
+      : `<div class="lrow"><b>${esc(v.short)}</b><span class="soon">Create a link for a show here and this venue gets its own page.</span><span></span></div>`).join('');
   $('#st-with').textContent = data.totals.withLink;
   $('#st-without').textContent = data.totals.events - data.totals.withLink;
   $('#st-venues').textContent = data.venues.length;

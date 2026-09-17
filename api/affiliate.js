@@ -25,6 +25,7 @@
 
 import * as fg from '../lib/fangenie.mjs';
 import { AFFILIATES_TABLE, LINKS_TABLE, listAll, createAll, updateAll, q, findAffiliateByEmail } from '../lib/airtable.mjs';
+import { venueInfo } from '../lib/venues.mjs';
 
 export const config = { maxDuration: 60 };
 
@@ -99,7 +100,7 @@ async function doLogin({ email, password }) {
     token,
     affiliate: publicAffiliate(affiliate),
     imported,
-    ...lineup(state),
+    ...lineup(state, affiliate),
   };
 }
 
@@ -139,14 +140,14 @@ async function doGenerate({ token, eventIds }) {
   await refreshRows(affiliate, state);
 
   const rebuild = await triggerRebuild();
-  return { affiliate: publicAffiliate(affiliate), ...results, rebuild, ...lineup(state) };
+  return { affiliate: publicAffiliate(affiliate), ...results, rebuild, ...lineup(state, affiliate) };
 }
 
 // Reload the lineup for an existing session (page refresh).
 async function doStatus({ token }) {
   const { affiliate } = await authed(token);
   const state = await loadState(token, affiliate);
-  return { affiliate: publicAffiliate(affiliate), ...lineup(state) };
+  return { affiliate: publicAffiliate(affiliate), ...lineup(state, affiliate) };
 }
 
 async function doRebuild({ token }) {
@@ -252,12 +253,16 @@ function upcoming(events) {
   return events.filter(e => e.date && new Date(e.date).getTime() >= now);
 }
 
-function lineup(state) {
+function lineup(state, affiliate) {
   const venues = new Map();
+  const base = `${SITE}/a/${affiliate.fields.Handle}/`;
   for (const e of upcoming(state.events)) {
     const v = e.venueId || {};
     const key = String(v._id || v.name || 'unknown');
-    if (!venues.has(key)) venues.set(key, { id: key, name: v.name || 'Venue', events: [] });
+    if (!venues.has(key)) {
+      const info = venueInfo(v._id, v.name);
+      venues.set(key, { id: key, name: v.name || 'Venue', short: info.short, city: e.city || '', pageUrl: `${base}${info.dir}/`, events: [] });
+    }
     const row = state.rowsByEvent.get(String(e._id));
     venues.get(key).events.push({
       id: String(e._id),
