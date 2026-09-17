@@ -888,7 +888,6 @@ grid.innerHTML=events.map((e,i)=>{
     (e.video?'<button class="play" type="button" data-video="'+i+'">'+PLAY+' Promo</button>':'')+'</div>'+
     '<div class="body">'+
       '<h3><small>'+esc(e.dowLong)+', '+esc(e.monLong)+' '+esc(e.day)+' &middot; '+esc(e.time)+'</small>'+esc(e.name)+'</h3>'+
-      (e.excerpt?'<p>'+esc(e.excerpt)+'</p>':'')+
       '<button class="more" type="button" data-open="'+i+'">Show details</button>'+
       '<a class="cta" href="'+esc(e.url)+'" target="_blank" rel="noopener">Get Tickets '+ARROW+'</a>'+
     '</div></article>';
