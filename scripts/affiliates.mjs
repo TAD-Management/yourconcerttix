@@ -135,9 +135,14 @@ function renderPage({ affiliate, venues, shows, current }) {
   const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
   const ARROW = '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
-  const nav = [`<a class="vp${current ? '' : ' on'}" href="${esc(base)}"><b>All venues</b><small>${shows.length} show${shows.length === 1 ? '' : 's'}</small></a>`]
-    .concat(venues.map(v => `<a class="vp${current && current.dir === v.dir ? ' on' : ''}" href="${esc(base + v.dir + '/')}"><b>${esc(v.short)}</b><small>${esc(v.city || v.name)} &middot; ${v.shows.length} show${v.shows.length === 1 ? '' : 's'}</small></a>`))
-    .join('');
+  // Hub page: one pill per venue. Venue page: that venue full width, plus a
+  // quiet way back to the rest.
+  const nav = current
+    ? `<div class="vp on full"><b>${esc(current.name)}</b><small>${esc([current.city, current.state].filter(Boolean).join(', ') || current.short)} &middot; ${current.shows.length} show${current.shows.length === 1 ? '' : 's'}</small></div>
+  <a class="other" href="${esc(base)}">See ${esc(name)}'s picks at all ${venues.length} venues &rarr;</a>`
+    : [`<a class="vp on" href="${esc(base)}"><b>All venues</b><small>${shows.length} show${shows.length === 1 ? '' : 's'}</small></a>`]
+      .concat(venues.map(v => `<a class="vp" href="${esc(base + v.dir + '/')}"><b>${esc(v.short)}</b><small>${esc(v.city || v.name)} &middot; ${v.shows.length} show${v.shows.length === 1 ? '' : 's'}</small></a>`))
+      .join('');
 
   const cards = listed.map((s, i) => `<article class="card c${hash(s.name) % 10}" style="animation-delay:${(0.05 * Math.min(i, 12)).toFixed(2)}s">
       <a class="art" href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="Tickets for ${esc(s.name)}">
@@ -220,6 +225,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .vp:hover{border-color:rgba(245,166,35,.6);transform:translateY(-2px)}
 .vp.on{background:linear-gradient(90deg,var(--accent),var(--gold));border-color:transparent;box-shadow:0 12px 30px -12px var(--accent)}
 .vp.on b,.vp.on small{color:#fff}
+.venues.single{flex-direction:column;align-items:center}
+.vp.full{width:100%;max-width:720px;align-items:center;text-align:center;padding:18px 24px;gap:4px;transform:none}
+.vp.full b{font-size:clamp(18px,3vw,26px);letter-spacing:-.02em}
+.vp.full small{font-size:13px;opacity:.9}
+.other{font-size:13px;font-weight:600;color:var(--muted);border-bottom:1px solid transparent;transition:color .2s,border-color .2s}
+.other:hover{color:var(--gold);border-color:var(--gold)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;max-width:1240px;margin:20px auto 0;padding:0 20px}
 .card{position:relative;display:flex;flex-direction:column;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.1);overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s;animation:rise .6s ease both}
@@ -289,7 +300,7 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
   <p class="sub">${headline ? `<strong>${esc(headline)}</strong> ` : ''}${current
     ? `${listed.length} show${listed.length === 1 ? '' : 's'} at the ${esc(current.name)}${current.city ? `, ${esc(current.city)}` : ''}. Grab tickets straight from FanGenie.`
     : `${listed.length} show${listed.length === 1 ? '' : 's'} across ${venues.length} venue${venues.length === 1 ? '' : 's'}. Pick a venue below and grab tickets straight from FanGenie.`}</p>
-  <nav class="venues" aria-label="Venues">${nav}</nav>
+  <nav class="venues${current ? ' single' : ''}" aria-label="Venues">${nav}</nav>
   <button class="share" type="button" id="share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Share this page</span></button>
 </section>
 
