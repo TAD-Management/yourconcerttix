@@ -5,6 +5,11 @@
 // FanGenie's public affiliate-events feed, so a show that has passed or lost
 // its commission simply drops off the page; the stored rows are left alone.
 //
+// An Active affiliate with no links yet (a school account that has not been
+// connected, say) still gets a page: the full commissionable lineup with the
+// ticket buttons held ("Tickets open here soon"), so the address can be shared
+// ahead of time. The buttons go live on the first rebuild after links exist.
+//
 // Runs in the GitHub Action after scripts/sync.mjs. Needs AIRTABLE_PAT.
 //
 // Usage:
@@ -56,6 +61,49 @@ function fmt(date, tz, opts) {
   return new Intl.DateTimeFormat('en-US', { timeZone: tz, ...opts }).format(date);
 }
 
+const UPCOMING_GRACE_MS = 6 * 3600 * 1000; // a show stays listed for a few hours after it starts
+
+function isUpcoming(ev, now) {
+  const when = new Date(ev.date);
+  return !isNaN(when) && when.getTime() >= now - UPCOMING_GRACE_MS;
+}
+
+// One card's worth of data from a feed event. `url` is the affiliate's link,
+// or '' on a pre-launch page (rendered as a held button).
+function showFromEvent(ev, url) {
+  const when = new Date(ev.date);
+  const tz = ev.timezone || 'America/Phoenix';
+  const venue = ev.venueId || {};
+  const vid = String(venue._id || '');
+  const known = venueInfo(vid, venue.name);
+  const gallery = (ev.galleryImages || []).filter(Boolean);
+  return {
+    id: String(ev._id),
+    name: ev.name,
+    url: url || '',
+    iso: when.toISOString(),
+    dow: fmt(when, tz, { weekday: 'short' }),
+    dowLong: fmt(when, tz, { weekday: 'long' }),
+    day: fmt(when, tz, { day: 'numeric' }),
+    mon: fmt(when, tz, { month: 'short' }),
+    monLong: fmt(when, tz, { month: 'long' }),
+    year: fmt(when, tz, { year: 'numeric' }),
+    time: fmt(when, tz, { hour: 'numeric', minute: '2-digit' }),
+    poster: ev.heroBannerImageMobile || gallery[0] || ev.heroBannerImage || '',
+    venue: {
+      id: vid,
+      name: venue.name || 'Venue',
+      short: known.short,
+      dir: known.dir,
+      city: ev.city || '',
+      state: ev.state || '',
+      address: ev.address || '',
+    },
+  };
+}
+
+const byDate = (a, b) => a.iso.localeCompare(b.iso);
+
 // Join the affiliate's rows with the live feed; returns shows sorted by date.
 function buildShows(rows, eventsById) {
   const now = Date.now();
@@ -63,40 +111,16 @@ function buildShows(rows, eventsById) {
   for (const r of rows) {
     const f = r.fields;
     const ev = eventsById.get(String(f['Event ID'] || ''));
-    if (!ev || !f.Link) continue;
-    const when = new Date(ev.date);
-    if (isNaN(when) || when.getTime() < now - 6 * 3600 * 1000) continue;
-    const tz = ev.timezone || 'America/Phoenix';
-    const venue = ev.venueId || {};
-    const vid = String(venue._id || '');
-    const known = venueInfo(vid, venue.name);
-    const gallery = (ev.galleryImages || []).filter(Boolean);
-    shows.push({
-      id: String(ev._id),
-      name: ev.name,
-      url: f.Link,
-      iso: when.toISOString(),
-      dow: fmt(when, tz, { weekday: 'short' }),
-      dowLong: fmt(when, tz, { weekday: 'long' }),
-      day: fmt(when, tz, { day: 'numeric' }),
-      mon: fmt(when, tz, { month: 'short' }),
-      monLong: fmt(when, tz, { month: 'long' }),
-      year: fmt(when, tz, { year: 'numeric' }),
-      time: fmt(when, tz, { hour: 'numeric', minute: '2-digit' }),
-      poster: ev.heroBannerImageMobile || gallery[0] || ev.heroBannerImage || '',
-      venue: {
-        id: vid,
-        name: venue.name || 'Venue',
-        short: known.short,
-        dir: known.dir,
-        city: ev.city || '',
-        state: ev.state || '',
-        address: ev.address || '',
-      },
-    });
+    if (!ev || !f.Link || !isUpcoming(ev, now)) continue;
+    shows.push(showFromEvent(ev, f.Link));
   }
-  shows.sort((a, b) => a.iso.localeCompare(b.iso));
-  return shows;
+  return shows.sort(byDate);
+}
+
+// Pre-launch page: the whole commissionable lineup, no links yet.
+function buildPrelaunchShows(events) {
+  const now = Date.now();
+  return events.filter(ev => isUpcoming(ev, now)).map(ev => showFromEvent(ev, '')).sort(byDate);
 }
 
 function groupVenues(shows) {
@@ -116,7 +140,7 @@ function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function renderPage({ affiliate, venues, shows, current }) {
+function renderPage({ affiliate, venues, shows, current, prelaunch = false }) {
   const handle = affiliate.fields.Handle;
   const name = affiliate.fields['Display Name'] || handle;
   const headline = affiliate.fields.Headline || '';
@@ -136,6 +160,8 @@ function renderPage({ affiliate, venues, shows, current }) {
   const ogImage = (first && first.poster) || photoUrl || '';
   const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
   const ARROW = '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  const CLOCK = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  const SOON = 'Ticket links are not live on this page yet, but they are on the way. Check back shortly.';
 
   // Hub page: one pill per venue. Venue page: that venue full width, plus a
   // quiet way back to the rest.
@@ -146,19 +172,24 @@ function renderPage({ affiliate, venues, shows, current }) {
       .concat(venues.map(v => `<a class="vp" href="${esc(base + v.dir + '/')}"><b>${esc(v.short)}</b><small>${esc(v.city || v.name)} &middot; ${v.shows.length} show${v.shows.length === 1 ? '' : 's'}</small></a>`))
       .join('');
 
-  const cards = listed.map((s, i) => `<article class="card c${hash(s.name) % 10}" style="animation-delay:${(0.05 * Math.min(i, 12)).toFixed(2)}s">
-      <a class="art" href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="Tickets for ${esc(s.name)}">
-        ${s.poster ? `<img src="${esc(s.poster)}" alt="${esc(s.name)}" loading="${i < 4 ? 'eager' : 'lazy'}" decoding="async" onerror="this.remove()">` : ''}
+  const cards = listed.map((s, i) => {
+    const art = `${s.poster ? `<img src="${esc(s.poster)}" alt="${esc(s.name)}" loading="${i < 4 ? 'eager' : 'lazy'}" decoding="async" onerror="this.remove()">` : ''}
         <div class="ph" aria-hidden="true">${esc(s.name)}</div>
         <div class="date"><b>${esc(s.day)}</b><small>${esc(s.mon)}</small><i>${esc(s.dow)}</i></div>
-        ${i === 0 && !current ? '<span class="tag hot">Next up</span>' : ''}
-      </a>
+        ${i === 0 && !current ? '<span class="tag hot">Next up</span>' : ''}`;
+    return `<article class="card c${hash(s.name) % 10}" style="animation-delay:${(0.05 * Math.min(i, 12)).toFixed(2)}s">
+      ${s.url
+        ? `<a class="art" href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="Tickets for ${esc(s.name)}">${art}</a>`
+        : `<div class="art">${art}</div>`}
       <div class="body">
         <h3><small>${esc(s.dowLong)}, ${esc(s.monLong)} ${esc(s.day)} &middot; ${esc(s.time)}</small>${esc(s.name)}</h3>
         <p>${esc(s.venue.name)}${s.venue.city ? `, ${esc(s.venue.city)}` : ''}</p>
-        <a class="cta" href="${esc(s.url)}" target="_blank" rel="noopener">Get Tickets ${ARROW}</a>
+        ${s.url
+          ? `<a class="cta" href="${esc(s.url)}" target="_blank" rel="noopener">Get Tickets ${ARROW}</a>`
+          : `<span class="cta hold">${CLOCK}Tickets open here soon</span>`}
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -168,6 +199,7 @@ function renderPage({ affiliate, venues, shows, current }) {
 <title>${esc(title)} | YourConcertTix</title>
 <meta name="description" content="${esc(descLine)}">
 <meta name="robots" content="noindex, follow">
+<meta name="yct-affiliate-page" content="${prelaunch ? 'prelaunch' : 'live'}">
 <link rel="canonical" href="${SITE_ORIGIN}${esc(pagePath)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(descLine)}">
@@ -263,6 +295,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .cta svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
 .cta:hover{transform:translateY(-2px);filter:brightness(1.08)}
 .cta:hover svg{transform:translateX(3px)}
+.cta.hold{background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.3);color:var(--muted);box-shadow:none;cursor:default}
+.cta.hold:hover{transform:none;filter:none}
+.cta.hold svg,.cta.hold:hover svg{stroke:var(--muted);transform:none}
 .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted)}
 .c0{--c1:#e94560;--c2:#f5a623}.c1{--c1:#6a11cb;--c2:#2575fc}.c2{--c1:#ff512f;--c2:#dd2476}.c3{--c1:#11998e;--c2:#38ef7d}.c4{--c1:#f12711;--c2:#f5af19}
 .c5{--c1:#8e2de2;--c2:#4a00e0}.c6{--c1:#ee0979;--c2:#ff6a00}.c7{--c1:#4568dc;--c2:#b06ab3}.c8{--c1:#c94b4b;--c2:#4b134f}.c9{--c1:#ff9966;--c2:#ff5e62}
@@ -301,8 +336,8 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
   <div class="kicker"><i></i> ${current ? esc(current.short) + ' &middot; ' : ''}${esc(range || 'Upcoming shows')}</div>
   <h1>Don't Miss <em>These Shows</em></h1>
   <p class="sub">${headline ? `<strong>${esc(headline)}</strong> ` : ''}${current
-    ? `${listed.length} show${listed.length === 1 ? '' : 's'} at the ${esc(current.name)}${current.city ? `, ${esc(current.city)}` : ''}. Grab tickets straight from FanGenie.`
-    : `${listed.length} show${listed.length === 1 ? '' : 's'} across ${venues.length} venue${venues.length === 1 ? '' : 's'}. Pick a venue below and grab tickets straight from FanGenie.`}</p>
+    ? `${listed.length} show${listed.length === 1 ? '' : 's'} at the ${esc(current.name)}${current.city ? `, ${esc(current.city)}` : ''}. ${prelaunch ? SOON : 'Grab tickets straight from FanGenie.'}`
+    : `${listed.length} show${listed.length === 1 ? '' : 's'} across ${venues.length} venue${venues.length === 1 ? '' : 's'}. ${prelaunch ? SOON : 'Pick a venue below and grab tickets straight from FanGenie.'}`}</p>
   <nav class="venues${current ? ' single' : ''}" aria-label="Venues">${nav}</nav>
   <button class="share" type="button" id="share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Share this page</span></button>
 </section>
@@ -315,7 +350,7 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
 
 <div class="trust">
   <div><b>Official tickets</b><p>Every link goes straight to the show's page on FanGenie, the venue's official ticketing partner.</p></div>
-  <div><b>Same price</b><p>You pay exactly what you would on FanGenie. Buying through this page supports the person who shared it with you.</p></div>
+  <div><b>Same price</b><p>You pay exactly what you would on FanGenie. Buying through this page supports whoever shared it with you.</p></div>
   <div><b>Questions?</b><p>See the show's page on FanGenie or visit <a href="/">YourConcertTix</a> for the full calendar.</p></div>
 </div>
 
@@ -371,16 +406,18 @@ async function main() {
   const pageUrlUpdates = [];
   for (const affiliate of affiliates) {
     const handle = affiliate.fields.Handle;
-    const shows = buildShows(linksByAffiliate.get(affiliate.id) || [], eventsById);
+    let shows = buildShows(linksByAffiliate.get(affiliate.id) || [], eventsById);
+    const prelaunch = !shows.length;
+    if (prelaunch) shows = buildPrelaunchShows(events);
     const venues = groupVenues(shows);
-    console.log(`${handle}: ${shows.length} upcoming show(s) with a link across ${venues.length} venue(s)`);
+    console.log(`${handle}: ${prelaunch ? 'no links yet, pre-launch page with' : 'linked'} ${shows.length} upcoming show(s) across ${venues.length} venue(s)`);
     if (!shows.length) {
       if (affiliate.fields['Page URL']) pageUrlUpdates.push({ id: affiliate.id, fields: { 'Page URL': null } });
       continue;
     }
     const dir = path.join(OUT_ROOT, handle);
-    const pages = [{ file: path.join(dir, 'index.html'), html: renderPage({ affiliate, venues, shows, current: null }) }];
-    for (const v of venues) pages.push({ file: path.join(dir, v.dir, 'index.html'), html: renderPage({ affiliate, venues, shows, current: v }) });
+    const pages = [{ file: path.join(dir, 'index.html'), html: renderPage({ affiliate, venues, shows, current: null, prelaunch }) }];
+    for (const v of venues) pages.push({ file: path.join(dir, v.dir, 'index.html'), html: renderPage({ affiliate, venues, shows, current: v, prelaunch }) });
     for (const p of pages) {
       if (DRY_RUN) { console.log(`  [DRY RUN] would write ${path.relative(repoRoot, p.file)} (${p.html.length} bytes)`); continue; }
       mkdirSync(path.dirname(p.file), { recursive: true });

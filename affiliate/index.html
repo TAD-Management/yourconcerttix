@@ -247,14 +247,28 @@ function updateButtons() {
   }
 }
 
-// "Building" until the public page answers, then "Live".
+// "Building" until the public page answers with real links, then "Live". A page
+// can exist before any links do (pre-launch, buttons held); that still counts
+// as building. The page carries a <meta name="yct-affiliate-page"> marker.
 let statusTimer = null;
+async function pageState() {
+  try {
+    const res = await fetch(data.affiliate.pageUrl, { cache: 'no-store' });
+    if (!res.ok) return 'none';
+    const m = (await res.text()).match(/name="yct-affiliate-page" content="(\w+)"/);
+    return m ? m[1] : 'live';
+  } catch { return 'none'; }
+}
 async function watchPageStatus() {
   clearTimeout(statusTimer);
   const badge = $('#page-status');
-  if (!data.totals.withLink) { badge.className = 'pill none'; badge.textContent = 'No page yet'; return; }
-  let live = false;
-  try { live = (await fetch(data.affiliate.pageUrl, { method: 'HEAD', cache: 'no-store' })).ok; } catch {}
+  const state = await pageState();
+  if (!data.totals.withLink) {
+    badge.className = state === 'none' ? 'pill none' : 'pill building';
+    badge.textContent = state === 'none' ? 'No page yet' : 'Page is up, no ticket links yet';
+    return;
+  }
+  const live = state === 'live';
   badge.className = live ? 'pill live' : 'pill building';
   badge.textContent = live ? 'Live' : 'Building, a few minutes';
   if (!live) statusTimer = setTimeout(watchPageStatus, 20000);
