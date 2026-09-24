@@ -8,7 +8,7 @@
 <link rel="canonical" href="https://yourconcerttix.com/fundfare/">
 <meta property="og:title" content="Fundfare: Enjoy a concert. Support your school.">
 <meta property="og:description" content="Every ticket bought through your school's link pays your school $2. 30+ live concerts with TAD at AJPAC.">
-<meta property="og:image" content="https://yourconcerttix.com/fundfare/img/og.jpg">
+<meta property="og:image" content="https://yourconcerttix.com/fundfare/img/og-v4.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:type" content="website">
@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Big+Shoulders+Display:wght@700;800;900&family=Limelight&family=Montserrat:wght@800&family=Permanent+Marker&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="/fundfare/img/fundfare-ajpac-flyer-web.jpg">
+<link rel="preload" as="image" href="/fundfare/img/fundfare-family-flyer-v4-web.jpg">
 <style>
 :root{
   --blue:#2250d9; --blue-ray:#2c5ae3; --blue-deep:#1638a8;
@@ -146,31 +146,27 @@ section{padding:72px 0}
 .mq-eq i{font-style:normal;color:var(--red);font-family:var(--display);font-weight:900;font-size:28px;line-height:1.4}
 .note{color:var(--muted);font-size:16px;margin-top:22px;max-width:440px}
 
-/* ring the bell */
-.bell-sec{padding-top:24px}
+/* reach our goal: the school from the flyer; windows light up and the flag climbs as tickets sell */
+.goal-sec{padding-top:24px}
 .card{position:relative;background:#fff;border:4px solid var(--ink);border-radius:28px;box-shadow:10px 12px 0 var(--ink)}
-.bellbox{display:grid;grid-template-columns:150px minmax(0,1fr) 250px;grid-template-areas:"striker head bee" "striker calc bee";gap:0 40px;align-items:center;padding:40px 44px}
-.bellbox .striker{grid-area:striker}
+.goalbox{display:grid;grid-template-columns:150px minmax(0,1fr) 250px;grid-template-areas:"viz head bee" "viz calc bee";gap:0 40px;align-items:center;padding:40px 44px}
+.goalbox .goalviz{grid-area:viz}
 .calc-head{grid-area:head;align-self:end}
 .calc{grid-area:calc;align-self:start}
 .bee-col{grid-area:bee}
-.striker{position:relative;display:flex;flex-direction:column;align-items:center;height:460px;--p:.5}
-.striker .bell{width:150px;height:auto;flex:none;overflow:visible}
-.bell-body{transform-origin:80px 8px;transform-box:view-box}
-.waves path{opacity:.22;transition:opacity .3s}
-.striker.rung .bell-body{animation:ring .5s ease-in-out infinite}
-.striker.rung .waves path{animation:wave .5s ease-in-out infinite alternate}
-@keyframes ring{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
-@keyframes wave{from{opacity:.25}to{opacity:1}}
-.tower{position:relative;width:80px;flex:1;margin-top:-4px;background:linear-gradient(90deg,#1a44c4,#2d5de8 50%,#1a44c4);border:4px solid var(--ink);border-radius:16px 16px 6px 6px;overflow:hidden}
-.tower .dim,.tower .lit{position:absolute;left:6px;right:6px;bottom:8px;background:
-  radial-gradient(circle,var(--c1) 0 3.5px,var(--c2) 4.5px 5.5px,transparent 6.5px) 0 100%/14px 22px repeat-y,
-  radial-gradient(circle,var(--c1) 0 3.5px,var(--c2) 4.5px 5.5px,transparent 6.5px) 100% 100%/14px 22px repeat-y}
-.tower .dim{top:8px;--c1:#8d8a6c;--c2:#5e5c49}
-.tower .lit{--c1:#fffbe0;--c2:#ffc83d;height:calc(var(--p) * (100% - 16px));transition:height .8s cubic-bezier(.2,1.25,.4,1);filter:drop-shadow(0 0 4px rgba(255,200,61,.95))}
-.tower .track{position:absolute;left:50%;top:10px;bottom:10px;width:8px;margin-left:-4px;background:#0e2785;border-radius:4px}
-.tower .puck{position:absolute;left:50%;width:46px;height:18px;margin-left:-23px;bottom:calc(8px + var(--p) * (100% - 34px));background:var(--red);border:3px solid var(--ink);border-radius:6px;transition:bottom .8s cubic-bezier(.2,1.25,.4,1)}
-.striker .base{width:130px;height:18px;background:var(--ink);border-radius:6px;flex:none}
+.goalviz{--p:.5}
+.goalviz svg{display:block;width:100%;height:auto;overflow:visible}
+.goalviz .flag{transform:translateY(calc((1 - var(--p)) * 214px));transition:transform .9s cubic-bezier(.2,1.2,.4,1)}
+.goalviz .flag path{transform-box:view-box;transform-origin:87px 33px}
+.goalviz.reached .flag path{animation:flutter .7s ease-in-out infinite alternate}
+@keyframes flutter{from{transform:scaleX(1)}to{transform:scaleX(.82) skewY(-5deg)}}
+.goalviz .win rect{fill:var(--cream);transition:fill .35s ease}
+.goalviz .win.on rect{fill:var(--lime)}
+.goalviz .spark{opacity:0;transform:scale(0);transform-box:fill-box;transform-origin:center}
+.goalviz.reached .spark{animation:sparkle 1.4s ease-in-out infinite}
+.goalviz.reached .spark:nth-of-type(2){animation-delay:.35s}
+.goalviz.reached .spark:nth-of-type(3){animation-delay:.7s}
+@keyframes sparkle{0%,100%{opacity:0;transform:scale(0)}40%{opacity:1;transform:scale(1)}70%{opacity:1;transform:scale(.7) rotate(25deg)}}
 .calc-head h2{font-size:clamp(40px,5vw,64px)}
 .calc-head .label{display:block;margin-bottom:8px}
 .fields{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px 18px;align-items:center;margin:24px 0 18px}
@@ -190,7 +186,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:34px;heigh
 input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--lime);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink)}
 .result{font-size:20px;font-weight:600;line-height:1.35;min-height:2.7em}
 .result b{font-family:var(--display);font-weight:900;font-size:1.25em;letter-spacing:.01em}
-.result .ding{display:inline-block;background:var(--lime);padding:0 .3em;border-radius:4px;font-family:var(--display);font-weight:900;text-transform:uppercase;letter-spacing:.04em;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.result .done{display:inline-block;background:var(--lime);padding:0 .3em;border-radius:4px;font-family:var(--display);font-weight:900;text-transform:uppercase;letter-spacing:.04em;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
 @keyframes pop{from{transform:scale(.4) rotate(-8deg)}to{transform:none}}
 .per{font-size:15px;color:var(--muted);margin-top:4px}
 .bee-cheer{width:100%;height:auto;transform-origin:50% 100%;animation:bob 3.2s ease-in-out infinite}
@@ -223,7 +219,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
 .t-stub::after{bottom:-28px;clip-path:inset(0 0 50% 0)}
 .t-stub .label{color:var(--muted)}
 .t-admit{font-family:var(--display);font-weight:900;font-size:46px;line-height:.9;text-transform:uppercase;margin:8px 0 12px}
-.t-stub svg{width:120px;height:auto;overflow:visible}
+.t-stub svg{width:84px;height:auto;overflow:visible;transform:rotate(8deg);margin:4px 0 6px}
 .t-serial{font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:.3em;color:var(--red-ink);margin-top:10px}
 .steps.fan{margin-top:56px}
 
@@ -249,6 +245,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
 .kit-grid,.kit-group{display:flex;gap:26px;align-items:flex-start}
 .kit-group,.kit-item{flex:var(--ar) 1 0;min-width:0}
 .kit-item{display:flex;flex-direction:column}
+.kit-group.solo .kit-item{flex-grow:1}
 .kit-item .zoom{display:block;border-radius:10px;overflow:hidden;box-shadow:0 22px 40px -18px rgba(5,14,60,.9);transition:transform .25s}
 .kit-item .zoom:hover{transform:translateY(-4px) rotate(-.6deg)}
 .kit-item img{width:100%;height:auto}
@@ -258,6 +255,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
 .dl{display:inline-flex;align-items:center;gap:8px;background:var(--lime);color:var(--ink);text-decoration:none;font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.06em;text-transform:uppercase;padding:9px 14px 8px;border-radius:10px;border:2px solid var(--ink);box-shadow:0 4px 0 var(--ink);transition:transform .12s,box-shadow .12s}
 .dl:hover{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
 .dl svg{width:16px;height:16px}
+.dl{white-space:nowrap}
 
 /* faq */
 .faq-list{display:grid;gap:14px;max-width:860px}
@@ -276,10 +274,10 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
 .join-card .actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
 .join-card .mail{font-weight:700;font-size:18px}
 .join-card .mail a{text-decoration-thickness:2px;text-underline-offset:3px}
-.join-bee{position:relative;align-self:end;margin:-120px -10px -20px 0}
+.join-bee{position:relative;align-self:end;margin:-120px -10px -20px 0;pointer-events:none}
 .join-bee img{width:100%;height:auto;animation:bob 3.2s ease-in-out infinite;transform-origin:50% 100%}
-.join-bee .bell-mini{position:absolute;right:-6px;top:-16px;width:92px;animation:swing 2.4s ease-in-out infinite;transform-origin:50% 0}
-@keyframes swing{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+.join-bee .gold-mini{position:absolute;right:-20px;top:-44px;width:122px;transform-origin:50% 90%;animation:wiggle 3.2s ease-in-out infinite}
+@keyframes wiggle{0%,100%{transform:rotate(8deg)}50%{transform:rotate(14deg) translateY(-5px)}}
 
 /* footer */
 .foot{background:var(--ink);color:#fff;padding:34px 0 30px}
@@ -305,10 +303,8 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
 
 /* ---------- responsive ---------- */
 @media (max-width:1060px){
-  .bellbox{grid-template-columns:130px minmax(0,1fr);grid-template-areas:"striker head" "striker calc";padding:34px 32px}
-  .bellbox .bee-col{display:none}
-  .striker{height:420px}
-  .striker .bell{width:130px}
+  .goalbox{grid-template-columns:130px minmax(0,1fr);grid-template-areas:"viz head" "viz calc";padding:34px 32px}
+  .goalbox .bee-col{display:none}
 }
 @media (max-width:900px){
   .hero-in{grid-template-columns:minmax(0,1fr);gap:44px}
@@ -320,18 +316,21 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
   .t-stub{border-left:0;border-top:4px dashed var(--ink);flex-direction:row;flex-wrap:wrap;gap:6px 18px;padding:26px 24px}
   .t-stub::before{left:-28px;top:-26px;clip-path:inset(0 0 0 50%)}
   .t-stub::after{left:auto;right:-28px;bottom:auto;top:-26px;clip-path:inset(0 50% 0 0)}
-  .t-stub svg{width:80px}
+  .t-stub svg{width:54px;margin:0}
   .t-admit{font-size:36px;margin:0}
   .ticket::before,.ticket::after{display:none}
   .show-row{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(200px,44%);overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 20px 18px;margin:0 -20px;scrollbar-width:none}
   .show-row::-webkit-scrollbar{display:none}
   .show{scroll-snap-align:start}
   .join-card{grid-template-columns:minmax(0,1fr);padding:40px 30px 0}
-  .join-bee{margin:0 auto -8px;width:min(78%,300px)}
+  .join-bee{margin:52px auto -8px;width:min(78%,300px)}
 }
 @media (max-width:760px){
   .kit-grid{flex-direction:column;align-items:stretch}
   .kit-group{flex:none}
+  .kit-group.solo .kit-item{flex-direction:row;align-items:center;gap:18px}
+  .kit-group.solo .zoom{flex:0 0 42%}
+  .kit-group.solo figcaption{margin-top:0}
 }
 @media (max-width:600px){
   body{font-size:17px}
@@ -352,14 +351,9 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
   .mq-eq{gap:6px}
   .mq-eq span{font-size:11px;letter-spacing:.12em}
   .mq-eq i{font-size:22px}
-  .bellbox{grid-template-columns:86px minmax(0,1fr);grid-template-areas:"head head" "striker calc";gap:0 18px;padding:28px 18px 26px 14px}
+  .goalbox{grid-template-columns:86px minmax(0,1fr);grid-template-areas:"head head" "viz calc";gap:0 18px;padding:28px 18px 26px 14px}
   .calc-head{padding-left:4px;margin-bottom:6px}
-  .bellbox .striker{align-self:start;margin-top:26px}
-  .striker{height:380px}
-  .striker .bell{width:96px}
-  .tower{width:62px}
-  .tower .puck{width:38px;margin-left:-19px}
-  .striker .base{width:84px}
+  .goalbox .goalviz{align-self:start;margin-top:26px}
   .fields{grid-template-columns:1fr;gap:4px}
   .fields .fill{margin-bottom:12px}
   .fill b{font-size:28px}
@@ -375,6 +369,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
   .kit-grid,.kit-group{gap:16px}
   .kit-item p{font-size:14px}
   .kit-item b{font-size:21px}
+  .kit-item .dl{font-size:15px;letter-spacing:.03em;gap:6px;padding:8px 10px 7px}
   .join-card{padding:32px 20px 0}
   .card{box-shadow:6px 8px 0 var(--ink);border-radius:22px}
   .foot-brands img{width:120px}
@@ -391,7 +386,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="g-bell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe98f"/><stop offset=".5" stop-color="#f6c22c"/><stop offset="1" stop-color="#c88904"/></linearGradient>
+    <linearGradient id="g-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdd360"/><stop offset="1" stop-color="#f6bb38"/></linearGradient>
     <symbol id="i-link" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#fbf7ec"/><circle cx="50" cy="50" r="41" fill="#e74530"/><circle cx="50" cy="50" r="34" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4" opacity=".85"/><g fill="none" stroke="#fff" stroke-width="7.5" transform="rotate(-45 50 50)"><rect x="23" y="40" width="30" height="20" rx="10"/><rect x="47" y="40" width="30" height="20" rx="10"/></g></symbol>
     <symbol id="i-phone" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#151515"/><circle cx="50" cy="50" r="42" fill="#ffc83d"/><circle cx="50" cy="50" r="35" fill="none" stroke="#151515" stroke-width="2" stroke-dasharray="4 4"/><rect x="37" y="26" width="26" height="48" rx="6" fill="#151515"/><rect x="40.5" y="31" width="19" height="34" rx="2" fill="#ffc83d"/><circle cx="50" cy="69.5" r="2.2" fill="#ffc83d"/><path d="M50 57 C44 52 41.5 48.5 44.5 45.2 C46.6 43 49.3 44 50 46.3 C50.7 44 53.4 43 55.5 45.2 C58.5 48.5 56 52 50 57 Z" fill="#e74530"/></symbol>
     <symbol id="i-two" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#ffc83d"/><circle cx="50" cy="50" r="42" fill="#2250d9"/><circle cx="50" cy="50" r="35" fill="none" stroke="#ffc83d" stroke-width="2" stroke-dasharray="4 4"/><text x="50" y="63" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="38" fill="#fff">$2</text></symbol>
@@ -400,7 +395,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
     <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-    <symbol id="i-bell" viewBox="0 0 160 120"><g fill="none" stroke="#ffc83d" stroke-width="6" stroke-linecap="round"><path d="M36 36 Q25 58 36 80"/><path d="M22 26 Q7 58 22 90"/><path d="M124 36 Q135 58 124 80"/><path d="M138 26 Q153 58 138 90"/></g><circle cx="80" cy="12" r="7" fill="url(#g-bell)" stroke="#8a5a00" stroke-width="2"/><path d="M80 18 C58 18 50 38 50 62 L48 80 C44 84 38 88 36 94 L124 94 C122 88 116 84 112 80 L110 62 C110 38 102 18 80 18 Z" fill="url(#g-bell)" stroke="#8a5a00" stroke-width="2.5"/><circle cx="80" cy="102" r="7" fill="#b37904" stroke="#8a5a00" stroke-width="2"/><text x="80" y="75" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="32" fill="#3f2904">$2</text></symbol>
+    <symbol id="i-goldticket" viewBox="0 0 132 182"><path d="M20 12 H104 A10 10 0 0 0 114 22 V156 A10 10 0 0 0 104 166 H20 A10 10 0 0 0 10 156 V22 A10 10 0 0 0 20 12 Z" transform="translate(7 7)" fill="#151515"/><path d="M20 12 H104 A10 10 0 0 0 114 22 V156 A10 10 0 0 0 104 166 H20 A10 10 0 0 0 10 156 V22 A10 10 0 0 0 20 12 Z" fill="url(#g-gold)" stroke="#151515" stroke-width="4" stroke-linejoin="round"/><rect x="22" y="24" width="80" height="130" rx="3" fill="none" stroke="#3a3326" stroke-width="2.2" stroke-dasharray="6 4"/><path d="M44.0 33.5 L45.6 37.7 L50.2 38.0 L46.7 40.9 L47.8 45.3 L44.0 42.8 L40.2 45.3 L41.3 40.9 L37.8 38.0 L42.4 37.7 Z" fill="#151515"/><path d="M80.0 33.5 L81.6 37.7 L86.2 38.0 L82.7 40.9 L83.8 45.3 L80.0 42.8 L76.2 45.3 L77.3 40.9 L73.8 38.0 L78.4 37.7 Z" fill="#151515"/><text x="62" y="104" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="58" fill="#151515">$2</text><text x="62" y="126" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="19" letter-spacing="1" fill="#151515">TO OUR</text><text x="62" y="145" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="19" letter-spacing="1" fill="#151515">SCHOOL</text></symbol>
   </defs>
 </svg>
 
@@ -423,10 +418,10 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
       <p class="for">Schools<i>&middot;</i>Teams<i>&middot;</i>Bands<i>&middot;</i>Cheer<i>&middot;</i>Theatre<i>&middot;</i>Clubs</p>
     </div>
     <figure class="poster">
-      <button class="poster-btn zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-flyer.jpg" data-dl="Fundfare-AJPAC-Flyer.jpg" aria-label="Open the Fundfare flyer full size">
-        <img src="/fundfare/img/fundfare-ajpac-flyer-web.jpg" width="1100" height="1424" alt="The Fundfare flyer: Enjoy a concert. Support our school. Every concert ticket through our link, $2 goes to our school or team. 30+ live concerts with TAD at AJPAC. Help us ring the bell!">
+      <button class="poster-btn zoom" type="button" data-full="/fundfare/img/fundfare-family-flyer-v4-web.jpg" data-dlhref="/fundfare/img/fundfare-family-flyer-v4.pdf" data-dl="Fundfare-family-flyer-v4.pdf" data-dllabel="Download the PDF" aria-label="Open the Fundfare flyer full size">
+        <img src="/fundfare/img/fundfare-family-flyer-v4-web.jpg" width="1100" height="1424" alt="The Fundfare family flyer: Enjoy a concert. Support our school. Every concert ticket through our link, $2 goes to our school or team. 30+ live concerts with TAD at AJPAC. Help us reach our goal!">
       </button>
-      <figcaption><a class="chip-link" href="/fundfare/img/fundfare-ajpac-flyer.jpg" download="Fundfare-AJPAC-Flyer.jpg"><svg><use href="#i-dl"/></svg>Download the flyer</a></figcaption>
+      <figcaption><a class="chip-link" href="/fundfare/img/fundfare-family-flyer-v4.pdf" download="Fundfare-family-flyer-v4.pdf"><svg><use href="#i-dl"/></svg>Download the flyer (PDF)</a></figcaption>
     </figure>
   </div>
 </header>
@@ -434,8 +429,8 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
 <div class="ticker" aria-hidden="true">
   <div class="ticker-band">
     <div class="ticker-track">
-      <span>$2 a ticket</span><i>&#9733;</i><span>30+ live concerts at AJPAC</span><i>&#9733;</i><span>One link or one per team</span><i>&#9733;</i><span>The more you post, the more you make</span><i>&#9733;</i><span>Help us ring the bell</span><i>&#9733;</i>
-      <span>$2 a ticket</span><i>&#9733;</i><span>30+ live concerts at AJPAC</span><i>&#9733;</i><span>One link or one per team</span><i>&#9733;</i><span>The more you post, the more you make</span><i>&#9733;</i><span>Help us ring the bell</span><i>&#9733;</i>
+      <span>$2 a ticket</span><i>&#9733;</i><span>30+ live concerts at AJPAC</span><i>&#9733;</i><span>One link or one per team</span><i>&#9733;</i><span>The more you post, the more you make</span><i>&#9733;</i><span>Help us reach our goal</span><i>&#9733;</i>
+      <span>$2 a ticket</span><i>&#9733;</i><span>30+ live concerts at AJPAC</span><i>&#9733;</i><span>One link or one per team</span><i>&#9733;</i><span>The more you post, the more you make</span><i>&#9733;</i><span>Help us reach our goal</span><i>&#9733;</i>
     </div>
   </div>
 </div>
@@ -487,25 +482,35 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
   </div>
 </section>
 
-<section class="bell-sec" id="goal">
+<section class="goal-sec" id="goal">
   <div class="wrap">
-    <div class="card bellbox rv">
-      <div class="striker" id="striker" aria-hidden="true">
-        <svg class="bell" viewBox="0 0 160 120">
-          <g class="waves" fill="none" stroke="#ffc83d" stroke-width="6" stroke-linecap="round"><path d="M36 36 Q25 58 36 80"/><path d="M22 26 Q7 58 22 90"/><path d="M124 36 Q135 58 124 80"/><path d="M138 26 Q153 58 138 90"/></g>
-          <g class="bell-body">
-            <circle cx="80" cy="12" r="7" fill="url(#g-bell)" stroke="#8a5a00" stroke-width="2"/>
-            <path d="M80 18 C58 18 50 38 50 62 L48 80 C44 84 38 88 36 94 L124 94 C122 88 116 84 112 80 L110 62 C110 38 102 18 80 18 Z" fill="url(#g-bell)" stroke="#8a5a00" stroke-width="2.5"/>
-            <circle cx="80" cy="102" r="7" fill="#b37904" stroke="#8a5a00" stroke-width="2"/>
-            <text x="80" y="75" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="32" fill="#3f2904">$2</text>
-          </g>
+    <div class="card goalbox rv">
+      <div class="goalviz" id="goalviz" aria-hidden="true">
+        <svg viewBox="0 0 170 460">
+          <g fill="#ffc83d" stroke="#151515" stroke-width="1.5" stroke-linejoin="round"><path class="spark" d="M142.0 12.0 L143.8 18.2 L150.0 20.0 L143.8 21.8 L142.0 28.0 L140.2 21.8 L134.0 20.0 L140.2 18.2 Z"/><path class="spark" d="M154.0 44.0 L155.8 50.2 L162.0 52.0 L155.8 53.8 L154.0 60.0 L152.2 53.8 L146.0 52.0 L152.2 50.2 Z"/><path class="spark" d="M132.0 62.0 L133.8 68.2 L140.0 70.0 L133.8 71.8 L132.0 78.0 L130.2 71.8 L124.0 70.0 L130.2 68.2 Z"/></g>
+          <rect x="22" y="16" width="52" height="22" rx="5" fill="#e9ff3a" stroke="#151515" stroke-width="2.5"/>
+          <text x="48" y="33" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="16" letter-spacing="1" fill="#151515">GOAL</text>
+          <path d="M74 27 H82" stroke="#151515" stroke-width="2.5"/>
+          <path d="M85 22 V262" stroke="#151515" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="85" cy="17" r="5.5" fill="#ffc83d" stroke="#151515" stroke-width="2"/>
+          <g class="flag"><path d="M87 22 L127 33 L87 44 Z" fill="#e8452f" stroke="#151515" stroke-width="3" stroke-linejoin="round"/></g>
+          <rect x="10" y="330" width="150" height="118" fill="#f6f0e1" stroke="#151515" stroke-width="4"/>
+          <rect x="6" y="318" width="158" height="14" fill="#e8452f" stroke="#151515" stroke-width="4"/>
+          <rect x="56" y="296" width="58" height="152" fill="#fff" stroke="#151515" stroke-width="4"/>
+          <path d="M50 300 L85 262 L120 300 Z" fill="#2350d8" stroke="#151515" stroke-width="4" stroke-linejoin="round"/>
+          <circle cx="85" cy="286" r="9" fill="#fff" stroke="#151515" stroke-width="3"/>
+          <path d="M85 286 V280 M85 286 L89 288.5" stroke="#151515" stroke-width="2" stroke-linecap="round"/>
+          <rect x="62" y="306" width="46" height="15" rx="2" fill="#151515"/>
+          <text x="85" y="317.5" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="700" font-size="9" letter-spacing="1.6" fill="#fff">SCHOOL</text>
+          <path d="M72 448 V412 A13 13 0 0 1 98 412 V448 Z" fill="#2350d8" stroke="#151515" stroke-width="4"/>
+          <path d="M85 400 V448" stroke="#151515" stroke-width="2.5"/>
+          <g class="win"><rect x="15" y="390" width="16" height="26" rx="1.5" stroke="#151515" stroke-width="3"/><path d="M23 390 V416 M15 403 H31" stroke="#151515" stroke-width="2" fill="none"/></g><g class="win"><rect x="139" y="390" width="16" height="26" rx="1.5" stroke="#151515" stroke-width="3"/><path d="M147 390 V416 M139 403 H155" stroke="#151515" stroke-width="2" fill="none"/></g><g class="win"><rect x="35" y="390" width="16" height="26" rx="1.5" stroke="#151515" stroke-width="3"/><path d="M43 390 V416 M35 403 H51" stroke="#151515" stroke-width="2" fill="none"/></g><g class="win"><rect x="119" y="390" width="16" height="26" rx="1.5" stroke="#151515" stroke-width="3"/><path d="M127 390 V416 M119 403 H135" stroke="#151515" stroke-width="2" fill="none"/></g><g class="win"><rect x="15" y="344" width="16" height="26" rx="1.5" stroke="#151515" stroke-width="3"/><path d="M23 344 V370 M15 357 H31" stroke="#151515" stroke-width="2" fill="none"/></g><g class="win"><rect x="139" y="344" width="16" height="26" rx="1.5" stroke="#151515" stroke-width="3"/><path d="M147 344 V370 M139 357 H155" stroke="#151515" stroke-width="2" fill="none"/></g><g class="win"><rect x="35" y="344" width="16" height="26" rx="1.5" stroke="#151515" stroke-width="3"/><path d="M43 344 V370 M35 357 H51" stroke="#151515" stroke-width="2" fill="none"/></g><g class="win"><rect x="119" y="344" width="16" height="26" rx="1.5" stroke="#151515" stroke-width="3"/><path d="M127 344 V370 M119 357 H135" stroke="#151515" stroke-width="2" fill="none"/></g>
+          <path d="M2 450 H168" stroke="#151515" stroke-width="5" stroke-linecap="round"/>
         </svg>
-        <div class="tower"><div class="dim"></div><div class="lit"></div><div class="track"></div><div class="puck"></div></div>
-        <div class="base"></div>
       </div>
       <div class="calc-head">
         <span class="label">The more you post, the more you sell, the more you make</span>
-        <h2>Help us ring the bell!</h2>
+        <h2>Help us reach our goal!</h2>
       </div>
       <div class="calc">
         <div class="fields">
@@ -549,7 +554,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
       <div class="t-stub">
         <p class="label">Admit one</p>
         <p class="t-admit">Great<br>night out</p>
-        <svg viewBox="0 0 160 120" role="img" aria-label="Ringing $2 bell"><use href="#i-bell"/></svg>
+        <svg viewBox="0 0 132 182" role="img" aria-label="$2 to our school"><use href="#i-goldticket"/></svg>
         <p class="t-serial">N&ordm; 000002</p>
       </div>
     </div>
@@ -587,22 +592,18 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
     <div class="kit-grid">
       <div class="kit-group" style="--ar:1.546">
       <figure class="kit-item rv" style="--ar:.773">
-        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-flyer.jpg" data-dl="Fundfare-AJPAC-Flyer.jpg" aria-label="Open the flyer full size"><img src="/fundfare/img/fundfare-ajpac-flyer-web.jpg" width="1100" height="1424" alt="Fundfare flyer for supporters" loading="lazy"></button>
-        <figcaption><b>The flyer</b><p>Letter size. Write in your school and your goal, add your QR code, and pin it up.</p><a class="dl" href="/fundfare/img/fundfare-ajpac-flyer.jpg" download="Fundfare-AJPAC-Flyer.jpg"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
+        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-family-flyer-v4-web.jpg" data-dlhref="/fundfare/img/fundfare-family-flyer-v4.pdf" data-dl="Fundfare-family-flyer-v4.pdf" data-dllabel="Download the PDF" aria-label="Open the family flyer full size"><img src="/fundfare/img/fundfare-family-flyer-v4-web.jpg" width="1100" height="1424" alt="Fundfare family flyer" loading="lazy"></button>
+        <figcaption><b>Family flyer</b><p>Letter size. Write in your school and your goal, add your QR code, and pin it up.</p><a class="dl" href="/fundfare/img/fundfare-family-flyer-v4.pdf" download="Fundfare-family-flyer-v4.pdf"><svg><use href="#i-dl"/></svg>Download PDF</a></figcaption>
       </figure>
       <figure class="kit-item rv" style="--ar:.773">
-        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-one-sheet.jpg" data-dl="Fundfare-AJPAC-One-Sheet.jpg" aria-label="Open the school one-sheet full size"><img src="/fundfare/img/fundfare-ajpac-one-sheet-web.jpg" width="900" height="1165" alt="Fundfare one-sheet: Every ticket = $2 for your school. How it works, one link or one per team, $36,000+ up for grabs." loading="lazy"></button>
-        <figcaption><b>The one-sheet</b><p>Letter size. How Fundfare works, for principals, coaches and booster clubs.</p><a class="dl" href="/fundfare/img/fundfare-ajpac-one-sheet.jpg" download="Fundfare-AJPAC-One-Sheet.jpg"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
+        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-school-one-sheet-v4-web.jpg" data-dlhref="/fundfare/img/fundfare-school-one-sheet-v4.pdf" data-dl="Fundfare-school-one-sheet-v4.pdf" data-dllabel="Download the PDF" aria-label="Open the school one-sheet full size"><img src="/fundfare/img/fundfare-school-one-sheet-v4-web.jpg" width="1100" height="1424" alt="Fundfare school one-sheet: Every ticket = $2 for your school. How it works, one link or one per team, $36,000+ up for grabs." loading="lazy"></button>
+        <figcaption><b>School one-sheet</b><p>Letter size. How Fundfare works, for principals, coaches and booster clubs.</p><a class="dl" href="/fundfare/img/fundfare-school-one-sheet-v4.pdf" download="Fundfare-school-one-sheet-v4.pdf"><svg><use href="#i-dl"/></svg>Download PDF</a></figcaption>
       </figure>
       </div>
-      <div class="kit-group" style="--ar:1.5625">
+      <div class="kit-group solo" style="--ar:.5625">
       <figure class="kit-item rv" style="--ar:.5625">
-        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-story.jpg" data-dl="Fundfare-AJPAC-Story.jpg" aria-label="Open the Instagram story full size"><img src="/fundfare/img/fundfare-ajpac-story-web.jpg" width="600" height="1067" alt="Fundfare Instagram story with space for a link sticker" loading="lazy"></button>
-        <figcaption><b>Story</b><p>1080 &times; 1920. Add your link sticker in the dashed box.</p><a class="dl" href="/fundfare/img/fundfare-ajpac-story.jpg" download="Fundfare-AJPAC-Story.jpg"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
-      </figure>
-      <figure class="kit-item rv" style="--ar:1">
-        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-square.jpg" data-dl="Fundfare-AJPAC-Square-Post.jpg" aria-label="Open the square post full size"><img src="/fundfare/img/fundfare-ajpac-square-web.jpg" width="720" height="720" alt="Fundfare square post: Tap the link in my bio to get your tickets" loading="lazy"></button>
-        <figcaption><b>Square post</b><p>1080 &times; 1080. For Facebook and Instagram, with your link in your bio.</p><a class="dl" href="/fundfare/img/fundfare-ajpac-square.jpg" download="Fundfare-AJPAC-Square-Post.jpg"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
+        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-story-v4.png" data-dl="Fundfare-social-story-v4-1080x1920.png" data-dllabel="Download image" aria-label="Open the Instagram story full size"><img src="/fundfare/img/fundfare-story-v4-web.jpg" width="600" height="1067" alt="Fundfare Instagram story with space for a link sticker" loading="lazy"></button>
+        <figcaption><b>Instagram story</b><p>1080 &times; 1920. Add your link sticker in the dashed box.</p><a class="dl" href="/fundfare/img/fundfare-story-v4.png" download="Fundfare-social-story-v4-1080x1920.png"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
       </figure>
       </div>
     </div>
@@ -639,7 +640,7 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
       </div>
       <div class="join-bee" aria-hidden="true">
         <img src="/fundfare/img/bee.webp" width="599" height="587" alt="" loading="lazy">
-        <svg class="bell-mini" viewBox="0 0 160 120"><use href="#i-bell"/></svg>
+        <svg class="gold-mini" viewBox="-40 -12 180 204"><g stroke="#ffc83d" stroke-width="7" stroke-linecap="round"><path d="M-8 28 L-26 14"/><path d="M-12 62 L-34 60"/><path d="M-6 96 L-24 108"/></g><use href="#i-goldticket" x="0" y="0" width="132" height="182"/></svg>
       </div>
     </div>
   </div>
@@ -663,8 +664,8 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
 
 <dialog class="lb" id="lb" aria-label="Full-size image">
   <button class="lb-x" type="button" aria-label="Close">&times;</button>
-  <img src="" alt="">
-  <div class="lb-bar"><a class="dl" href="" download><svg><use href="#i-dl"/></svg>Download full size</a></div>
+  <img alt="">
+  <div class="lb-bar"><a class="dl" href="#" download><svg><use href="#i-dl"/></svg><span>Download</span></a></div>
 </dialog>
 
 <script>
@@ -695,49 +696,50 @@ input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;bac
     }, 320);
   }, 2400);
 
-  /* ---- ring the bell ---- */
+  /* ---- reach our goal ---- */
   var goal = document.getElementById('goalAmt'), forEl = document.getElementById('goalFor'),
       tix = document.getElementById('tix'), tixOut = document.getElementById('tixOut'),
       res = document.getElementById('result'), per = document.getElementById('per'),
-      striker = document.getElementById('striker'), bee = document.getElementById('beeCheer'),
-      presets = document.querySelectorAll('#presets button');
+      viz = document.getElementById('goalviz'), wins = viz.querySelectorAll('.win'),
+      bee = document.getElementById('beeCheer'), presets = document.querySelectorAll('#presets button');
   function money(n){ return '$' + Math.round(n).toLocaleString('en-US'); }
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  var wasRung = false;
   function update(){
     var g = Math.max(0, parseFloat(goal.value) || 0), t = parseInt(tix.value, 10) || 0, raised = t * 2;
     var p = g > 0 ? Math.min(raised / g, 1) : 0;
     var what = esc(forEl.value.trim() || 'your school');
     tixOut.textContent = t.toLocaleString('en-US');
     tix.style.setProperty('--fillpct', (t / tix.max * 100) + '%');
-    striker.style.setProperty('--p', p.toFixed(3));
-    var rung = g > 0 && raised >= g;
-    striker.classList.toggle('rung', rung);
-    if (bee) bee.classList.toggle('party', rung);
-    if (rung) {
-      res.innerHTML = '<span class="ding">Ding!</span> <b>' + money(raised) + '</b> raised. That rings the bell for ' + what + '.';
+    viz.style.setProperty('--p', p.toFixed(3));
+    var lit = Math.round(p * wins.length);
+    wins.forEach(function(el, n){ el.classList.toggle('on', n < lit); });
+    var reached = g > 0 && raised >= g;
+    viz.classList.toggle('reached', reached);
+    if (bee) bee.classList.toggle('party', reached);
+    if (reached) {
+      res.innerHTML = '<span class="done">Goal reached!</span> <b>' + money(raised) + '</b> raised for ' + what + '.';
     } else if (g > 0) {
       var left = Math.ceil((g - raised) / 2);
-      res.innerHTML = 'That&rsquo;s <b>' + money(raised) + '</b> for ' + what + '. <b>' + left.toLocaleString('en-US') + '</b> more ticket' + (left === 1 ? '' : 's') + ' rings the bell.';
+      res.innerHTML = 'That&rsquo;s <b>' + money(raised) + '</b> for ' + what + '. Sell <b>' + left.toLocaleString('en-US') + '</b> more ticket' + (left === 1 ? '' : 's') + ' to reach the goal.';
     } else {
       res.innerHTML = 'That&rsquo;s <b>' + money(raised) + '</b> for ' + what + '.';
     }
     var ps = Math.ceil(t / 30);
     per.textContent = t > 0 ? 'About ' + ps + ' ticket' + (ps === 1 ? '' : 's') + ' a show across 30 shows.' : '';
     presets.forEach(function(b){ b.setAttribute('aria-pressed', String(+b.dataset.goal === g && b.dataset.for === forEl.value.trim())); });
-    wasRung = rung;
   }
   [goal, forEl, tix].forEach(function(el){ el.addEventListener('input', update); });
   presets.forEach(function(b){ b.addEventListener('click', function(){ goal.value = b.dataset.goal; forEl.value = b.dataset.for; update(); }); });
   update();
 
   /* ---- lightbox ---- */
-  var lb = document.getElementById('lb'), lbImg = lb.querySelector('img'), lbDl = lb.querySelector('.dl');
+  var lb = document.getElementById('lb'), lbImg = lb.querySelector('img'), lbDl = lb.querySelector('.dl'), lbDlText = lbDl.querySelector('span');
   document.querySelectorAll('.zoom').forEach(function(b){
     b.addEventListener('click', function(){
       var im = b.querySelector('img');
       lbImg.src = b.dataset.full; lbImg.alt = im ? im.alt : '';
-      lbDl.href = b.dataset.full; lbDl.setAttribute('download', b.dataset.dl || '');
+      lbDl.href = b.dataset.dlhref || b.dataset.full; lbDl.setAttribute('download', b.dataset.dl || '');
+      lbDlText.textContent = b.dataset.dllabel || 'Download full size';
       if (lb.showModal) lb.showModal(); else window.open(b.dataset.full, '_blank');
     });
   });
