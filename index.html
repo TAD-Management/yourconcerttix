@@ -73,7 +73,17 @@ header .count { color: var(--text-muted); margin-top: 4px; font-size: 14px; }
 .promo-row .promo { margin: 0; flex-direction: column; align-items: flex-start; }
 .promo-row .promo .promo-btn { align-self: flex-start; }
 .promo .promo-btn { flex: 0 0 auto; padding: 12px 18px; border-radius: 10px; background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff; font-weight: 700; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
+/* Fundfare (school fundraising) banner, in the Fundfare flyer colours; links to the hand-built /fundfare/ page */
+.promo.promo-fund { position: relative; gap: 18px; margin: 26px auto 8px; padding: 14px 20px 14px 16px; border: 0; color: #fff; background: repeating-conic-gradient(from 0deg at 80% 50%, #2250d9 0deg 7deg, #2c5ae3 7deg 14deg); }
+.promo.promo-fund:hover { box-shadow: 0 16px 40px -16px rgba(34,80,217,.9); }
+.promo-fund .promo-logo { flex: 0 0 auto; width: 130px; height: auto; transform: rotate(-3deg); }
+.promo-fund .promo-text { flex: 1 1 auto; }
+.promo-fund .promo-kicker { color: #e9ff3a; }
+.promo-fund .promo-sub { color: rgba(255,255,255,.88); }
+.promo-fund .promo-bee { flex: 0 0 auto; width: 100px; height: auto; margin: -40px 0 -14px; }
+.promo-fund .promo-btn { background: #e9ff3a; color: #151515; }
 @media (max-width: 600px) { .promo { flex-direction: column; align-items: flex-start; margin: 0 12px 8px; } .promo .promo-btn { width: 100%; text-align: center; } .promo-row { grid-template-columns: 1fr; gap: 8px; margin: 0 12px 8px; } .promo-row .promo { margin: 0; } .promo-row .promo .promo-btn { align-self: stretch; } }
+@media (max-width: 600px) { .promo.promo-fund { margin: 30px 12px 8px; gap: 12px; } .promo-fund .promo-bee { position: absolute; right: 12px; top: -30px; width: 86px; margin: 0; } }
 footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--card-border); margin-top: 40px; }
 @media (max-width: 600px) {
   .hero h2 { font-size: 28px; }
@@ -115,6 +125,16 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
     <span class="promo-btn">See the Lineup &rarr;</span>
   </a>
 </div>
+<a class="promo promo-fund" href="/fundfare/">
+  <img class="promo-logo" src="/fundfare/img/fundfare-logo.webp" width="450" height="169" alt="Fundfare">
+  <div class="promo-text">
+    <span class="promo-kicker">School fundraising &middot; Schools, teams &amp; clubs</span>
+    <span class="promo-title">Raise money for your school</span>
+    <span class="promo-sub">$2 from every Apache Junction concert ticket bought through your school's link goes to your school or team.</span>
+  </div>
+  <img class="promo-bee" src="/fundfare/img/bee-sm.webp" width="240" height="235" alt="">
+  <span class="promo-btn">Start Fundraising &rarr;</span>
+</a>
 <a class="promo" href="/gotphilvotedin/">
   <div class="promo-text">
     <span class="promo-kicker">Special event &middot; On sale now</span>
