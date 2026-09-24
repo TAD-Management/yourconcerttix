@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fundfare: Every Ticket = $2 for Your School | YourConcertTix</title>
+<meta name="description" content="Fundfare turns concert tickets into school funds. Share your school's ticket link, fans buy tickets to TAD concerts at the Apache Junction Performing Arts Center, and your school earns $2 for every ticket.">
+<link rel="canonical" href="https://yourconcerttix.com/fundfare/">
+<meta property="og:title" content="Fundfare: Enjoy a concert. Support your school.">
+<meta property="og:description" content="Every ticket bought through your school's link pays your school $2. 30+ live concerts with TAD at AJPAC.">
+<meta property="og:image" content="https://yourconcerttix.com/fundfare/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yourconcerttix.com/fundfare/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#2250d9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Big+Shoulders+Display:wght@700;800;900&family=Limelight&family=Montserrat:wght@800&family=Permanent+Marker&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="/fundfare/img/fundfare-ajpac-flyer-web.jpg">
+<style>
+:root{
+  --blue:#2250d9; --blue-ray:#2c5ae3; --blue-deep:#1638a8;
+  --lime:#e9ff3a; --ink:#151515; --cream:#f6f0e0; --paper:#fff;
+  --red:#e74530; --red-ink:#c3321f; --yellow:#ffc83d; --gold:#fcd46f;
+  --muted:#595448; --dash:#7a7263; --sand:#dcd2b9;
+  --display:'Big Shoulders Display','Arial Narrow',sans-serif;
+  --body:'Barlow',system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden;overflow-x:clip}
+body{font-family:var(--body);font-size:18px;line-height:1.5;background:var(--cream);color:var(--ink);overflow-x:hidden;overflow-x:clip;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{max-width:100%;height:auto;display:block}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--lime);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* ---------- shared type ---------- */
+.label{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.22em;text-transform:uppercase;color:var(--red-ink)}
+h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(40px,5.6vw,68px);line-height:.9;letter-spacing:-.005em}
+h3{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(28px,2.8vw,36px);line-height:.95}
+.hl{background:var(--lime);color:var(--ink);padding:0 .08em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-weight:900;font-size:23px;line-height:1;letter-spacing:.02em;text-transform:uppercase;text-decoration:none;padding:15px 26px 14px;border-radius:14px;border:3px solid var(--ink);box-shadow:0 6px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translateY(2px);box-shadow:0 4px 0 var(--ink)}
+.btn:active{transform:translateY(6px);box-shadow:0 0 0 var(--ink)}
+.btn-lime{background:var(--lime);color:var(--ink)}
+.btn-ink{background:var(--ink);color:#fff;box-shadow:0 6px 0 var(--sand)}
+.btn-ink:hover{box-shadow:0 4px 0 var(--sand)}
+.btn-ghost{color:#fff;border-color:#fff;box-shadow:0 6px 0 rgba(8,24,100,.45)}
+.btn-ghost:hover{box-shadow:0 4px 0 rgba(8,24,100,.45)}
+.btn svg{width:20px;height:20px;flex:none}
+
+/* ---------- hero ---------- */
+.hero{position:relative;color:#fff;padding-bottom:78px;background:repeating-conic-gradient(from 0deg at 76% 34%,var(--blue) 0deg 6deg,var(--blue-ray) 6deg 12deg)}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:18px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='18' viewBox='0 0 36 18'%3E%3Cpath d='M0 18 L18 0 L36 18 Z' fill='%23f6f0e0'/%3E%3C/svg%3E") 0 100%/36px 18px repeat-x}
+.bunting{height:50px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='50' viewBox='0 0 250 50'%3E%3Cpath d='M0 5 Q125 12 250 5' stroke='%23151515' stroke-width='2' fill='none'/%3E%3Cpath d='M4 6 L46 7 L25 42 Z' fill='%23e74530'/%3E%3Cpath d='M54 8 L96 8.5 L75 44 Z' fill='%23ffc83d'/%3E%3Cpath d='M104 9 L146 9 L125 45 Z' fill='%23ffffff'/%3E%3Cpath d='M154 8.5 L196 8 L175 44 Z' fill='%23e9ff3a'/%3E%3Cpath d='M204 7 L246 6 L225 42 Z' fill='%23151515'/%3E%3C/svg%3E") 0 0/250px 50px repeat-x}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1180px;margin:0 auto;padding:6px 20px 0}
+.brand{font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.3px;text-decoration:none;color:#fff}
+.brand span{color:var(--lime)}
+.bar-cta{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;color:#fff;border:2px solid rgba(255,255,255,.75);border-radius:999px;padding:8px 16px 7px;transition:background .15s,color .15s}
+.bar-cta:hover{background:#fff;color:var(--blue)}
+.hero-in{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:center;max-width:1180px;margin:0 auto;padding:22px 20px 0}
+.logo{width:240px;height:auto;transform:rotate(-3deg);filter:drop-shadow(0 6px 0 rgba(8,24,100,.35));animation:rise .6s ease both}
+.pill{display:inline-block;background:var(--ink);color:#fff;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.22em;text-transform:uppercase;padding:10px 20px 9px;border-radius:999px;margin:22px 0 18px;animation:rise .6s .06s ease both}
+.pill b{color:var(--lime);font-weight:800;padding:0 .2em}
+.hero h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(60px,8.2vw,114px);line-height:.84;letter-spacing:-.005em;text-shadow:0 5px 0 rgba(8,24,100,.35);animation:rise .7s .1s ease both}
+.hero h1 .l{display:block;white-space:nowrap}
+.hero h1 .hl{text-shadow:none;display:inline-block;padding:.02em .07em 0;margin-left:-.07em}
+.lede{font-size:clamp(18px,1.7vw,21px);font-weight:600;max-width:560px;margin:26px 0 28px;animation:rise .7s .16s ease both}
+.lede strong{background:var(--lime);color:var(--ink);padding:0 .25em;border-radius:3px}
+.ctas{display:flex;flex-wrap:wrap;gap:14px 16px;animation:rise .7s .22s ease both}
+.for{margin-top:22px;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85);animation:rise .7s .28s ease both}
+.for i{font-style:normal;color:var(--lime);padding:0 .35em}
+
+/* the main flyer, pinned like a poster */
+.poster{position:relative;justify-self:center;width:min(100%,470px);transform:rotate(2.2deg);animation:pin .8s .2s cubic-bezier(.2,1.2,.4,1) both}
+.poster-btn{display:block;width:100%;border-radius:6px;overflow:hidden;box-shadow:0 34px 60px -22px rgba(5,14,60,.85),0 0 0 1px rgba(0,0,0,.12);transition:transform .25s ease}
+.poster-btn:hover{transform:scale(1.015)}
+.poster-btn img{width:100%;height:auto}
+.poster::before,.poster::after{content:"";position:absolute;z-index:2;top:-14px;width:120px;height:34px;background:rgba(246,240,224,.82);box-shadow:0 2px 5px rgba(0,0,0,.18);pointer-events:none}
+.poster::before{left:-26px;transform:rotate(-24deg)}
+.poster::after{right:-26px;transform:rotate(22deg)}
+.poster figcaption{display:flex;justify-content:center;gap:10px;margin-top:22px;transform:rotate(-2.2deg)}
+.chip-link{display:inline-flex;align-items:center;gap:8px;background:rgba(21,21,21,.85);color:#fff;text-decoration:none;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;padding:10px 16px 9px;border-radius:999px;transition:background .15s}
+.chip-link:hover{background:var(--ink)}
+.chip-link svg{width:16px;height:16px}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1}}
+.logo{animation-name:rise-tilt}
+@keyframes rise-tilt{from{opacity:0;transform:translateY(16px) rotate(-3deg)}to{opacity:1;transform:rotate(-3deg)}}
+@keyframes pin{from{opacity:0;transform:translateY(40px) rotate(8deg)}to{opacity:1;transform:rotate(2.2deg)}}
+
+/* ---------- ticker ---------- */
+.ticker{position:relative;z-index:3;margin:-10px 0 0;padding:22px 0 10px;overflow:hidden}
+.ticker-band{background:var(--ink);transform:rotate(-1.4deg);margin:0 -30px;border-top:3px solid var(--lime);border-bottom:3px solid var(--lime)}
+.ticker-track{display:flex;width:max-content;animation:tick 42s linear infinite}
+.ticker-track span{font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:.04em;text-transform:uppercase;color:#fff;padding:11px 0 9px;white-space:nowrap}
+.ticker-track i{font-style:normal;color:var(--lime);padding:0 22px}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ---------- sections ---------- */
+section{padding:72px 0}
+.head{max-width:760px;margin-bottom:34px}
+.head .label{display:block;margin-bottom:10px}
+.head p{margin-top:14px;color:var(--muted);font-size:19px}
+.center{text-align:center;margin-left:auto;margin-right:auto}
+
+/* how it works */
+.steps{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.step{display:flex;gap:18px;align-items:flex-start}
+.step svg{width:104px;height:104px;flex:none;filter:drop-shadow(0 8px 10px rgba(60,40,0,.16))}
+.step small{display:block;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.22em;text-transform:uppercase;color:var(--red-ink);margin:6px 0 2px}
+.step p{color:var(--muted);margin-top:6px;font-size:18px;line-height:1.4}
+
+/* teams + marquee */
+.split{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:56px;align-items:start}
+.tree{margin-top:34px;text-align:center}
+.root{display:inline-block;background:var(--ink);color:#fff;font-family:var(--display);font-weight:800;font-size:clamp(22px,2.6vw,32px);letter-spacing:.05em;text-transform:uppercase;padding:13px 34px 11px;border-radius:999px;position:relative;z-index:1}
+.branches{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:40px 14px;padding-top:40px;position:relative}
+.branches::before{content:"";position:absolute;left:50%;top:0;height:20px;border-left:3px dashed var(--dash)}
+.branches::after{content:"";position:absolute;left:16.667%;right:16.667%;top:20px;border-top:3px dashed var(--dash)}
+.branches li{position:relative;font-family:var(--display);font-weight:800;font-size:clamp(18px,1.9vw,23px);letter-spacing:.08em;text-transform:uppercase;padding:12px 8px 10px;border-radius:999px;box-shadow:0 4px 0 rgba(0,0,0,.14);transition:transform .2s}
+.branches li:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.branches li::before{content:"";position:absolute;left:50%;top:-20px;height:20px;border-left:3px dashed var(--dash)}
+.branches li:nth-child(n+4)::before{top:-40px;height:40px}
+.t-red{background:var(--red);color:#fff}
+.t-blue{background:var(--blue);color:#fff}
+.t-yellow{background:var(--yellow);color:var(--ink)}
+
+.marquee{position:relative;background:#141414;border:12px solid var(--red);border-radius:30px;box-shadow:0 10px 0 var(--sand),inset 0 0 0 3px #000,inset 0 0 60px rgba(252,212,111,.07);padding:10px 22px;text-align:center}
+.bulbs{position:relative;height:30px}
+.bulbs::before,.bulbs::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,#fffbe0 0 3.5px,#fcd46f 4.5px 7px,rgba(252,212,111,.35) 8px,transparent 11px) 0 50%/36px 30px repeat-x}
+.bulbs::after{background-position:18px 50%;animation:chase 1.1s steps(1) infinite}
+.bulbs::before{animation:chase 1.1s steps(1) infinite reverse}
+@keyframes chase{0%{opacity:1}50%{opacity:.25}}
+.mq-k{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);margin-top:12px}
+.mq-big{font-family:'Limelight',var(--display);font-size:clamp(58px,7.4vw,98px);line-height:1.08;color:var(--gold);text-shadow:0 0 16px rgba(252,212,111,.55),0 0 44px rgba(252,212,111,.25)}
+.mq-eq{display:flex;justify-content:center;align-items:flex-start;gap:12px;color:#fff;margin:4px 0 12px}
+.mq-eq span{display:flex;flex-direction:column;align-items:center;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase}
+.mq-eq b{font-size:clamp(36px,4vw,50px);font-weight:900;letter-spacing:0;line-height:1}
+.mq-eq i{font-style:normal;color:var(--red);font-family:var(--display);font-weight:900;font-size:28px;line-height:1.4}
+.note{color:var(--muted);font-size:16px;margin-top:22px;max-width:440px}
+
+/* ring the bell */
+.bell-sec{padding-top:24px}
+.card{position:relative;background:#fff;border:4px solid var(--ink);border-radius:28px;box-shadow:10px 12px 0 var(--ink)}
+.bellbox{display:grid;grid-template-columns:150px minmax(0,1fr) 250px;grid-template-areas:"striker head bee" "striker calc bee";gap:0 40px;align-items:center;padding:40px 44px}
+.bellbox .striker{grid-area:striker}
+.calc-head{grid-area:head;align-self:end}
+.calc{grid-area:calc;align-self:start}
+.bee-col{grid-area:bee}
+.striker{position:relative;display:flex;flex-direction:column;align-items:center;height:460px;--p:.5}
+.striker .bell{width:150px;height:auto;flex:none;overflow:visible}
+.bell-body{transform-origin:80px 8px;transform-box:view-box}
+.waves path{opacity:.22;transition:opacity .3s}
+.striker.rung .bell-body{animation:ring .5s ease-in-out infinite}
+.striker.rung .waves path{animation:wave .5s ease-in-out infinite alternate}
+@keyframes ring{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+@keyframes wave{from{opacity:.25}to{opacity:1}}
+.tower{position:relative;width:80px;flex:1;margin-top:-4px;background:linear-gradient(90deg,#1a44c4,#2d5de8 50%,#1a44c4);border:4px solid var(--ink);border-radius:16px 16px 6px 6px;overflow:hidden}
+.tower .dim,.tower .lit{position:absolute;left:6px;right:6px;bottom:8px;background:
+  radial-gradient(circle,var(--c1) 0 3.5px,var(--c2) 4.5px 5.5px,transparent 6.5px) 0 100%/14px 22px repeat-y,
+  radial-gradient(circle,var(--c1) 0 3.5px,var(--c2) 4.5px 5.5px,transparent 6.5px) 100% 100%/14px 22px repeat-y}
+.tower .dim{top:8px;--c1:#8d8a6c;--c2:#5e5c49}
+.tower .lit{--c1:#fffbe0;--c2:#ffc83d;height:calc(var(--p) * (100% - 16px));transition:height .8s cubic-bezier(.2,1.25,.4,1);filter:drop-shadow(0 0 4px rgba(255,200,61,.95))}
+.tower .track{position:absolute;left:50%;top:10px;bottom:10px;width:8px;margin-left:-4px;background:#0e2785;border-radius:4px}
+.tower .puck{position:absolute;left:50%;width:46px;height:18px;margin-left:-23px;bottom:calc(8px + var(--p) * (100% - 34px));background:var(--red);border:3px solid var(--ink);border-radius:6px;transition:bottom .8s cubic-bezier(.2,1.25,.4,1)}
+.striker .base{width:130px;height:18px;background:var(--ink);border-radius:6px;flex:none}
+.calc-head h2{font-size:clamp(40px,5vw,64px)}
+.calc-head .label{display:block;margin-bottom:8px}
+.fields{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px 18px;align-items:center;margin:24px 0 18px}
+.fields label{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.fill{display:flex;align-items:baseline;gap:6px;border-bottom:4px solid var(--ink);padding-bottom:2px}
+.fill b{font-family:var(--display);font-weight:900;font-size:34px;line-height:1}
+.fill input{width:100%;min-width:0;border:0;background:transparent;font-family:'Permanent Marker',cursive;font-size:26px;color:var(--blue);padding:2px 0;outline:none}
+.fill:focus-within{border-color:var(--blue)}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.presets button{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.1em;text-transform:uppercase;padding:8px 14px 7px;border-radius:999px;border:2px solid var(--ink);background:var(--cream);transition:background .15s,transform .15s}
+.presets button:hover{transform:translateY(-2px)}
+.presets button[aria-pressed="true"]{background:var(--ink);color:var(--lime)}
+.slider-l{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.slider-l output{font-weight:900;font-size:38px;letter-spacing:0;color:var(--ink);line-height:1}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;border-radius:999px;background:linear-gradient(90deg,var(--blue) var(--fillpct,12%),#e7dfca var(--fillpct,12%));border:3px solid var(--ink);margin:10px 0 18px;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:34px;height:34px;border-radius:50%;background:var(--lime);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink)}
+input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--lime);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink)}
+.result{font-size:20px;font-weight:600;line-height:1.35;min-height:2.7em}
+.result b{font-family:var(--display);font-weight:900;font-size:1.25em;letter-spacing:.01em}
+.result .ding{display:inline-block;background:var(--lime);padding:0 .3em;border-radius:4px;font-family:var(--display);font-weight:900;text-transform:uppercase;letter-spacing:.04em;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.4) rotate(-8deg)}to{transform:none}}
+.per{font-size:15px;color:var(--muted);margin-top:4px}
+.bee-cheer{width:100%;height:auto;transform-origin:50% 100%;animation:bob 3.2s ease-in-out infinite}
+.bee-cheer.party{animation:party .55s ease-in-out infinite alternate}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+@keyframes party{from{transform:translateY(0) rotate(-6deg) scale(1)}to{transform:translateY(-22px) rotate(6deg) scale(1.04)}}
+
+/* fans: the ticket */
+.fans{background:var(--paper);border-top:4px solid var(--ink);border-bottom:4px solid var(--ink)}
+.fans .head{margin-bottom:40px}
+.ticket{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 290px;max-width:1020px;margin:0 auto;background:#fff;border:4px solid var(--ink);border-radius:26px;box-shadow:0 12px 0 var(--ink);filter:drop-shadow(0 18px 30px rgba(0,0,0,.08))}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:46px;height:46px;margin-top:-23px;border-radius:50%;background:#fff;border:4px solid var(--ink)}
+.ticket::before{left:-25px;clip-path:inset(0 0 0 50%)}
+.ticket::after{right:-25px;clip-path:inset(0 50% 0 0)}
+.t-main{position:relative;padding:34px 44px 56px}
+.t-inner{border:3px dashed #bdb6a6;border-radius:18px;padding:22px 30px 26px}
+.t-main .label{color:var(--red-ink)}
+.t-row{display:flex;align-items:flex-end;gap:18px;margin-top:4px}
+.t-2{font-family:var(--display);font-weight:900;font-size:clamp(110px,15vw,190px);line-height:.8;color:var(--blue);letter-spacing:-.02em;margin-top:.17em}
+.t-goes{font-family:var(--display);font-weight:900;font-size:clamp(34px,4vw,54px);line-height:1;text-transform:uppercase;padding-bottom:.12em}
+.t-blank{position:relative;height:72px;margin-top:14px;border-bottom:5px solid var(--ink);overflow:hidden}
+.t-word{position:absolute;left:4px;bottom:2px;font-family:'Permanent Marker',cursive;font-size:clamp(34px,4.4vw,52px);line-height:1.1;color:var(--blue);white-space:nowrap;transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .3s}
+.t-word.out{transform:translateY(-80%);opacity:0}
+.t-word.pre{transform:translateY(80%);opacity:0;transition:none}
+.t-cap{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:10px}
+.t-pill{position:absolute;left:66px;bottom:20px;background:var(--ink);color:#fff;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.22em;text-transform:uppercase;padding:10px 20px 9px;border-radius:999px;max-width:calc(100% - 90px)}
+.t-stub{position:relative;border-left:4px dashed var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px}
+.t-stub::before,.t-stub::after{content:"";position:absolute;left:-26px;width:48px;height:48px;border-radius:50%;background:var(--paper);border:4px solid var(--ink)}
+.t-stub::before{top:-28px;clip-path:inset(50% 0 0 0)}
+.t-stub::after{bottom:-28px;clip-path:inset(0 0 50% 0)}
+.t-stub .label{color:var(--muted)}
+.t-admit{font-family:var(--display);font-weight:900;font-size:46px;line-height:.9;text-transform:uppercase;margin:8px 0 12px}
+.t-stub svg{width:120px;height:auto;overflow:visible}
+.t-serial{font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:.3em;color:var(--red-ink);margin-top:10px}
+.steps.fan{margin-top:56px}
+
+/* shows */
+.shows-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.tag{display:inline-flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:7px 14px 6px;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.12em;text-transform:uppercase}
+.tag i{width:9px;height:9px;border-radius:50%;background:var(--red);font-style:normal}
+.tag.live i{background:#1fa64a;box-shadow:0 0 0 0 rgba(31,166,74,.6);animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(31,166,74,0)}100%{box-shadow:0 0 0 0 rgba(31,166,74,0)}}
+.show-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.show{background:#fff;border:3px solid var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 7px 0 var(--ink)}
+.show img{width:100%;aspect-ratio:1;object-fit:cover;background:#e8e0cb}
+.show b{display:block;font-family:var(--display);font-weight:800;font-size:21px;line-height:1.02;text-transform:uppercase;padding:12px 14px 4px}
+.show span{display:block;padding:0 14px 14px;color:var(--muted);font-size:15px;font-weight:600}
+.shows-foot{display:flex;flex-wrap:wrap;align-items:center;gap:18px 26px;margin-top:40px}
+.shows-foot p{flex:1 1 320px;font-weight:600;font-size:17px}
+.shows-foot p b{background:var(--lime);padding:0 .2em}
+
+/* rally kit */
+.kit{background:var(--blue);color:#fff;position:relative;background:repeating-conic-gradient(from 0deg at 50% 120%,var(--blue) 0deg 5deg,var(--blue-ray) 5deg 10deg)}
+.kit .head p{color:rgba(255,255,255,.88)}
+.kit .label{color:var(--lime)}
+.kit-grid,.kit-group{display:flex;gap:26px;align-items:flex-start}
+.kit-group,.kit-item{flex:var(--ar) 1 0;min-width:0}
+.kit-item{display:flex;flex-direction:column}
+.kit-item .zoom{display:block;border-radius:10px;overflow:hidden;box-shadow:0 22px 40px -18px rgba(5,14,60,.9);transition:transform .25s}
+.kit-item .zoom:hover{transform:translateY(-4px) rotate(-.6deg)}
+.kit-item img{width:100%;height:auto}
+.kit-item figcaption{margin-top:16px}
+.kit-item b{display:block;font-family:var(--display);font-weight:900;font-size:25px;line-height:1;text-transform:uppercase}
+.kit-item p{font-size:15px;color:rgba(255,255,255,.85);margin:6px 0 12px;line-height:1.35}
+.dl{display:inline-flex;align-items:center;gap:8px;background:var(--lime);color:var(--ink);text-decoration:none;font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.06em;text-transform:uppercase;padding:9px 14px 8px;border-radius:10px;border:2px solid var(--ink);box-shadow:0 4px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.dl:hover{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+.dl svg{width:16px;height:16px}
+
+/* faq */
+.faq-list{display:grid;gap:14px;max-width:860px}
+.faq-list details{background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink)}
+.faq-list summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 22px 16px;font-family:var(--display);font-weight:900;font-size:clamp(22px,2.4vw,28px);line-height:1.05;text-transform:uppercase}
+.faq-list summary::-webkit-details-marker{display:none}
+.faq-list summary::after{content:"+";flex:none;width:36px;height:36px;border-radius:50%;background:var(--lime);border:2px solid var(--ink);display:grid;place-items:center;font-size:26px;line-height:1;transition:transform .2s}
+.faq-list details[open] summary::after{transform:rotate(45deg)}
+.faq-list details p{padding:0 22px 20px;color:var(--muted);max-width:720px}
+
+/* join */
+.join{padding-top:40px;padding-bottom:96px}
+.join-card{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:30px;align-items:center;padding:46px 50px}
+.join-card h2{font-size:clamp(46px,6.4vw,84px)}
+.join-card p{font-size:19px;color:var(--muted);margin:16px 0 26px;max-width:560px}
+.join-card .actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.join-card .mail{font-weight:700;font-size:18px}
+.join-card .mail a{text-decoration-thickness:2px;text-underline-offset:3px}
+.join-bee{position:relative;align-self:end;margin:-120px -10px -20px 0}
+.join-bee img{width:100%;height:auto;animation:bob 3.2s ease-in-out infinite;transform-origin:50% 100%}
+.join-bee .bell-mini{position:absolute;right:-6px;top:-16px;width:92px;animation:swing 2.4s ease-in-out infinite;transform-origin:50% 0}
+@keyframes swing{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+
+/* footer */
+.foot{background:var(--ink);color:#fff;padding:34px 0 30px}
+.foot-brands{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px}
+.foot-brands img{width:150px;height:auto}
+.foot-brands .x{color:var(--yellow);font-family:var(--display);font-weight:900;font-size:26px}
+.foot-brands div b{display:block;font-family:var(--display);font-weight:900;font-size:28px;line-height:1;text-transform:uppercase}
+.foot-brands div span{font-size:15px;color:rgba(255,255,255,.8)}
+.fine{margin-top:22px;font-size:14px;color:rgba(255,255,255,.66);max-width:900px}
+.copy{margin-top:10px;font-size:14px;color:rgba(255,255,255,.66)}
+.copy a{color:#fff}
+
+/* lightbox */
+.lb{border:0;padding:0;background:transparent;max-width:min(94vw,900px);max-height:94vh;margin:auto;overflow:visible}
+.lb::backdrop{background:rgba(10,14,40,.86);backdrop-filter:blur(4px)}
+.lb img{max-width:100%;max-height:80vh;width:auto;height:auto;margin:0 auto;border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.lb-bar{display:flex;justify-content:center;gap:12px;margin-top:16px}
+.lb-x{position:absolute;top:-16px;right:-16px;width:44px;height:44px;border-radius:50%;background:#fff;border:3px solid var(--ink);font-size:26px;line-height:1;display:grid;place-items:center}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.rv.in{opacity:1;transform:none}
+
+/* ---------- responsive ---------- */
+@media (max-width:1060px){
+  .bellbox{grid-template-columns:130px minmax(0,1fr);grid-template-areas:"striker head" "striker calc";padding:34px 32px}
+  .bellbox .bee-col{display:none}
+  .striker{height:420px}
+  .striker .bell{width:130px}
+}
+@media (max-width:900px){
+  .hero-in{grid-template-columns:minmax(0,1fr);gap:44px}
+  .hero h1{font-size:min(15.5vw,88px)}
+  .poster{width:min(86%,420px)}
+  .steps{grid-template-columns:minmax(0,1fr);gap:22px;max-width:560px}
+  .split{grid-template-columns:minmax(0,1fr);gap:56px}
+  .ticket{grid-template-columns:minmax(0,1fr)}
+  .t-stub{border-left:0;border-top:4px dashed var(--ink);flex-direction:row;flex-wrap:wrap;gap:6px 18px;padding:26px 24px}
+  .t-stub::before{left:-28px;top:-26px;clip-path:inset(0 0 0 50%)}
+  .t-stub::after{left:auto;right:-28px;bottom:auto;top:-26px;clip-path:inset(0 50% 0 0)}
+  .t-stub svg{width:80px}
+  .t-admit{font-size:36px;margin:0}
+  .ticket::before,.ticket::after{display:none}
+  .show-row{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(200px,44%);overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 20px 18px;margin:0 -20px;scrollbar-width:none}
+  .show-row::-webkit-scrollbar{display:none}
+  .show{scroll-snap-align:start}
+  .join-card{grid-template-columns:minmax(0,1fr);padding:40px 30px 0}
+  .join-bee{margin:0 auto -8px;width:min(78%,300px)}
+}
+@media (max-width:760px){
+  .kit-grid{flex-direction:column;align-items:stretch}
+  .kit-group{flex:none}
+}
+@media (max-width:600px){
+  body{font-size:17px}
+  section{padding:56px 0}
+  .bar-cta{display:none}
+  .logo{width:190px}
+  .pill{font-size:13px;letter-spacing:.16em;padding:9px 16px 8px}
+  .btn{font-size:21px;padding:14px 20px 13px;flex:1 1 auto}
+  .hero{padding-bottom:64px}
+  .for{font-size:14px;letter-spacing:.12em}
+  .step svg{width:84px;height:84px}
+  .branches{grid-template-columns:repeat(2,1fr);gap:34px 12px;padding-top:36px}
+  .branches::after{left:25%;right:25%;top:18px}
+  .branches::before{height:18px}
+  .branches li::before{top:-18px;height:18px}
+  .branches li:nth-child(n+3)::before{top:-34px;height:34px}
+  .marquee{border-width:9px;padding:8px 12px}
+  .mq-eq{gap:6px}
+  .mq-eq span{font-size:11px;letter-spacing:.12em}
+  .mq-eq i{font-size:22px}
+  .bellbox{grid-template-columns:86px minmax(0,1fr);grid-template-areas:"head head" "striker calc";gap:0 18px;padding:28px 18px 26px 14px}
+  .calc-head{padding-left:4px;margin-bottom:6px}
+  .bellbox .striker{align-self:start;margin-top:26px}
+  .striker{height:380px}
+  .striker .bell{width:96px}
+  .tower{width:62px}
+  .tower .puck{width:38px;margin-left:-19px}
+  .striker .base{width:84px}
+  .fields{grid-template-columns:1fr;gap:4px}
+  .fields .fill{margin-bottom:12px}
+  .fill b{font-size:28px}
+  .fill input{font-size:22px}
+  .slider-l{font-size:14px;letter-spacing:.12em}
+  .slider-l output{font-size:32px}
+  .result{font-size:18px}
+  .t-main{padding:22px 18px 70px}
+  .t-inner{padding:16px 16px 18px}
+  .t-row{gap:12px}
+  .t-blank{height:58px}
+  .t-pill{left:18px;right:18px;bottom:18px;max-width:none;text-align:center;font-size:12px;letter-spacing:.14em}
+  .kit-grid,.kit-group{gap:16px}
+  .kit-item p{font-size:14px}
+  .kit-item b{font-size:21px}
+  .join-card{padding:32px 20px 0}
+  .card{box-shadow:6px 8px 0 var(--ink);border-radius:22px}
+  .foot-brands img{width:120px}
+  .foot-brands{flex-direction:column;align-items:flex-start;gap:14px}
+  .foot-brands .x{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="g-bell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe98f"/><stop offset=".5" stop-color="#f6c22c"/><stop offset="1" stop-color="#c88904"/></linearGradient>
+    <symbol id="i-link" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#fbf7ec"/><circle cx="50" cy="50" r="41" fill="#e74530"/><circle cx="50" cy="50" r="34" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4" opacity=".85"/><g fill="none" stroke="#fff" stroke-width="7.5" transform="rotate(-45 50 50)"><rect x="23" y="40" width="30" height="20" rx="10"/><rect x="47" y="40" width="30" height="20" rx="10"/></g></symbol>
+    <symbol id="i-phone" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#151515"/><circle cx="50" cy="50" r="42" fill="#ffc83d"/><circle cx="50" cy="50" r="35" fill="none" stroke="#151515" stroke-width="2" stroke-dasharray="4 4"/><rect x="37" y="26" width="26" height="48" rx="6" fill="#151515"/><rect x="40.5" y="31" width="19" height="34" rx="2" fill="#ffc83d"/><circle cx="50" cy="69.5" r="2.2" fill="#ffc83d"/><path d="M50 57 C44 52 41.5 48.5 44.5 45.2 C46.6 43 49.3 44 50 46.3 C50.7 44 53.4 43 55.5 45.2 C58.5 48.5 56 52 50 57 Z" fill="#e74530"/></symbol>
+    <symbol id="i-two" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#ffc83d"/><circle cx="50" cy="50" r="42" fill="#2250d9"/><circle cx="50" cy="50" r="35" fill="none" stroke="#ffc83d" stroke-width="2" stroke-dasharray="4 4"/><text x="50" y="63" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="38" fill="#fff">$2</text></symbol>
+    <symbol id="i-scan" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#fbf7ec"/><circle cx="50" cy="50" r="41" fill="#e74530"/><circle cx="50" cy="50" r="34" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4" opacity=".85"/><path d="M31 42 V31 H42 M58 31 H69 V42 M69 58 V69 H58 M42 69 H31 V58" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><rect x="42" y="42" width="16" height="16" rx="2.5" fill="#fff"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#151515"/><circle cx="50" cy="50" r="42" fill="#ffc83d"/><circle cx="50" cy="50" r="35" fill="none" stroke="#151515" stroke-width="2" stroke-dasharray="4 4"/><g transform="rotate(-18 50 50)"><path d="M26 37 H74 V45 A5 5 0 0 0 74 55 V63 H26 V55 A5 5 0 0 0 26 45 Z" fill="#151515"/><path d="M42 42.5 L43.9 47.4 L49.1 47.7 L45.1 51 L46.4 56.1 L42 53.3 L37.6 56.1 L38.9 51 L34.9 47.7 L40.1 47.4 Z" fill="#ffc83d"/><path d="M59 40 V60" stroke="#ffc83d" stroke-width="2.2" stroke-dasharray="3 3"/></g></symbol>
+    <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 160 120"><g fill="none" stroke="#ffc83d" stroke-width="6" stroke-linecap="round"><path d="M36 36 Q25 58 36 80"/><path d="M22 26 Q7 58 22 90"/><path d="M124 36 Q135 58 124 80"/><path d="M138 26 Q153 58 138 90"/></g><circle cx="80" cy="12" r="7" fill="url(#g-bell)" stroke="#8a5a00" stroke-width="2"/><path d="M80 18 C58 18 50 38 50 62 L48 80 C44 84 38 88 36 94 L124 94 C122 88 116 84 112 80 L110 62 C110 38 102 18 80 18 Z" fill="url(#g-bell)" stroke="#8a5a00" stroke-width="2.5"/><circle cx="80" cy="102" r="7" fill="#b37904" stroke="#8a5a00" stroke-width="2"/><text x="80" y="75" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="32" fill="#3f2904">$2</text></symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="bunting" aria-hidden="true"></div>
+  <nav class="bar">
+    <a class="brand" href="/">Your<span>Concert</span>Tix</a>
+    <a class="bar-cta" href="#join">Sign up your school</a>
+  </nav>
+  <div class="hero-in">
+    <div class="hero-copy">
+      <img class="logo" src="/fundfare/img/fundfare-logo.webp" width="450" height="169" alt="Fundfare">
+      <p class="pill">AJPAC <b>&times;</b> TAD Concert Series</p>
+      <h1><span class="l">Every ticket</span> <span class="l"><span class="hl">= $2</span> for</span> <span class="l">your school</span></h1>
+      <p class="lede">Share your school&rsquo;s ticket link. Fans buy tickets to TAD concerts at the Apache Junction Performing Arts Center. Your school earns <strong>$2 for every one.</strong></p>
+      <div class="ctas">
+        <a class="btn btn-lime" href="#join">Get your school&rsquo;s link <svg><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-ghost" href="#how">How it works</a>
+      </div>
+      <p class="for">Schools<i>&middot;</i>Teams<i>&middot;</i>Bands<i>&middot;</i>Cheer<i>&middot;</i>Theatre<i>&middot;</i>Clubs</p>
+    </div>
+    <figure class="poster">
+      <button class="poster-btn zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-flyer.jpg" data-dl="Fundfare-AJPAC-Flyer.jpg" aria-label="Open the Fundfare flyer full size">
+        <img src="/fundfare/img/fundfare-ajpac-flyer-web.jpg" width="1100" height="1424" alt="The Fundfare flyer: Enjoy a concert. Support our school. Every concert ticket through our link, $2 goes to our school or team. 30+ live concerts with TAD at AJPAC. Help us ring the bell!">
+      </button>
+      <figcaption><a class="chip-link" href="/fundfare/img/fundfare-ajpac-flyer.jpg" download="Fundfare-AJPAC-Flyer.jpg"><svg><use href="#i-dl"/></svg>Download the flyer</a></figcaption>
+    </figure>
+  </div>
+</header>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-band">
+    <div class="ticker-track">
+      <span>$2 a ticket</span><i>&#9733;</i><span>30+ live concerts at AJPAC</span><i>&#9733;</i><span>One link or one per team</span><i>&#9733;</i><span>The more you post, the more you make</span><i>&#9733;</i><span>Help us ring the bell</span><i>&#9733;</i>
+      <span>$2 a ticket</span><i>&#9733;</i><span>30+ live concerts at AJPAC</span><i>&#9733;</i><span>One link or one per team</span><i>&#9733;</i><span>The more you post, the more you make</span><i>&#9733;</i><span>Help us ring the bell</span><i>&#9733;</i>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<section id="how">
+  <div class="wrap">
+    <div class="head rv">
+      <span class="label">For schools &amp; groups</span>
+      <h2>How it works</h2>
+    </div>
+    <ol class="steps">
+      <li class="step rv"><svg role="img" aria-label="Link icon"><use href="#i-link"/></svg><div><small>Step 1</small><h3>Get your link</h3><p>Your school gets its own link to buy concert tickets.</p></div></li>
+      <li class="step rv"><svg role="img" aria-label="Phone icon"><use href="#i-phone"/></svg><div><small>Step 2</small><h3>Share it</h3><p>Students, teachers and families post it on social media.</p></div></li>
+      <li class="step rv"><svg role="img" aria-label="Two dollar coin"><use href="#i-two"/></svg><div><small>Step 3</small><h3>Earn $2</h3><p>Every ticket bought through your link pays your school $2.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="teams-sec" style="padding-top:24px">
+  <div class="wrap split">
+    <div class="rv">
+      <span class="label">Built for every team</span>
+      <h2 style="margin-top:10px">One link or one per team</h2>
+      <p style="margin-top:14px;color:var(--muted);font-size:19px;max-width:560px">Use a single school link, or give each team, camp and club its own. Each link keeps its own total.</p>
+      <div class="tree">
+        <div class="root">Your school &middot; one link</div>
+        <ul class="branches">
+          <li class="t-red">Softball</li>
+          <li class="t-blue">Baseball</li>
+          <li class="t-yellow">Band camp</li>
+          <li class="t-blue">Music camp</li>
+          <li class="t-red">Cheer</li>
+          <li class="t-yellow">Drama club</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rv">
+      <div class="marquee" role="img" aria-label="Up for grabs: $36,000 or more. 600 tickets a show, times 30 or more shows, times $2 a ticket.">
+        <div class="bulbs"></div>
+        <p class="mq-k">Up for grabs</p>
+        <p class="mq-big">$36,000+</p>
+        <div class="mq-eq"><span><b>600</b>tickets a show</span><i>&times;</i><span><b>30+</b>shows</span><i>&times;</i><span><b>$2</b>a ticket</span></div>
+        <div class="bulbs"></div>
+      </div>
+      <p class="note">Total commission if every seat at every show sells through school links.</p>
+    </div>
+  </div>
+</section>
+
+<section class="bell-sec" id="goal">
+  <div class="wrap">
+    <div class="card bellbox rv">
+      <div class="striker" id="striker" aria-hidden="true">
+        <svg class="bell" viewBox="0 0 160 120">
+          <g class="waves" fill="none" stroke="#ffc83d" stroke-width="6" stroke-linecap="round"><path d="M36 36 Q25 58 36 80"/><path d="M22 26 Q7 58 22 90"/><path d="M124 36 Q135 58 124 80"/><path d="M138 26 Q153 58 138 90"/></g>
+          <g class="bell-body">
+            <circle cx="80" cy="12" r="7" fill="url(#g-bell)" stroke="#8a5a00" stroke-width="2"/>
+            <path d="M80 18 C58 18 50 38 50 62 L48 80 C44 84 38 88 36 94 L124 94 C122 88 116 84 112 80 L110 62 C110 38 102 18 80 18 Z" fill="url(#g-bell)" stroke="#8a5a00" stroke-width="2.5"/>
+            <circle cx="80" cy="102" r="7" fill="#b37904" stroke="#8a5a00" stroke-width="2"/>
+            <text x="80" y="75" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="32" fill="#3f2904">$2</text>
+          </g>
+        </svg>
+        <div class="tower"><div class="dim"></div><div class="lit"></div><div class="track"></div><div class="puck"></div></div>
+        <div class="base"></div>
+      </div>
+      <div class="calc-head">
+        <span class="label">The more you post, the more you sell, the more you make</span>
+        <h2>Help us ring the bell!</h2>
+      </div>
+      <div class="calc">
+        <div class="fields">
+          <label for="goalAmt">Our goal</label>
+          <div class="fill"><b>$</b><input id="goalAmt" type="number" inputmode="numeric" min="0" max="100000" step="50" value="1000"></div>
+          <label for="goalFor">It&rsquo;s for</label>
+          <div class="fill"><input id="goalFor" type="text" maxlength="40" value="band camp" placeholder="new uniforms"></div>
+        </div>
+        <div class="presets" id="presets">
+          <button type="button" data-goal="500" data-for="new uniforms" aria-pressed="false">$500 &middot; Uniforms</button>
+          <button type="button" data-goal="1000" data-for="band camp" aria-pressed="true">$1,000 &middot; Band camp</button>
+          <button type="button" data-goal="2500" data-for="the next big trip" aria-pressed="false">$2,500 &middot; The big trip</button>
+        </div>
+        <label class="slider-l" for="tix"><span>Tickets sold through our link</span><output id="tixOut" for="tix">250</output></label>
+        <input id="tix" type="range" min="0" max="2000" step="10" value="250">
+        <p class="result" id="result" aria-live="polite">That&rsquo;s <b>$500</b> for band camp.</p>
+        <p class="per" id="per"></p>
+      </div>
+      <div class="bee-col"><img class="bee-cheer" id="beeCheer" src="/fundfare/img/bee.webp" width="599" height="587" alt="The Fundfare bee mascot cheering" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<section class="fans" id="fans">
+  <div class="wrap">
+    <div class="head center rv" style="text-align:center">
+      <span class="label">Supporting a school?</span>
+      <h2>Enjoy a concert. Support your school.</h2>
+      <p>Buy your tickets through your school&rsquo;s link and $2 of every ticket goes straight to the school or team that sent it.</p>
+    </div>
+    <div class="ticket rv">
+      <div class="t-main">
+        <div class="t-inner">
+          <p class="label">Every concert ticket through our link</p>
+          <p class="t-row"><span class="t-2">$2</span><span class="t-goes">goes to</span></p>
+          <p class="t-blank" aria-live="off"><span class="t-word" id="tWord">Softball</span></p>
+          <p class="t-cap">Our school or team</p>
+        </div>
+        <span class="t-pill">30+ live concerts with TAD at AJPAC</span>
+      </div>
+      <div class="t-stub">
+        <p class="label">Admit one</p>
+        <p class="t-admit">Great<br>night out</p>
+        <svg viewBox="0 0 160 120" role="img" aria-label="Ringing $2 bell"><use href="#i-bell"/></svg>
+        <p class="t-serial">N&ordm; 000002</p>
+      </div>
+    </div>
+    <ol class="steps fan">
+      <li class="step rv"><svg role="img" aria-label="Scan icon"><use href="#i-scan"/></svg><div><small>Step 1</small><h3>Scan our code</h3><p>Or use the link your school sent you.</p></div></li>
+      <li class="step rv"><svg role="img" aria-label="Ticket icon"><use href="#i-ticket"/></svg><div><small>Step 2</small><h3>Pick a show</h3><p>Choose a TAD concert at AJPAC.</p></div></li>
+      <li class="step rv"><svg role="img" aria-label="Two dollar coin"><use href="#i-two"/></svg><div><small>Step 3</small><h3>We get $2</h3><p>For every ticket bought through the link.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section id="shows">
+  <div class="wrap">
+    <div class="head rv">
+      <span class="label">The lineup</span>
+      <h2>30+ live concerts at AJPAC</h2>
+      <p>Tribute concerts and live music with TAD Entertainment at the Apache Junction Performing Arts Center.</p>
+      <div class="shows-meta" id="showsMeta"></div>
+    </div>
+    <div class="show-row" id="showRow"></div>
+    <div class="shows-foot">
+      <p>Buying tickets? Use your <b>school&rsquo;s link</b> so the $2 goes to your school.</p>
+      <a class="btn btn-ink" href="/apachejunction/">See the full lineup <svg><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<section class="kit" id="kit">
+  <div class="wrap">
+    <div class="head rv">
+      <span class="label">Your rally kit</span>
+      <h2>Print it. Post it. Share it.</h2>
+      <p>Flyers and social posts to spread the word. Tap any one to see it full size.</p>
+    </div>
+    <div class="kit-grid">
+      <div class="kit-group" style="--ar:1.546">
+      <figure class="kit-item rv" style="--ar:.773">
+        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-flyer.jpg" data-dl="Fundfare-AJPAC-Flyer.jpg" aria-label="Open the flyer full size"><img src="/fundfare/img/fundfare-ajpac-flyer-web.jpg" width="1100" height="1424" alt="Fundfare flyer for supporters" loading="lazy"></button>
+        <figcaption><b>The flyer</b><p>Letter size. Write in your school and your goal, add your QR code, and pin it up.</p><a class="dl" href="/fundfare/img/fundfare-ajpac-flyer.jpg" download="Fundfare-AJPAC-Flyer.jpg"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
+      </figure>
+      <figure class="kit-item rv" style="--ar:.773">
+        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-one-sheet.jpg" data-dl="Fundfare-AJPAC-One-Sheet.jpg" aria-label="Open the school one-sheet full size"><img src="/fundfare/img/fundfare-ajpac-one-sheet-web.jpg" width="900" height="1165" alt="Fundfare one-sheet: Every ticket = $2 for your school. How it works, one link or one per team, $36,000+ up for grabs." loading="lazy"></button>
+        <figcaption><b>The one-sheet</b><p>Letter size. How Fundfare works, for principals, coaches and booster clubs.</p><a class="dl" href="/fundfare/img/fundfare-ajpac-one-sheet.jpg" download="Fundfare-AJPAC-One-Sheet.jpg"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
+      </figure>
+      </div>
+      <div class="kit-group" style="--ar:1.5625">
+      <figure class="kit-item rv" style="--ar:.5625">
+        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-story.jpg" data-dl="Fundfare-AJPAC-Story.jpg" aria-label="Open the Instagram story full size"><img src="/fundfare/img/fundfare-ajpac-story-web.jpg" width="600" height="1067" alt="Fundfare Instagram story with space for a link sticker" loading="lazy"></button>
+        <figcaption><b>Story</b><p>1080 &times; 1920. Add your link sticker in the dashed box.</p><a class="dl" href="/fundfare/img/fundfare-ajpac-story.jpg" download="Fundfare-AJPAC-Story.jpg"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
+      </figure>
+      <figure class="kit-item rv" style="--ar:1">
+        <button class="zoom" type="button" data-full="/fundfare/img/fundfare-ajpac-square.jpg" data-dl="Fundfare-AJPAC-Square-Post.jpg" aria-label="Open the square post full size"><img src="/fundfare/img/fundfare-ajpac-square-web.jpg" width="720" height="720" alt="Fundfare square post: Tap the link in my bio to get your tickets" loading="lazy"></button>
+        <figcaption><b>Square post</b><p>1080 &times; 1080. For Facebook and Instagram, with your link in your bio.</p><a class="dl" href="/fundfare/img/fundfare-ajpac-square.jpg" download="Fundfare-AJPAC-Square-Post.jpg"><svg><use href="#i-dl"/></svg>Download</a></figcaption>
+      </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="head rv">
+      <span class="label">Good to know</span>
+      <h2>Questions</h2>
+    </div>
+    <div class="faq-list">
+      <details class="rv"><summary>Where does the $2 go?</summary><p>To the school. $2 is paid for each completed ticket purchase made through the school&rsquo;s link, never to an individual.</p></details>
+      <details class="rv"><summary>Can each team have its own link?</summary><p>Yes. Use one school link, or give each team, camp and club its own. Each link keeps its own total, so softball, band camp and the drama club can each track their goal.</p></details>
+      <details class="rv"><summary>Who can share the link?</summary><p>Students, teachers and families. Younger students share through a parent or teacher.</p></details>
+      <details class="rv"><summary>Which concerts count?</summary><p>TAD Entertainment concerts at the Apache Junction Performing Arts Center (AJPAC). There are 30+ shows in the series.</p></details>
+      <details class="rv"><summary>Who runs the ticketing?</summary><p>Tickets are sold and delivered by FanGenie. Your school&rsquo;s link simply tells FanGenie which school or team to credit.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="join" id="join">
+  <div class="wrap">
+    <div class="card join-card rv">
+      <div>
+        <span class="label">Ready to rally?</span>
+        <h2 style="margin-top:10px">Get your school&rsquo;s link</h2>
+        <p>Tell us your school or group and whether you want one link or one per team. We&rsquo;ll set it up and send your link over.</p>
+        <div class="actions">
+          <a class="btn btn-lime" id="mailBtn" href="mailto:info@tadshows.com?subject=Fundfare%20sign-up&amp;body=School%20or%20group%3A%20%0AYour%20name%3A%20%0APhone%3A%20%0AOne%20link%2C%20or%20one%20per%20team%3F%20(list%20the%20teams)%3A%20%0A"><svg><use href="#i-mail"/></svg>Sign up by email</a>
+          <span class="mail">or write to <a href="mailto:info@tadshows.com?subject=Fundfare%20sign-up">info@tadshows.com</a></span>
+        </div>
+      </div>
+      <div class="join-bee" aria-hidden="true">
+        <img src="/fundfare/img/bee.webp" width="599" height="587" alt="" loading="lazy">
+        <svg class="bell-mini" viewBox="0 0 160 120"><use href="#i-bell"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-brands">
+      <img src="/fundfare/img/fundfare-logo.webp" width="450" height="169" alt="Fundfare" loading="lazy">
+      <span class="x" aria-hidden="true">&times;</span>
+      <div><b>AJPAC</b><span>Apache Junction Performing Arts Center</span></div>
+      <span class="x" aria-hidden="true">&times;</span>
+      <div><b>TAD</b><span>Concerts with TAD Entertainment</span></div>
+    </div>
+    <p class="fine">$2 is paid to the school for each completed ticket purchase made through its link, never to individuals. Younger students share through a parent or teacher.</p>
+    <p class="copy">&copy; <span id="yr">2026</span> <a href="/">YourConcertTix</a> &middot; Tickets powered by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a></p>
+  </div>
+</footer>
+
+<dialog class="lb" id="lb" aria-label="Full-size image">
+  <button class="lb-x" type="button" aria-label="Close">&times;</button>
+  <img src="" alt="">
+  <div class="lb-bar"><a class="dl" href="" download><svg><use href="#i-dl"/></svg>Download full size</a></div>
+</dialog>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* ---- reveal on scroll ---- */
+  var rv = document.querySelectorAll('.rv');
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, {rootMargin: '0px 0px -8% 0px'});
+    rv.forEach(function(el){ io.observe(el); });
+  } else { rv.forEach(function(el){ el.classList.add('in'); }); }
+
+  /* ---- "$2 goes to ___" ---- */
+  var words = ['Softball','Band camp','Cheer','Drama club','Baseball','Music camp','Our school'];
+  var w = document.getElementById('tWord'), wi = 0;
+  if (!reduce) setInterval(function(){
+    w.classList.add('out');
+    setTimeout(function(){
+      wi = (wi + 1) % words.length;
+      w.textContent = words[wi];
+      w.classList.remove('out'); w.classList.add('pre');
+      void w.offsetWidth;
+      w.classList.remove('pre');
+    }, 320);
+  }, 2400);
+
+  /* ---- ring the bell ---- */
+  var goal = document.getElementById('goalAmt'), forEl = document.getElementById('goalFor'),
+      tix = document.getElementById('tix'), tixOut = document.getElementById('tixOut'),
+      res = document.getElementById('result'), per = document.getElementById('per'),
+      striker = document.getElementById('striker'), bee = document.getElementById('beeCheer'),
+      presets = document.querySelectorAll('#presets button');
+  function money(n){ return '$' + Math.round(n).toLocaleString('en-US'); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  var wasRung = false;
+  function update(){
+    var g = Math.max(0, parseFloat(goal.value) || 0), t = parseInt(tix.value, 10) || 0, raised = t * 2;
+    var p = g > 0 ? Math.min(raised / g, 1) : 0;
+    var what = esc(forEl.value.trim() || 'your school');
+    tixOut.textContent = t.toLocaleString('en-US');
+    tix.style.setProperty('--fillpct', (t / tix.max * 100) + '%');
+    striker.style.setProperty('--p', p.toFixed(3));
+    var rung = g > 0 && raised >= g;
+    striker.classList.toggle('rung', rung);
+    if (bee) bee.classList.toggle('party', rung);
+    if (rung) {
+      res.innerHTML = '<span class="ding">Ding!</span> <b>' + money(raised) + '</b> raised. That rings the bell for ' + what + '.';
+    } else if (g > 0) {
+      var left = Math.ceil((g - raised) / 2);
+      res.innerHTML = 'That&rsquo;s <b>' + money(raised) + '</b> for ' + what + '. <b>' + left.toLocaleString('en-US') + '</b> more ticket' + (left === 1 ? '' : 's') + ' rings the bell.';
+    } else {
+      res.innerHTML = 'That&rsquo;s <b>' + money(raised) + '</b> for ' + what + '.';
+    }
+    var ps = Math.ceil(t / 30);
+    per.textContent = t > 0 ? 'About ' + ps + ' ticket' + (ps === 1 ? '' : 's') + ' a show across 30 shows.' : '';
+    presets.forEach(function(b){ b.setAttribute('aria-pressed', String(+b.dataset.goal === g && b.dataset.for === forEl.value.trim())); });
+    wasRung = rung;
+  }
+  [goal, forEl, tix].forEach(function(el){ el.addEventListener('input', update); });
+  presets.forEach(function(b){ b.addEventListener('click', function(){ goal.value = b.dataset.goal; forEl.value = b.dataset.for; update(); }); });
+  update();
+
+  /* ---- lightbox ---- */
+  var lb = document.getElementById('lb'), lbImg = lb.querySelector('img'), lbDl = lb.querySelector('.dl');
+  document.querySelectorAll('.zoom').forEach(function(b){
+    b.addEventListener('click', function(){
+      var im = b.querySelector('img');
+      lbImg.src = b.dataset.full; lbImg.alt = im ? im.alt : '';
+      lbDl.href = b.dataset.full; lbDl.setAttribute('download', b.dataset.dl || '');
+      if (lb.showModal) lb.showModal(); else window.open(b.dataset.full, '_blank');
+    });
+  });
+  lb.addEventListener('click', function(e){ if (e.target === lb || e.target.classList.contains('lb-x')) lb.close(); });
+
+  /* ---- live lineup from the AJPAC page ---- */
+  var row = document.getElementById('showRow'), meta = document.getElementById('showsMeta');
+  fetch('/apachejunction/').then(function(r){ return r.ok ? r.text() : Promise.reject(r.status); }).then(function(html){
+    var m = html.match(/const DATA = (\{[\s\S]*?\});\s*\n/);
+    if (!m) throw new Error('no data');
+    var D = JSON.parse(m[1]), tz = (D.venue && D.venue.tz) || 'America/Phoenix', now = Date.now();
+    var ev = (D.events || []).filter(function(e){ return new Date(e.iso).getTime() > now - 6 * 3600e3; })
+                             .sort(function(a, b){ return new Date(a.iso) - new Date(b.iso); });
+    if (!ev.length) throw new Error('no events');
+    function day(iso, o){ return new Date(iso).toLocaleDateString('en-US', Object.assign({timeZone: tz}, o)); }
+    var first = ev[0], last = ev[ev.length - 1];
+    var tags = '<span class="tag">' + ev.length + ' shows</span>' +
+               '<span class="tag">' + day(first.iso, {month:'short', day:'numeric'}) + ' &ndash; ' + day(last.iso, {month:'short', day:'numeric', year:'numeric'}) + '</span>';
+    var on = D.firstOnSale ? new Date(D.firstOnSale) : null;
+    tags += (on && on.getTime() > now)
+      ? '<span class="tag"><i></i>Tickets on sale ' + day(D.firstOnSale, {weekday:'short', month:'short', day:'numeric'}) + '</span>'
+      : '<span class="tag live"><i></i>Tickets on sale now</span>';
+    meta.innerHTML = tags;
+    row.innerHTML = ev.slice(0, 8).map(function(e){
+      var img = e.poster ? (/^https?:/.test(e.poster) ? e.poster : '/apachejunction/' + e.poster.replace(/^\.?\//, '')) : e.banner;
+      return '<div class="show"><img src="' + esc(img) + '" alt="' + esc(e.name) + '" loading="lazy" width="900" height="900">' +
+             '<b>' + esc(e.name.split(' - ')[0]) + '</b><span>' + esc(e.dow + ', ' + e.mon + ' ' + e.day + ' · ' + e.time) + '</span></div>';
+    }).join('');
+  }).catch(function(){ row.style.display = 'none'; });
+})();
+</script>
+</body>
+</html>
