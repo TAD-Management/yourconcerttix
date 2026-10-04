@@ -78,7 +78,7 @@ footer .follow { margin-bottom: 14px; }
 .promo .promo-kicker { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent2); }
 .promo .promo-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px; line-height: 1.1; }
 .promo .promo-sub { color: var(--text-muted); font-size: 14px; }
-.promo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1200px; margin: 0 auto 8px; }
+.promo-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto 8px; }
 .promo-row .promo { margin: 0; flex-direction: column; align-items: flex-start; }
 .promo-row .promo .promo-btn { align-self: flex-start; }
 .promo .promo-btn { flex: 0 0 auto; padding: 12px 18px; border-radius: 10px; background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff; font-weight: 700; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
@@ -91,6 +91,8 @@ footer .follow { margin-bottom: 14px; }
 .promo-fund .promo-sub { color: rgba(255,255,255,.88); }
 .promo-fund .promo-bee { flex: 0 0 auto; width: 100px; height: auto; margin: -40px 0 -14px; }
 .promo-fund .promo-btn { background: #e9ff3a; color: #151515; }
+/* Venue cards: three across, two on tablets (an odd last card spans the row), one on phones */
+@media (max-width: 900px) { .promo-row { grid-template-columns: 1fr 1fr; } .promo-row .promo:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 @media (max-width: 600px) { .promo { flex-direction: column; align-items: flex-start; margin: 0 12px 8px; } .promo .promo-btn { width: 100%; text-align: center; } .promo-row { grid-template-columns: 1fr; gap: 8px; margin: 0 12px 8px; } .promo-row .promo { margin: 0; } .promo-row .promo .promo-btn { align-self: stretch; } }
 @media (max-width: 600px) { .promo.promo-fund { margin: 30px 12px 8px; gap: 12px; } .promo-fund .promo-bee { position: absolute; right: 12px; top: -30px; width: 86px; margin: 0; } }
 footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--card-border); margin-top: 40px; }
@@ -114,13 +116,13 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 .howto-x{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:#fff;font:inherit;font-size:22px;line-height:1;cursor:pointer}
 .howto-x:hover{border-color:#e94560}
 .howto-kicker{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#f5a623}
-.howto h2{margin:6px 48px 6px 0;font-family:'Montserrat',sans-serif;font-weight:800;font-size:26px;line-height:1.1;letter-spacing:-.02em}
+.howto h2{margin:6px 48px 6px 0;font-family:'Montserrat',sans-serif;font-weight:800;font-size:26px;line-height:1.1;letter-spacing:-.02em;text-transform:none}
 .howto-lead{color:#b4b4cc;font-size:14.5px}
 .howto ol{display:flex;flex-direction:column;gap:10px;margin:18px 0 0;padding:0;list-style:none;counter-reset:howto}
 .howto li{position:relative;padding:14px 14px 14px 56px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);counter-increment:howto}
 .howto li::before{content:counter(howto);position:absolute;left:14px;top:13px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(135deg,#e94560,#f5a623);color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px}
-.howto li h3{margin-bottom:2px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:16px;line-height:1.3;letter-spacing:0}
+.howto li h3{margin-bottom:2px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:16px;line-height:1.3;letter-spacing:0;text-transform:none}
 .howto li p{color:#b4b4cc;font-size:14px}
 .howto li p b{color:#e8e8f0}
 .howto li p a,.howto-foot p a{color:#f5a623;font-weight:600;text-decoration:underline;text-underline-offset:3px}
@@ -162,7 +164,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 <header>
   <h1>Your<span class="accent">Concert</span>Tix</h1>
   <div class="count">157 upcoming shows</div>
-  <div class="follow"><span class="follow-pitch">New promo code every day at 10 AM</span><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket &middot; Get your code</button></div>
+  <div class="follow"><span class="follow-pitch">New promo code every day at 10 AM</span><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket<span class="earn-get"> &middot; Get your code</span></button></div>
 </header>
 <div class="hero">
   <h2>Find Live Shows Near You</h2>
@@ -182,6 +184,14 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
       <span class="promo-kicker">Lake Havasu City, AZ &middot; 2027 concert series</span>
       <span class="promo-title">Lake Havasu Live</span>
       <span class="promo-sub">Every show at the Aquatic Center, plus season bundles.</span>
+    </div>
+    <span class="promo-btn">See the Lineup &rarr;</span>
+  </a>
+  <a class="promo" href="/paramount/">
+    <div class="promo-text">
+      <span class="promo-kicker">Casa Grande, AZ &middot; 2026&ndash;27 concert series</span>
+      <span class="promo-title">Paramount Theatre Live</span>
+      <span class="promo-sub">Every show at the Historic Paramount Theatre, with reserved seats.</span>
     </div>
     <span class="promo-btn">See the Lineup &rarr;</span>
   </a>
@@ -224,7 +234,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 </div>
 <div class="grid" id="grid"></div>
 <footer>
-  <div class="follow"><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket &middot; Get your code</button></div>
+  <div class="follow"><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket<span class="earn-get"> &middot; Get your code</span></button></div>
   &copy; 2026 YourConcertTix
 </footer>
 <script>
