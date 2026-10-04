@@ -49,6 +49,12 @@ a{color:inherit;text-decoration:none;}
 .watch-promo:hover{color:var(--accent);}
 footer{text-align:center;padding:20px;color:var(--text-muted);font-size:13px;}
 footer a:hover{color:var(--accent);}
+.follow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin-bottom:14px;}
+.follow-pitch{font-weight:600;color:#f5a623;}
+.follow-links{display:inline-flex;gap:8px;}
+.follow-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);color:var(--text);font-weight:600;}
+.follow-btn:hover{border-color:var(--accent);}
+.follow-btn svg{width:16px;height:16px;flex:0 0 auto;}
 </style>
 </head>
 <body>
@@ -81,7 +87,10 @@ footer a:hover{color:var(--accent);}
     </div>
   </article>
 </main>
-<footer><a href="/">YourConcertTix</a> &middot; Powered by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a></footer>
+<footer>
+  <div class="follow"><span class="follow-pitch">New promo code every day at 10 AM</span><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span></div>
+  <a href="/">YourConcertTix</a> &middot; Powered by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a>
+</footer>
 <script>
 (function(){
   var d=document.querySelector('.desc.clamp');
