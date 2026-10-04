@@ -291,7 +291,9 @@ async function applyAirtablePosters(cfg, events) {
         }
       }
       keep.add(file);
-      e.poster = `img/${file}`;
+      // Root-relative: the page is also served at /<dir> (no slash), where a
+      // relative img/ path would point at /img/ and 404.
+      e.poster = `/${cfg.dir}/img/${file}`;
       e.posterSource = 'airtable';
       matched++;
     } catch (err) {
