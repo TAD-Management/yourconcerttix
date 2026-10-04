@@ -13,7 +13,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, rmSync } 
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
-import { HOWTO_CSS, howtoButton, howtoDialog } from '../lib/promo-help.mjs';
+import { HOWTO_CSS, earnButton, howtoDialogs } from '../lib/promo-help.mjs';
 
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 if (!AIRTABLE_PAT) {
@@ -550,7 +550,7 @@ ${HOWTO_CSS}
 <header>
   <h1>Your<span class="accent">Concert</span>Tix</h1>
   <div class="count">${count} upcoming shows</div>
-  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${howtoButton()}</div>
+  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${earnButton()}</div>
 </header>
 <div class="hero">
   <h2>Find Live Shows Near You</h2>
@@ -602,7 +602,7 @@ ${HOWTO_CSS}
 </div>
 <div class="grid" id="grid"></div>
 <footer>
-  <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span>${howtoButton()}</div>
+  <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span>${earnButton()}</div>
   &copy; ${new Date().getFullYear()} YourConcertTix
 </footer>
 <script>
@@ -652,7 +652,7 @@ document.getElementById('state').addEventListener('change',render);
 document.getElementById('clear').addEventListener('click',()=>{document.getElementById('q').value='';document.getElementById('state').value='';render();});
 render();
 </script>
-${howtoDialog({
+${howtoDialogs({
   pickShow: 'Choose a show on our <a href="/apachejunction/">Apache Junction</a> or <a href="/lakehavasu/">Lake Havasu</a> page and tap <b>Get Tickets</b>.',
 })}
 </body>

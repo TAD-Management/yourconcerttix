@@ -24,7 +24,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
-import { HOWTO_CSS, howtoButton, howtoDialog } from '../lib/promo-help.mjs';
+import { HOWTO_CSS, earnButton, howtoButton, howtoDialogs } from '../lib/promo-help.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > -1 ? process.argv[i + 1] : null; })();
@@ -788,7 +788,7 @@ ${HOWTO_CSS}
 <div class="codebar"><div>
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 002-2 2 2 0 012-2h10a2 2 0 012 2 2 2 0 002 2v6a2 2 0 00-2 2 2 2 0 01-2 2H7a2 2 0 01-2-2 2 2 0 00-2-2z"/><path d="M13 5v14"/></svg>
   <p><b>Have a promo code?</b> You need a free FanGenie account to use it. It only takes a minute.</p>
-  ${howtoButton('', 'How it works')}
+  ${howtoButton('How it works')}
 </div></div>
 
 <div class="filters" id="shows">
@@ -824,7 +824,7 @@ ${bundles.length ? `<section class="bundles" id="bundles">
 </div>
 
 <footer>
-  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${howtoButton()}</div>
+  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${earnButton()}</div>
   <a href="/">YourConcertTix</a> &middot; Tickets by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a> &middot; Presented by TAD Management
   <div class="stamp">Listings refresh automatically from FanGenie.</div>
 </footer>
@@ -962,7 +962,7 @@ document.addEventListener('click',ev=>{
 });
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeModal();});
 </script>
-${howtoDialog({
+${howtoDialogs({
   pickShow: 'Tap <b>Get Tickets</b> on any show on this page, then pick your tickets on FanGenie.',
   showsLink: { href: '#shows', label: 'See the shows' },
 })}
