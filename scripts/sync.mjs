@@ -516,7 +516,7 @@ footer .follow { margin-bottom: 14px; }
 .promo .promo-kicker { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent2); }
 .promo .promo-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px; line-height: 1.1; }
 .promo .promo-sub { color: var(--text-muted); font-size: 14px; }
-.promo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1200px; margin: 0 auto 8px; }
+.promo-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto 8px; }
 .promo-row .promo { margin: 0; flex-direction: column; align-items: flex-start; }
 .promo-row .promo .promo-btn { align-self: flex-start; }
 .promo .promo-btn { flex: 0 0 auto; padding: 12px 18px; border-radius: 10px; background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff; font-weight: 700; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
@@ -529,6 +529,8 @@ footer .follow { margin-bottom: 14px; }
 .promo-fund .promo-sub { color: rgba(255,255,255,.88); }
 .promo-fund .promo-bee { flex: 0 0 auto; width: 100px; height: auto; margin: -40px 0 -14px; }
 .promo-fund .promo-btn { background: #e9ff3a; color: #151515; }
+/* Venue cards: three across, two on tablets (an odd last card spans the row), one on phones */
+@media (max-width: 900px) { .promo-row { grid-template-columns: 1fr 1fr; } .promo-row .promo:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 @media (max-width: 600px) { .promo { flex-direction: column; align-items: flex-start; margin: 0 12px 8px; } .promo .promo-btn { width: 100%; text-align: center; } .promo-row { grid-template-columns: 1fr; gap: 8px; margin: 0 12px 8px; } .promo-row .promo { margin: 0; } .promo-row .promo .promo-btn { align-self: stretch; } }
 @media (max-width: 600px) { .promo.promo-fund { margin: 30px 12px 8px; gap: 12px; } .promo-fund .promo-bee { position: absolute; right: 12px; top: -30px; width: 86px; margin: 0; } }
 footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--card-border); margin-top: 40px; }
@@ -570,6 +572,14 @@ ${HOWTO_CSS}
       <span class="promo-kicker">Lake Havasu City, AZ &middot; 2027 concert series</span>
       <span class="promo-title">Lake Havasu Live</span>
       <span class="promo-sub">Every show at the Aquatic Center, plus season bundles.</span>
+    </div>
+    <span class="promo-btn">See the Lineup &rarr;</span>
+  </a>
+  <a class="promo" href="/paramount/">
+    <div class="promo-text">
+      <span class="promo-kicker">Casa Grande, AZ &middot; 2026&ndash;27 concert series</span>
+      <span class="promo-title">Paramount Theatre Live</span>
+      <span class="promo-sub">Every show at the Historic Paramount Theatre, with reserved seats.</span>
     </div>
     <span class="promo-btn">See the Lineup &rarr;</span>
   </a>

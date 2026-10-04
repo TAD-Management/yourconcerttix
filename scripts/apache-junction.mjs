@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Venue pages (Apache Junction, Lake Havasu, ...) — pulls each venue's upcoming
+// Venue pages (Apache Junction, Lake Havasu, Paramount, ...) — pulls each venue's upcoming
 // shows and season bundles straight from FanGenie's public API and rebuilds
 // /<dir>/index.html for every entry in VENUES below.
 //
@@ -46,7 +46,9 @@ const F_WEB_IMG = 'fldmdmT8dvg45MLyn'; // Poster/Portrait (1:1)
 // One entry per venue page. `slug` is the venue code in FanGenie's URL
 // (app.fangenie.com/venue/<name>/<slug>), `dir` is the folder under the site
 // root, `headline` fills "<headline> Live" and `tagline` opens the intro line.
-// Adding a venue here is all it takes; the workflow commits every dir listed.
+// `seating` (optional) is the "Open seating" box's title and text when the
+// venue isn't general admission. Add the dir to the workflow's `git add` line
+// and a card to the homepage (sync.mjs) when adding a venue.
 const VENUES = [
   { slug: 'LbyXyoyVFS', dir: 'apachejunction', headline: 'Apache Junction',
     tagline: "TAD Management presents Arizona's #1 live concert series",
@@ -54,6 +56,11 @@ const VENUES = [
   { slug: 'AqIHEi8XOu', dir: 'lakehavasu', headline: 'Lake Havasu',
     tagline: 'The TAD Management concert series roars back to life',
     airtableVenue: 'receYZwNa6cnwQQrU' },  // VENUES "Lake Havasu Aquatic Center"
+  { slug: 'd2UgEqfLWS', dir: 'paramount', headline: 'Paramount Theatre',
+    tagline: 'TAD Management presents a new concert series',
+    // FanGenie seat map "Reserved and GA Mixed": reserved left/right, GA, VIP balcony.
+    seating: { title: 'Reserved &amp; GA seats', text: 'Reserved seats, general admission and a VIP balcony' },
+    airtableVenue: 'rec0LngZlqgOXgqwD' },  // VENUES "The Historic Paramount Theater (AZ)"
 ];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -301,6 +308,18 @@ async function applyAirtablePosters(cfg, events) {
 }
 
 // ---- Helpers ----
+
+// "the Apache Junction Performing Arts Center", but "The Historic Paramount
+// Theatre" (FanGenie's name already starts with "The").
+function theVenue(name) {
+  return /^the\s/i.test(name || '') ? name : `the ${name}`;
+}
+
+// FanGenie stores some numbers bare (8775260069); show 877-526-0069.
+function fmtPhone(phone) {
+  const d = String(phone || '').replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '');
+  return d.length === 10 ? `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}` : String(phone || '');
+}
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -572,6 +591,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ---------- on-sale countdown + discount ---------- */
 .strip{max-width:1200px;margin:30px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;animation:rise .8s .35s ease both}
+.strip.solo{grid-template-columns:1fr}
 .strip>div{border-radius:18px;padding:20px 22px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));position:relative;overflow:hidden}
 .strip .lbl{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
 .count{display:flex;gap:10px;align-items:stretch}
@@ -763,7 +783,7 @@ ${HOWTO_CSS}
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="kicker"><i></i> ${esc(venue.city)}, Arizona &middot; ${esc(seasonLabel)}</div>
   <h1>${esc(cfg.headline)} <em>Live</em></h1>
-  <p class="sub"><strong>${esc(cfg.tagline)}</strong> at the ${esc(venue.name)}. ${events.length} nights of tribute concerts and live music. Pick your shows and grab tickets straight from FanGenie${bundles.length ? ', or save with a season bundle' : ''}.</p>
+  <p class="sub"><strong>${esc(cfg.tagline)}</strong> at ${esc(theVenue(venue.name))}. ${events.length} nights of tribute concerts and live music. Pick your shows and grab tickets straight from FanGenie${bundles.length ? ', or save with a season bundle' : ''}.</p>
   <div class="facts">
     <span><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${esc(range)}</span>
     <span><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>${events.length} shows${timeNote}</span>
@@ -772,7 +792,7 @@ ${HOWTO_CSS}
   </div>
 </section>
 
-<section class="strip" id="strip">
+<section class="strip${discount ? '' : ' solo'}" id="strip">
   <div id="onsale">
     <div class="lbl">Public on-sale</div>
     <div id="onsale-body"></div>
@@ -819,8 +839,8 @@ ${bundles.length ? `<section class="bundles" id="bundles">
 
 <div class="trust">
   <div><b>Official tickets</b><p>Every link goes straight to the show's page on FanGenie, the venue's official ticketing partner.</p></div>
-  <div><b>Open seating</b><p>General admission at the ${esc(venue.name)}, ${esc(venue.address)}, ${esc(venue.city)}, AZ${venue.zipcode ? ' ' + esc(venue.zipcode) : ''}.</p></div>
-  <div><b>Questions?</b><p>${venue.phone ? `Call <a href="tel:${esc(venue.phone.replace(/[^\d+]/g, ''))}">${esc(venue.phone)}</a> or ` : ''}see the <a href="${esc(VENUE_PAGE)}" target="_blank" rel="noopener">venue page on FanGenie</a>.</p></div>
+  <div><b>${cfg.seating ? cfg.seating.title : 'Open seating'}</b><p>${cfg.seating ? cfg.seating.text : 'General admission'} at ${esc(theVenue(venue.name))}, ${esc(venue.address)}, ${esc(venue.city)}, AZ${venue.zipcode ? ' ' + esc(venue.zipcode) : ''}.</p></div>
+  <div><b>Questions?</b><p>${venue.phone ? `Call <a href="tel:${esc(venue.phone.replace(/[^\d+]/g, ''))}">${esc(fmtPhone(venue.phone))}</a> or ` : ''}see the <a href="${esc(VENUE_PAGE)}" target="_blank" rel="noopener">venue page on FanGenie</a>.</p></div>
 </div>
 
 <footer>
@@ -877,7 +897,7 @@ if(tickOnSale()){const t=setInterval(()=>{if(!tickOnSale())clearInterval(t);},10
 
 // ---- discount code ----
 if(DATA.discount){
-  if(DATA.discount.expiresIso && new Date(DATA.discount.expiresIso).getTime() < Date.now()){ const d=$('#deal'); if(d) d.remove(); }
+  if(DATA.discount.expiresIso && new Date(DATA.discount.expiresIso).getTime() < Date.now()){ const d=$('#deal'); if(d) d.remove(); $('#strip').classList.add('solo'); }
   const btn=$('#copy');
   if(btn) btn.addEventListener('click',async()=>{
     try{await navigator.clipboard.writeText(DATA.discount.code);btn.textContent='Copied!';}
