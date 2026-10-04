@@ -99,9 +99,11 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
   .grid { padding: 12px; gap: 12px; grid-template-columns: 1fr; }
 }
 
-/* ---------- "How to use a promo code" popup (lib/promo-help.mjs) ---------- */
-.howto-link{padding:0;border:0;background:none;color:#f5a623;font:inherit;font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-.howto-link:hover{color:#fff}
+/* ---------- help popups + "Make $2+ a ticket" pill (lib/promo-help.mjs) ---------- */
+.earn-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border:0;border-radius:999px;background:linear-gradient(90deg,#f5a623,#ffd166);color:#1b1300;
+  font:inherit;font-size:13px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer;box-shadow:0 8px 22px -10px rgba(245,166,35,.9);transition:filter .15s,transform .15s}
+.earn-pill:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.earn-pill i{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#1b1300;color:#ffd166;font-style:normal;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:800}
 .howto{position:fixed;inset:0;z-index:100;width:min(540px,calc(100% - 32px));max-width:none;max-height:calc(100% - 32px);margin:auto;padding:0;overflow:auto;overscroll-behavior:contain;
   border:1px solid rgba(255,255,255,.14);border-radius:22px;background:#141430;color:#e8e8f0;box-shadow:0 40px 100px rgba(0,0,0,.8);font-family:'Inter',sans-serif;line-height:1.5;text-align:left}
 .howto:not([open]){display:none}
@@ -121,7 +123,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 .howto li h3{margin-bottom:2px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:16px;line-height:1.3;letter-spacing:0}
 .howto li p{color:#b4b4cc;font-size:14px}
 .howto li p b{color:#e8e8f0}
-.howto li p a{color:#f5a623;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.howto li p a,.howto-foot p a{color:#f5a623;font-weight:600;text-decoration:underline;text-underline-offset:3px}
 .howto-acts{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:12px}
 .howto-go{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:12px;background:linear-gradient(90deg,#e94560,#f5a623);color:#fff;
   font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 10px 30px -10px #e94560;transition:filter .2s}
@@ -145,7 +147,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
   .howto-go{width:100%}
 }
 @keyframes howto-up{from{transform:translateY(100%)}to{transform:none}}
-@media (prefers-reduced-motion:reduce){.howto[open]{animation:none}}
+@media (prefers-reduced-motion:reduce){.howto[open]{animation:none}.earn-pill{transition:none}}
 
 </style>
 </head>
@@ -160,7 +162,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 <header>
   <h1>Your<span class="accent">Concert</span>Tix</h1>
   <div class="count">157 upcoming shows</div>
-  <div class="follow"><span class="follow-pitch">New promo code every day at 10 AM</span><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="howto-link" data-howto>How to use a code</button></div>
+  <div class="follow"><span class="follow-pitch">New promo code every day at 10 AM</span><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket &middot; Get your code</button></div>
 </header>
 <div class="hero">
   <h2>Find Live Shows Near You</h2>
@@ -222,7 +224,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 </div>
 <div class="grid" id="grid"></div>
 <footer>
-  <div class="follow"><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="howto-link" data-howto>How to use a code</button></div>
+  <div class="follow"><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket &middot; Get your code</button></div>
   &copy; 2026 YourConcertTix
 </footer>
 <script>
@@ -2314,11 +2316,11 @@ document.getElementById('state').addEventListener('change',render);
 document.getElementById('clear').addEventListener('click',()=>{document.getElementById('q').value='';document.getElementById('state').value='';render();});
 render();
 </script>
-<dialog class="howto" id="howto" aria-labelledby="howto-title">
+<dialog class="howto" id="howto-promo" aria-labelledby="howto-promo-title">
   <div class="howto-in">
     <button type="button" class="howto-x" data-howto-close aria-label="Close">&times;</button>
     <div class="howto-kicker">Promo codes</div>
-    <h2 id="howto-title">How to use a promo code</h2>
+    <h2 id="howto-promo-title">How to use a promo code</h2>
     <p class="howto-lead">Our tickets are sold on FanGenie. To use a code there, you need a free FanGenie account.</p>
     <ol>
       <li><h3>Create your free FanGenie account</h3>
@@ -2338,35 +2340,66 @@ render();
     </div>
   </div>
 </dialog>
+<dialog class="howto" id="howto-earn" aria-labelledby="howto-earn-title">
+  <div class="howto-in">
+    <button type="button" class="howto-x" data-howto-close aria-label="Close">&times;</button>
+    <div class="howto-kicker">Affiliate Rewards</div>
+    <h2 id="howto-earn-title">Make $2+ for every ticket</h2>
+    <p class="howto-lead">Earn at least $2 for every ticket bought through your link. Some shows pay more.</p>
+    <ol>
+      <li><h3>Create your free FanGenie account</h3>
+        <p>Your code comes from FanGenie, where our tickets are sold. It takes a minute: FanGenie emails you a 6-digit number to confirm.</p>
+        <div class="howto-acts">
+          <a class="howto-go" href="https://app.fangenie.com/auth?next=%2Fdashboard%2Faffiliate" target="_blank" rel="noopener">Create my free account</a>
+          <a class="howto-alt" href="https://app.fangenie.com/auth/login?next=%2Fdashboard%2Faffiliate" target="_blank" rel="noopener">Already have one? Sign in</a>
+        </div></li>
+      <li><h3>Get your link</h3>
+        <p>Open <b>Affiliate Rewards</b> and tap <b>Get Affiliate Link</b> next to any show. Each show gets its own link with your code.</p>
+        <div class="howto-acts"><a class="howto-alt" href="https://app.fangenie.com/dashboard/affiliate" target="_blank" rel="noopener">Open Affiliate Rewards</a></div></li>
+      <li><h3>Share it and get paid</h3>
+        <p>Post it anywhere. Earnings go to your FanGenie wallet: spend them on tickets or cash out to PayPal from $10. Your own purchases don't count.</p></li>
+    </ol>
+    <div class="howto-foot">
+      <p><b>Raising money for a school, team or club?</b> <a href="/fundfare/">See Fundfare</a></p>
+    </div>
+  </div>
+</dialog>
 <script>
 (function(){
-  var d=document.getElementById('howto'); if(!d) return;
+  var dialogs=document.querySelectorAll('dialog.howto'); if(!dialogs.length) return;
   // FanGenie can send people back here after signing up (?next=, allow-listed on its side).
   var back='?next='+encodeURIComponent(location.origin+location.pathname);
-  d.querySelectorAll('[data-fg]').forEach(function(a){a.href+=back;});
-  function show(){
-    if(d.open) return;
+  document.querySelectorAll('dialog.howto [data-fg]').forEach(function(a){a.href+=back;});
+  function anyOpen(){return document.querySelector('dialog.howto[open]');}
+  function show(key){
+    var d=document.getElementById('howto-'+key);
+    if(!d||d.open) return;
+    var other=anyOpen(); if(other) hide(other);
     if(typeof d.showModal==='function') d.showModal(); else d.setAttribute('open','');
     document.body.style.overflow='hidden';
   }
   function closed(){
+    if(anyOpen()) return;
     document.body.style.overflow='';
-    if(location.hash==='#promo') history.replaceState(null,'',location.pathname+location.search);
+    if(location.hash==='#promo'||location.hash==='#earn') history.replaceState(null,'',location.pathname+location.search);
   }
-  function hide(){
+  function hide(d){
     if(typeof d.close==='function') d.close(); else d.removeAttribute('open');
     closed();
   }
-  d.addEventListener('close',closed);
+  dialogs.forEach(function(d){
+    d.addEventListener('close',closed);
+    // Bound on each dialog so iOS reports taps on the backdrop.
+    // e.target===d is the backdrop: the content fills the dialog box.
+    d.addEventListener('click',function(e){
+      if(e.target===d||e.target.closest('[data-howto-close]')) hide(d);
+    });
+  });
   document.addEventListener('click',function(e){
-    if(e.target.closest('[data-howto]')){e.preventDefault();show();}
+    var t=e.target.closest('[data-howto]');
+    if(t){e.preventDefault();show(t.getAttribute('data-howto'));}
   });
-  // Bound on the dialog itself so iOS reports taps on the backdrop.
-  // e.target===d is the backdrop: the content fills the dialog box.
-  d.addEventListener('click',function(e){
-    if(e.target===d||e.target.closest('[data-howto-close]')) hide();
-  });
-  function fromHash(){if(location.hash==='#promo') show();}
+  function fromHash(){var k=location.hash.slice(1); if(k==='promo'||k==='earn') show(k);}
   addEventListener('hashchange',fromHash);
   fromHash();
 })();
