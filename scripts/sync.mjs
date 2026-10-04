@@ -13,6 +13,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, rmSync } 
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
+import { HOWTO_CSS, howtoButton, howtoDialog } from '../lib/promo-help.mjs';
 
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 if (!AIRTABLE_PAT) {
@@ -535,6 +536,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
   .hero h2 { font-size: 28px; }
   .grid { padding: 12px; gap: 12px; grid-template-columns: 1fr; }
 }
+${HOWTO_CSS}
 </style>
 </head>
 <body>
@@ -548,7 +550,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 <header>
   <h1>Your<span class="accent">Concert</span>Tix</h1>
   <div class="count">${count} upcoming shows</div>
-  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span></div>
+  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${howtoButton()}</div>
 </header>
 <div class="hero">
   <h2>Find Live Shows Near You</h2>
@@ -600,7 +602,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 </div>
 <div class="grid" id="grid"></div>
 <footer>
-  <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span></div>
+  <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span>${howtoButton()}</div>
   &copy; ${new Date().getFullYear()} YourConcertTix
 </footer>
 <script>
@@ -650,6 +652,9 @@ document.getElementById('state').addEventListener('change',render);
 document.getElementById('clear').addEventListener('click',()=>{document.getElementById('q').value='';document.getElementById('state').value='';render();});
 render();
 </script>
+${howtoDialog({
+  pickShow: 'Choose a show on our <a href="/apachejunction/">Apache Junction</a> or <a href="/lakehavasu/">Lake Havasu</a> page and tap <b>Get Tickets</b>.',
+})}
 </body>
 </html>
 `;

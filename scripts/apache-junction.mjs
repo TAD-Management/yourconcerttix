@@ -24,6 +24,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
+import { HOWTO_CSS, howtoButton, howtoDialog } from '../lib/promo-help.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > -1 ? process.argv[i + 1] : null; })();
@@ -591,6 +592,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .code button:hover{filter:brightness(1.1)}
 .deal .fine{color:var(--muted);font-size:12px;margin-top:10px}
 
+/* ---------- promo code help bar (opens the lib/promo-help.mjs popup) ---------- */
+.codebar{max-width:1200px;margin:16px auto 0;padding:0 20px;animation:rise .8s .38s ease both}
+.codebar>div{display:flex;flex-wrap:wrap;align-items:center;gap:12px 14px;padding:14px 14px 14px 18px;border-radius:16px;border:1px solid rgba(245,166,35,.35);background:linear-gradient(90deg,rgba(233,69,96,.14),rgba(245,166,35,.08))}
+.codebar svg{width:26px;height:26px;flex:none;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.codebar p{flex:1 1 0;min-width:200px;font-size:14.5px;color:#c6c6dd}
+.codebar p b{color:var(--text)}
+.codebar button{flex:none;padding:11px 16px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--gold));color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;white-space:nowrap;transition:filter .2s}
+.codebar button:hover{filter:brightness(1.1)}
+
 /* ---------- filters ---------- */
 .filters{max-width:1240px;margin:38px auto 0;padding:0 20px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;animation:rise .8s .4s ease both}
 .filters .title{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(20px,3vw,28px);letter-spacing:-.02em;margin-right:auto}
@@ -737,6 +747,8 @@ footer .follow-btn svg{width:16px;height:16px;flex:0 0 auto}
   .bfoot{flex-direction:column;align-items:stretch;text-align:center}.bcta{justify-content:center}.bart .tag{display:inline-block;font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:640px){.codebar>div{padding:14px}.codebar button{width:100%}}
+${HOWTO_CSS}
 </style>
 </head>
 <body>
@@ -773,7 +785,13 @@ footer .follow-btn svg{width:16px;height:16px;flex:0 0 auto}
   </div>` : ''}
 </section>
 
-<div class="filters">
+<div class="codebar"><div>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 002-2 2 2 0 012-2h10a2 2 0 012 2 2 2 0 002 2v6a2 2 0 00-2 2 2 2 0 01-2 2H7a2 2 0 01-2-2 2 2 0 00-2-2z"/><path d="M13 5v14"/></svg>
+  <p><b>Have a promo code?</b> You need a free FanGenie account to use it. It only takes a minute.</p>
+  ${howtoButton('', 'How it works')}
+</div></div>
+
+<div class="filters" id="shows">
   <div class="title">All Shows <span id="shown"></span></div>
   <div class="chips" id="chips"></div>
   <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search a show or artist" aria-label="Search shows"></label>
@@ -806,7 +824,7 @@ ${bundles.length ? `<section class="bundles" id="bundles">
 </div>
 
 <footer>
-  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span></div>
+  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${howtoButton()}</div>
   <a href="/">YourConcertTix</a> &middot; Tickets by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a> &middot; Presented by TAD Management
   <div class="stamp">Listings refresh automatically from FanGenie.</div>
 </footer>
@@ -944,6 +962,10 @@ document.addEventListener('click',ev=>{
 });
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeModal();});
 </script>
+${howtoDialog({
+  pickShow: 'Tap <b>Get Tickets</b> on any show on this page, then pick your tickets on FanGenie.',
+  showsLink: { href: '#shows', label: 'See the shows' },
+})}
 </body>
 </html>
 `;
