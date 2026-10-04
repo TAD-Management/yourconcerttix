@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
 
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 if (!AIRTABLE_PAT) {
@@ -469,6 +470,15 @@ header { padding: 24px 20px; text-align: center; border-bottom: 1px solid var(--
 header h1 { font-family: 'Montserrat', sans-serif; font-size: 28px; letter-spacing: -0.5px; }
 header h1 .accent { color: var(--accent); }
 header .count { color: var(--text-muted); margin-top: 4px; font-size: 14px; }
+/* Follow buttons (Facebook / Instagram), in the header and the footer */
+.follow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 12px; }
+header .follow { margin-top: 14px; }
+.follow-pitch { font-size: 13px; font-weight: 600; color: var(--accent2); }
+.follow-links { display: inline-flex; gap: 8px; }
+.follow-btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.16); background: var(--card-bg); color: var(--text); font-size: 13px; font-weight: 600; transition: border-color .15s, color .15s; }
+.follow-btn:hover { border-color: var(--accent); color: var(--accent); }
+.follow-btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
+footer .follow { margin-bottom: 14px; }
 .hero { text-align: center; padding: 48px 20px 24px; }
 .hero h2 { font-family: 'Montserrat', sans-serif; font-size: 36px; margin-bottom: 8px; }
 .hero p { color: var(--text-muted); }
@@ -538,6 +548,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 <header>
   <h1>Your<span class="accent">Concert</span>Tix</h1>
   <div class="count">${count} upcoming shows</div>
+  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span></div>
 </header>
 <div class="hero">
   <h2>Find Live Shows Near You</h2>
@@ -588,7 +599,10 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
   <button id="clear">Clear</button>
 </div>
 <div class="grid" id="grid"></div>
-<footer>&copy; ${new Date().getFullYear()} YourConcertTix</footer>
+<footer>
+  <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span></div>
+  &copy; ${new Date().getFullYear()} YourConcertTix
+</footer>
 <script>
 const PHOTO_BASE = '/artist-photos/';
 const events = ${eventsJs};
@@ -720,6 +734,12 @@ a{color:inherit;text-decoration:none;}
 .watch-promo:hover{color:var(--accent);}
 footer{text-align:center;padding:20px;color:var(--text-muted);font-size:13px;}
 footer a:hover{color:var(--accent);}
+.follow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin-bottom:14px;}
+.follow-pitch{font-weight:600;color:#f5a623;}
+.follow-links{display:inline-flex;gap:8px;}
+.follow-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);color:var(--text);font-weight:600;}
+.follow-btn:hover{border-color:var(--accent);}
+.follow-btn svg{width:16px;height:16px;flex:0 0 auto;}
 </style>
 </head>
 <body>
@@ -743,7 +763,10 @@ footer a:hover{color:var(--accent);}
     </div>
   </article>
 </main>
-<footer><a href="/">YourConcertTix</a> &middot; Powered by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a></footer>
+<footer>
+  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span></div>
+  <a href="/">YourConcertTix</a> &middot; Powered by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a>
+</footer>
 <script>
 (function(){
   var d=document.querySelector('.desc.clamp');

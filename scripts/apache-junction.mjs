@@ -23,6 +23,7 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > -1 ? process.argv[i + 1] : null; })();
@@ -682,6 +683,12 @@ footer{text-align:center;padding:40px 20px 100px;color:var(--muted);font-size:13
 footer a{color:var(--text);font-weight:600}
 footer a:hover{color:var(--accent)}
 footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
+footer .follow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin-bottom:16px}
+footer .follow-pitch{color:var(--gold);font-weight:700}
+footer .follow-links{display:inline-flex;gap:8px}
+footer .follow-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04)}
+footer .follow-btn:hover{border-color:var(--accent)}
+footer .follow-btn svg{width:16px;height:16px;flex:0 0 auto}
 
 /* ---------- mobile sticky CTA ---------- */
 .sticky{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
@@ -799,6 +806,7 @@ ${bundles.length ? `<section class="bundles" id="bundles">
 </div>
 
 <footer>
+  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span></div>
   <a href="/">YourConcertTix</a> &middot; Tickets by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a> &middot; Presented by TAD Management
   <div class="stamp">Listings refresh automatically from FanGenie.</div>
 </footer>
