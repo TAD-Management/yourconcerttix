@@ -572,6 +572,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .bar .brand span{color:var(--accent)}
 .bar .fg{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:500}
 .bar .fg img{height:16px}
+.bar-r{display:flex;align-items:center;gap:14px}
 
 /* ---------- hero ---------- */
 .hero{position:relative;text-align:center;padding:48px 20px 24px;max-width:1000px;margin:0 auto}
@@ -770,6 +771,8 @@ footer .follow-btn svg{width:16px;height:16px;flex:0 0 auto}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:640px){.codebar>div{padding:14px}.codebar button{width:100%}}
+/* Phones: brand + FanGenie badge on the first row, the earn pill centred on its own row below */
+@media (max-width:640px){.bar{flex-wrap:wrap;row-gap:0}.bar-r{display:contents}.bar::after{content:"";order:2;flex-basis:100%}.bar .earn-pill{order:3;margin:10px auto 0}}
 ${HOWTO_CSS}
 </style>
 </head>
@@ -778,7 +781,10 @@ ${HOWTO_CSS}
 
 <nav class="bar">
   <a class="brand" href="/">Your<span>Concert</span>Tix</a>
-  <a class="fg" href="${esc(VENUE_PAGE)}" target="_blank" rel="noopener"><span>Tickets powered by</span><img src="https://app.fangenie.com/assets/images/newlogo.png" alt="FanGenie"></a>
+  <div class="bar-r">
+    ${earnButton()}
+    <a class="fg" href="${esc(VENUE_PAGE)}" target="_blank" rel="noopener"><span>Tickets powered by</span><img src="https://app.fangenie.com/assets/images/newlogo.png" alt="FanGenie"></a>
+  </div>
 </nav>
 
 <section class="hero" ${ogImage ? `style="--hero-img:url('${esc(ogImage)}')"` : ''}>
