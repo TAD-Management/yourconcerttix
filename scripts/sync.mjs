@@ -467,7 +467,12 @@ a { color: inherit; text-decoration: none; }
 .fangenie-banner a { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; color: var(--text-muted); font-size: 13px; }
 .fangenie-banner .fg-logo { height: 18px; vertical-align: middle; }
 .fangenie-banner .fg-tagline { color: var(--text-muted); font-weight: 500; }
-header { padding: 24px 20px; text-align: center; border-bottom: 1px solid var(--card-border); }
+header { position: relative; padding: 24px 20px; text-align: center; border-bottom: 1px solid var(--card-border); }
+/* Affiliate login, top right of the header; opens the invite-only /affiliate/ sign-in page */
+.aff-login { position: absolute; top: 14px; right: 16px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.16); background: var(--card-bg); color: var(--text-muted); font-size: 12px; font-weight: 600; transition: border-color .15s, color .15s; }
+.aff-login:hover { border-color: var(--accent); color: var(--accent); }
+.aff-login svg { width: 14px; height: 14px; flex: 0 0 auto; }
+@media (max-width: 600px) { header { padding-top: 50px; } .aff-login { top: 12px; right: 12px; } }
 header h1 { font-family: 'Montserrat', sans-serif; font-size: 28px; letter-spacing: -0.5px; }
 header h1 .accent { color: var(--accent); }
 header .count { color: var(--text-muted); margin-top: 4px; font-size: 14px; }
@@ -550,6 +555,7 @@ ${HOWTO_CSS}
   </a>
 </div>
 <header>
+  <a class="aff-login" href="/affiliate/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Affiliate Login</a>
   <h1>Your<span class="accent">Concert</span>Tix</h1>
   <div class="count">${count} upcoming shows</div>
   <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${earnButton()}</div>
