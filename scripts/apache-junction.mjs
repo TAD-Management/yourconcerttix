@@ -47,11 +47,14 @@ const F_WEB_IMG = 'fldmdmT8dvg45MLyn'; // Poster/Portrait (1:1)
 // (app.fangenie.com/venue/<name>/<slug>), `dir` is the folder under the site
 // root, `headline` fills "<headline> Live" and `tagline` opens the intro line.
 // `seating` (optional) is the "Open seating" box's title and text when the
-// venue isn't general admission. Add the dir to the workflow's `git add` line
+// venue isn't general admission. `outlet` (optional) is an in-person ticket
+// outlet shown in a callout under the hero. Add the dir to the workflow's `git add` line
 // and a card to the homepage (sync.mjs) when adding a venue.
 const VENUES = [
   { slug: 'LbyXyoyVFS', dir: 'apachejunction', headline: 'Apache Junction',
     tagline: "TAD Management presents Arizona's #1 live concert series",
+    outlet: { when: 'beginning November 12th', name: 'AJ Chamber of Commerce',
+      address: '567 Apache Trail', city: 'Apache Junction, AZ 85120' },
     airtableVenue: 'rec0tRFvep0mbHE1p' },  // VENUES "Apache Junction PAC"
   { slug: 'AqIHEi8XOu', dir: 'lakehavasu', headline: 'Lake Havasu',
     tagline: 'The TAD Management concert series roars back to life',
@@ -592,6 +595,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .facts svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 
+/* ---------- in-person ticket outlet (cfg.outlet) ---------- */
+.outlet{max-width:1200px;margin:26px auto 0;padding:0 20px;animation:rise .8s .32s ease both}
+.outlet>div{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding:16px 16px 16px 20px;border-radius:16px;border:1px solid rgba(245,166,35,.45);background:linear-gradient(90deg,rgba(245,166,35,.14),rgba(233,69,96,.08))}
+.outlet svg{width:28px;height:28px;flex:none;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.outlet p{flex:1 1 0;min-width:220px;font-size:15px;line-height:1.5;color:#c6c6dd}
+.outlet p b{color:var(--text)}
+.outlet a{flex:none;padding:11px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.18);font-weight:700;font-size:14px;white-space:nowrap;transition:border-color .2s}
+.outlet a:hover{border-color:rgba(245,166,35,.6)}
+
 /* ---------- on-sale countdown + discount ---------- */
 .strip{max-width:1200px;margin:30px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;animation:rise .8s .35s ease both}
 .strip.solo{grid-template-columns:1fr}
@@ -770,7 +782,7 @@ footer .follow-btn svg{width:16px;height:16px;flex:0 0 auto}
   .bfoot{flex-direction:column;align-items:stretch;text-align:center}.bcta{justify-content:center}.bart .tag{display:inline-block;font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media (max-width:640px){.codebar>div{padding:14px}.codebar button{width:100%}}
+@media (max-width:640px){.codebar>div{padding:14px}.codebar button{width:100%}.outlet>div{padding:14px}.outlet a{width:100%;text-align:center}}
 /* Phones: brand + FanGenie badge on the first row, the earn pill centred on its own row below */
 @media (max-width:640px){.bar{flex-wrap:wrap;row-gap:0}.bar-r{display:contents}.bar::after{content:"";order:2;flex-basis:100%}.bar .earn-pill{order:3;margin:10px auto 0}}
 ${HOWTO_CSS}
@@ -800,7 +812,13 @@ ${HOWTO_CSS}
   </div>
 </section>
 
-<section class="strip${discount ? '' : ' solo'}" id="strip">
+${cfg.outlet ? `<section class="outlet"><div>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 002-2 2 2 0 012-2h10a2 2 0 012 2 2 2 0 002 2v6a2 2 0 00-2 2 2 2 0 01-2 2H7a2 2 0 01-2-2 2 2 0 00-2-2z"/><path d="M13 5v14"/></svg>
+  <p><b>Tickets also available ${esc(cfg.outlet.when)}</b> at the ${esc(cfg.outlet.name)}<br>${esc(cfg.outlet.address)}, ${esc(cfg.outlet.city)}</p>
+  <a href="https://maps.google.com/?q=${encodeURIComponent(`${cfg.outlet.name}, ${cfg.outlet.address}, ${cfg.outlet.city}`)}" target="_blank" rel="noopener">Directions</a>
+</div></section>
+
+` : ''}<section class="strip${discount ? '' : ' solo'}" id="strip">
   <div id="onsale">
     <div class="lbl">Public on-sale</div>
     <div id="onsale-body"></div>
