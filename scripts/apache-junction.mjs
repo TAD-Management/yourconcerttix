@@ -48,12 +48,13 @@ const F_WEB_IMG = 'fldmdmT8dvg45MLyn'; // Poster/Portrait (1:1)
 // root, `headline` fills "<headline> Live" and `tagline` opens the intro line.
 // `seating` (optional) is the "Open seating" box's title and text when the
 // venue isn't general admission. `outlet` (optional) is an in-person ticket
-// outlet shown in a callout under the hero. Add the dir to the workflow's `git add` line
+// outlet shown in a callout under the hero; its `when` wording drops off from
+// the `from` date (Arizona midnight). Add the dir to the workflow's `git add` line
 // and a card to the homepage (sync.mjs) when adding a venue.
 const VENUES = [
   { slug: 'LbyXyoyVFS', dir: 'apachejunction', headline: 'Apache Junction',
     tagline: "TAD Management presents Arizona's #1 live concert series",
-    outlet: { when: 'beginning November 12th', name: 'AJ Chamber of Commerce',
+    outlet: { when: 'beginning November 12th', from: '2026-11-12', name: 'AJ Chamber of Commerce',
       address: '567 Apache Trail', city: 'Apache Junction, AZ 85120' },
     airtableVenue: 'rec0tRFvep0mbHE1p' },  // VENUES "Apache Junction PAC"
   { slug: 'AqIHEi8XOu', dir: 'lakehavasu', headline: 'Lake Havasu',
@@ -508,6 +509,8 @@ function renderPage({ cfg, venue, events, discount, bundles }) {
   const fullAddress = [venue.address, venue.city, `${venue.state} ${venue.zipcode || ''}`.trim()].filter(Boolean).join(', ');
   const times = [...new Set(events.map(e => e.time))];
   const timeNote = times.length === 1 ? ` &middot; all at ${esc(times[0])}` : '';
+  // Arizona has no DST, so the outlet's start is always midnight at UTC-7.
+  const outletFrom = cfg.outlet && cfg.outlet.from ? new Date(`${cfg.outlet.from}T00:00:00-07:00`).getTime() : 0;
   const descLine = `${events.length} upcoming shows at ${venue.name}, ${venue.city}, AZ. Tribute concerts and live music, ${range}. Tickets on FanGenie.`;
 
   const dataJs = JSON.stringify({
@@ -814,7 +817,7 @@ ${HOWTO_CSS}
 
 ${cfg.outlet ? `<section class="outlet"><div>
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 002-2 2 2 0 012-2h10a2 2 0 012 2 2 2 0 002 2v6a2 2 0 00-2 2 2 2 0 01-2 2H7a2 2 0 01-2-2 2 2 0 00-2-2z"/><path d="M13 5v14"/></svg>
-  <p><b>Tickets also available ${esc(cfg.outlet.when)}</b> at the ${esc(cfg.outlet.name)}<br>${esc(cfg.outlet.address)}, ${esc(cfg.outlet.city)}</p>
+  <p><b>Tickets also available${outletFrom > Date.now() ? `<span id="outlet-when" data-from="${new Date(outletFrom).toISOString()}"> ${esc(cfg.outlet.when)}</span>` : ''}</b> at the ${esc(cfg.outlet.name)}<br>${esc(cfg.outlet.address)}, ${esc(cfg.outlet.city)}</p>
   <a href="https://maps.google.com/?q=${encodeURIComponent(`${cfg.outlet.name}, ${cfg.outlet.address}, ${cfg.outlet.city}`)}" target="_blank" rel="noopener">Directions</a>
 </div></section>
 
@@ -920,6 +923,9 @@ function tickOnSale(){
   return true;
 }
 if(tickOnSale()){const t=setInterval(()=>{if(!tickOnSale())clearInterval(t);},1000);}
+
+// ---- outlet: drop "beginning <date>" once it passes, ahead of the next rebuild ----
+{const w=$('#outlet-when');if(w&&new Date(w.dataset.from).getTime()<=Date.now())w.remove();}
 
 // ---- discount code ----
 if(DATA.discount){
