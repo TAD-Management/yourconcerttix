@@ -169,7 +169,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 <header>
   <a class="aff-login" href="/affiliate/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Affiliate Login</a>
   <h1>Your<span class="accent">Concert</span>Tix</h1>
-  <div class="count">154 upcoming shows</div>
+  <div class="count">170 upcoming shows</div>
   <div class="follow"><span class="follow-pitch">New promo code every day at 10 AM</span><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket<span class="earn-get"> &middot; Get your code</span></button></div>
 </header>
 <div class="hero">
@@ -247,10 +247,23 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 const PHOTO_BASE = '/artist-photos/';
 const events = [
   {
+    "artist": "Margaritas In Paradise",
+    "ticket": "https://app.fangenie.com/downtown-grand-hotel-casino/margaritas-in-paradise---jimmy-buffett-tribute/Xebiu4ItZV",
+    "date": "2026-10-09",
+    "showtime": "8:00 PM",
+    "city": "Las Vegas",
+    "state": "NV",
+    "venue": "Downtown Grand Hotel & Casino - NV",
+    "address": "206 N. 3rd St., Las Vegas, NV 89101",
+    "platform": "FanGenie",
+    "slug": "margaritas-in-paradise",
+    "id": "margaritas-in-paradise-2026-10-09"
+  },
+  {
     "artist": "Almost Folsom",
     "ticket": "https://nmlascrucesweb.myvscloud.com/webtrac/web/search.html?display=detail&module=PST&secondarycode=Almost%20Folsom",
     "date": "2026-10-09",
-    "showtime": "7:00 pm",
+    "showtime": "7:00 PM",
     "city": "Las Cruces",
     "state": "NM",
     "venue": "Rio Grande Theatre",
@@ -271,6 +284,19 @@ const events = [
     "platform": "",
     "slug": "voyager",
     "id": "voyager-2026-10-10"
+  },
+  {
+    "artist": "One Of These Nights",
+    "ticket": "https://tixees.com/event.html?id=3953cfc2-8907-4694-9ba2-335537cc6db9",
+    "date": "2026-10-10",
+    "showtime": "7:00 pm",
+    "city": "Cave Creek",
+    "state": "AZ",
+    "venue": "Harold's",
+    "address": "6895 E Cave Creek Rd, Cave Creek, AZ 85331",
+    "platform": "FanGenie",
+    "slug": "one-of-these-nights",
+    "id": "one-of-these-nights-2026-10-10"
   },
   {
     "artist": "Mirage",
@@ -702,6 +728,19 @@ const events = [
     "id": "garth-live-2026-11-12"
   },
   {
+    "artist": "Springsteen: Born To Run",
+    "ticket": "https://tixeestest.netlify.app/event.html?id=4ac4355b-21e0-4a96-b547-122ec5ed7398",
+    "date": "2026-11-13",
+    "showtime": "7:00 pm",
+    "city": "Cave Creek",
+    "state": "AZ",
+    "venue": "Harold's",
+    "address": "6895 E Cave Creek Rd, Cave Creek, AZ 85331",
+    "platform": "FanGenie",
+    "slug": "springsteen-born-to-run",
+    "id": "springsteen-born-to-run-2026-11-13"
+  },
+  {
     "artist": "Garth Live",
     "ticket": "https://www.riversideresort.com/event/garth-live-a-tribute-to-garth-brooks/",
     "date": "2026-11-13",
@@ -884,6 +923,19 @@ const events = [
     "id": "go-now-2026-11-21"
   },
   {
+    "artist": "One Of These Nights",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/one-of-these-nights---the-eagles-tribute/16oEZ23V8b",
+    "date": "2026-11-21",
+    "showtime": "7:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "one-of-these-nights",
+    "id": "one-of-these-nights-2026-11-21"
+  },
+  {
     "artist": "Go Now",
     "ticket": "https://www.obopry.com/Online/mapSelect.asp",
     "date": "2026-11-22",
@@ -921,6 +973,19 @@ const events = [
     "platform": "",
     "slug": "toby",
     "id": "toby-2026-12-05"
+  },
+  {
+    "artist": "Abba Holly Jolly Christmas",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/abba-holly-jolly-christmas/8yOxUu07wg",
+    "date": "2026-12-05",
+    "showtime": "3:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "abba-holly-jolly-christmas",
+    "id": "abba-holly-jolly-christmas-2026-12-05"
   },
   {
     "artist": "Abba Holly Jolly Christmas",
@@ -1170,6 +1235,19 @@ const events = [
     "id": "the-lionel-richie-songbook-2027-01-09"
   },
   {
+    "artist": "Project Presley",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/project-presley/meeDSg2KxY",
+    "date": "2027-01-09",
+    "showtime": "7:00 pm",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "project-presley",
+    "id": "project-presley-2027-01-09"
+  },
+  {
     "artist": "The Dionne Legacy",
     "ticket": "https://bocablackbox.showare.com/orderticketsvenue.asp?p=5125  https://bocablackbox.showare.com/orderticketsvenue.asp?p=5126",
     "date": "2027-01-10",
@@ -1339,6 +1417,19 @@ const events = [
     "id": "one-more-night-2027-01-16"
   },
   {
+    "artist": "Margaritas In Paradise",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/margaritas-in-paradise/XmpitrHczi",
+    "date": "2027-01-16",
+    "showtime": "7:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "margaritas-in-paradise",
+    "id": "margaritas-in-paradise-2027-01-16"
+  },
+  {
     "artist": "Strait Outta Texas",
     "ticket": "https://app.fangenie.com/lake-havasu-aquatic-center/strait-outta-texas---a-tribute-to-george-strait/ltwvXGWap0",
     "date": "2027-01-17",
@@ -1402,6 +1493,19 @@ const events = [
     "platform": "",
     "slug": "the-lionel-richie-songbook",
     "id": "the-lionel-richie-songbook-2027-01-23"
+  },
+  {
+    "artist": "Voyager",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/voyager/JtkqpPYan2",
+    "date": "2027-01-23",
+    "showtime": "7:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "voyager",
+    "id": "voyager-2027-01-23"
   },
   {
     "artist": "Garth Live",
@@ -1495,6 +1599,19 @@ const events = [
     "id": "piano-men-generations-2027-02-03"
   },
   {
+    "artist": "December '63",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/december-'63/pzuNwpmjnJ",
+    "date": "2027-02-03",
+    "showtime": "7:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "december-63",
+    "id": "december-63-2027-02-03"
+  },
+  {
     "artist": "One Of These Nights",
     "ticket": "https://app.fangenie.com/pueblo-el-mirage/one-of-these-nights---tribute-to-eagles/NYGkV76X7K",
     "date": "2027-02-05",
@@ -1519,6 +1636,19 @@ const events = [
     "platform": "",
     "slug": "piano-men-generations",
     "id": "piano-men-generations-2027-02-05"
+  },
+  {
+    "artist": "One More Night",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/one-more-night/bPUDNcWFq8",
+    "date": "2027-02-06",
+    "showtime": "7:00 pm",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "one-more-night",
+    "id": "one-more-night-2027-02-06"
   },
   {
     "artist": "Piano Men: Generations",
@@ -1690,6 +1820,19 @@ const events = [
     "id": "magic-of-manilow-2027-02-16"
   },
   {
+    "artist": "Magic Of Manilow",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/magic-of-manilow/DxSRFM9436",
+    "date": "2027-02-18",
+    "showtime": "7:00 pm",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "magic-of-manilow",
+    "id": "magic-of-manilow-2027-02-18"
+  },
+  {
     "artist": "Voyager",
     "ticket": "https://dhgroup.com/events/voyager-a-tribute-to-the-music-of-journey/ ",
     "date": "2027-02-19",
@@ -1701,6 +1844,19 @@ const events = [
     "platform": "",
     "slug": "voyager",
     "id": "voyager-2027-02-19"
+  },
+  {
+    "artist": "Let It Ride",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/let-it-ride/YY4AdERvHB",
+    "date": "2027-02-20",
+    "showtime": "7:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "let-it-ride",
+    "id": "let-it-ride-2027-02-20"
   },
   {
     "artist": "Members Only",
@@ -1846,6 +2002,19 @@ const events = [
     "id": "gloria-turn-the-beat-2027-03-04"
   },
   {
+    "artist": "Midnight Train",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/midnight-train/I9xsC65LFG",
+    "date": "2027-03-04",
+    "showtime": "7:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "midnight-train",
+    "id": "midnight-train-2027-03-04"
+  },
+  {
     "artist": "Voyager",
     "ticket": "https://app.fangenie.com/pueblo-el-mirage/voyager/w9GhyCj76Y",
     "date": "2027-03-05",
@@ -1963,6 +2132,32 @@ const events = [
     "id": "southern-rock-explosion-2027-03-09"
   },
   {
+    "artist": "Go Now",
+    "ticket": "https://app.fangenie.com/riverview-performing-arts-center/go-now---the-legacy-tribute-to-the-moody-blues/SX4uNTfpZV",
+    "date": "2027-03-11",
+    "showtime": "7 pm ",
+    "city": "Sarasota ",
+    "state": "FL",
+    "venue": "Riverview High School Performing Arts Center",
+    "address": "1 Ram Way, Sarasota , FL 34231",
+    "platform": "FanGenie",
+    "slug": "go-now",
+    "id": "go-now-2027-03-11"
+  },
+  {
+    "artist": "TOBY",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/toby@-starring-hollywood-yates/1lYBiWUDIR",
+    "date": "2027-03-14",
+    "showtime": "7:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "toby",
+    "id": "toby-2027-03-14"
+  },
+  {
     "artist": "American Highwaymen",
     "ticket": "https://www.azbroadway.org/shows/american-highwaymen",
     "date": "2027-03-15",
@@ -2013,6 +2208,19 @@ const events = [
     "platform": "",
     "slug": "let-it-ride",
     "id": "let-it-ride-2027-03-17"
+  },
+  {
+    "artist": "Piano Men: Generations",
+    "ticket": "https://app.fangenie.com/the-historic-paramount-theatre/piano-men:-generations---billy-&-elton/fv8oMypfWQ",
+    "date": "2027-03-17",
+    "showtime": "7:00 PM",
+    "city": "Casa Grande",
+    "state": "AZ",
+    "venue": "The Historic Paramount Theater (AZ)",
+    "address": "420 N Florence St, Casa Grande, AZ 85122",
+    "platform": "FanGenie",
+    "slug": "piano-men-generations",
+    "id": "piano-men-generations-2027-03-17"
   },
   {
     "artist": "Fly Like An Eagle",
