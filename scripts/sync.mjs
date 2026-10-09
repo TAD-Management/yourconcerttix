@@ -64,16 +64,14 @@ const SLUG_FIXES = {
   'THE MOODY BLUES TRIBUTE - GO NOW!': 'the-moody-blues-tribute--go-now',
 };
 
-// ---- What gets published (three independent gates) ----
+// ---- What gets published (two independent gates) ----
 //
 // 1. "Hide from YCT" checkboxes in Airtable — the admin control. Any non-technical
 //    editor can tick one on a show (CURRENT EVENTS), an act (BANDS-SHOWS) or a
 //    venue (VENUES) and it drops off the site on the next sync. No code change.
-// 2. EXCLUDED_PLATFORMS below — a standing policy rule applied by ticketing
-//    platform, so it also covers venues added in the future.
-// 3. EXCLUDED_ARTISTS below — legacy hard-coded list, kept as a backstop.
+// 2. EXCLUDED_ARTISTS below — legacy hard-coded list, kept as a backstop.
 //
-// In all three cases the Airtable records are untouched, so booking history and
+// In both cases the Airtable records are untouched, so booking history and
 // reporting are preserved; only the public site is affected.
 
 // Acts to suppress from the public site. Prefer the "Hide from YCT" checkbox on
@@ -83,16 +81,6 @@ const EXCLUDED_ARTISTS = ['yachtzilla'];
 function isExcludedArtist(name) {
   const n = (name || '').toLowerCase();
   return EXCLUDED_ARTISTS.some(x => n.includes(x));
-}
-
-// Ticketing platforms we don't publish. A show is dropped only when its venue's
-// Platform is EXCLUSIVELY one of these — a venue selling on both FanGenie and
-// Purple Pass still gets published, because it isn't "FanGenie only".
-// Venues with no Platform set at all are always published.
-const EXCLUDED_PLATFORMS = ['fangenie'];
-function isExcludedPlatformOnly(platforms) {
-  if (!platforms || platforms.length === 0) return false;
-  return platforms.every(p => EXCLUDED_PLATFORMS.includes(String(p).trim().toLowerCase()));
 }
 
 function slugify(name) {
@@ -252,22 +240,6 @@ function firstLookupText(val) {
   return String(val);
 }
 
-// Like firstLookupText, but returns EVERY value instead of just the first.
-// Needed for multipleSelects lookups such as Platform, where a venue can carry
-// several ticketing platforms and "FanGenie only" means the whole set is FanGenie.
-function allLookupNames(val) {
-  const out = [];
-  (function walk(v) {
-    if (v == null) return;
-    if (Array.isArray(v)) { v.forEach(walk); return; }
-    if (typeof v === 'string') { if (v.trim()) out.push(v.trim()); return; }
-    if (typeof v === 'object' && typeof v.name === 'string') {
-      if (v.name.trim()) out.push(v.name.trim());
-    }
-  })(val);
-  return [...new Set(out)];
-}
-
 // ---- Pull events ----
 
 async function pullEvents() {
@@ -311,8 +283,6 @@ async function pullEvents() {
       city: firstLookupText(f[F_CITY]),
       state: firstLookupText(f[F_STATE]),
       address: f[F_VENUE_ADDR] || '',
-      // Full list — a venue may sell on more than one platform.
-      platforms: allLookupNames(f[F_PLATFORM]),
       platform: firstLookupText(f[F_PLATFORM]),
     });
   }
@@ -925,13 +895,12 @@ async function main() {
   }
 
   // Apply the publish gates, counting each drop so the sync log explains itself.
-  const dropped = { noArtist: 0, excludedArtist: 0, hiddenBand: 0, hiddenVenue: 0, excludedPlatform: 0 };
+  const dropped = { noArtist: 0, excludedArtist: 0, hiddenBand: 0, hiddenVenue: 0 };
   const usableEvents = events.filter(e => {
     if (!e.artist)                          { dropped.noArtist++; return false; }
     if (isExcludedArtist(e.artist))         { dropped.excludedArtist++; return false; }
     if (e.bandHidden)                       { dropped.hiddenBand++; return false; }
     if (e.venueHidden)                      { dropped.hiddenVenue++; return false; }
-    if (isExcludedPlatformOnly(e.platforms)) { dropped.excludedPlatform++; return false; }
     return true;
   });
   console.log(`  publish gates dropped ${JSON.stringify(dropped)}`);
