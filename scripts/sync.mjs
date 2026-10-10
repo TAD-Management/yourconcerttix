@@ -94,7 +94,8 @@ const SLUG_FIXES = {
 // Acts to suppress from the public site. Prefer the "Hide from YCT" checkbox on
 // BANDS-SHOWS for new exclusions — this list needs a developer to change.
 // Matched case-insensitively as a substring of the resolved artist name.
-const EXCLUDED_ARTISTS = ['yachtzilla'];
+// Empty since 2026-10-10: Yachtzilla, the only entry, now publishes (Terry).
+const EXCLUDED_ARTISTS = [];
 function isExcludedArtist(name) {
   const n = (name || '').toLowerCase();
   return EXCLUDED_ARTISTS.some(x => n.includes(x));
