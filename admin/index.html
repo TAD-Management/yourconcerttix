@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Add Shows | YourConcertTix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* Hand-built page: scripts/sync.mjs never touches /admin/. Backed by api/events.js. */
+:root{--bg:#0f0f23;--card:#16213e;--line:#26264a;--text:#e8e8f0;--muted:#8f8fb2;--accent:#e94560;--gold:#f5a623;--ok:#38c172;--warn:#f5a623;--field:#0f1530}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+a{color:inherit}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 60px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 18px}
+.brand{font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px;text-decoration:none}
+.brand span{color:var(--accent)}
+.link{color:var(--muted);font-size:14px;text-decoration:none}
+.link:hover{color:var(--text)}
+h1{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(24px,4vw,32px);letter-spacing:-.02em;line-height:1.15}
+.lede{color:var(--muted);margin-top:6px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:10px;font-weight:700;font-size:15px;white-space:nowrap}
+.btn.primary{background:linear-gradient(90deg,var(--accent),var(--gold));color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border:1px solid var(--line);color:var(--text)}
+.btn.ghost:hover{border-color:var(--muted)}
+.btn.danger{color:#ff7b8f;border:1px solid rgba(233,69,96,.4)}
+.btn.danger:hover{background:rgba(233,69,96,.12)}
+.btn[disabled]{opacity:.55;cursor:wait}
+label{display:block;font-size:13px;font-weight:600;color:#c6c6dd;margin-bottom:6px}
+label small{font-weight:500;color:var(--muted)}
+input[type=text],input[type=url],input[type=date],input[type=password],textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--field);outline:none}
+input:focus,textarea:focus{border-color:var(--gold)}
+textarea{min-height:110px;resize:vertical}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid .full{grid-column:1/-1}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:var(--text)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.msg{margin-top:12px;font-size:14px;min-height:1.5em}
+.msg.err{color:#ff7b8f}
+.msg.ok{color:var(--ok)}
+.hint{color:var(--muted);font-size:12.5px;margin-top:5px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.spacer{flex:1}
+
+/* sign-in */
+#login{max-width:420px;margin:40px auto 0}
+
+/* list */
+.list-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:26px}
+.list-head h2{font-family:'Montserrat',sans-serif;font-size:20px;margin-right:auto}
+.filter{display:flex;gap:6px}
+.filter button{padding:7px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--muted)}
+.filter button.on{border-color:var(--gold);color:var(--text);background:rgba(245,166,35,.1)}
+.items{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.item{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.thumb{width:64px;height:64px;border-radius:10px;flex:none;object-fit:cover;background:linear-gradient(135deg,#e94560,#f5a623);display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:800;color:#fff;font-size:22px}
+.item .info{flex:1;min-width:0}
+.item h3{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item p{color:var(--muted);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:2px}
+.pill.live{background:rgba(56,193,114,.15);color:var(--ok)}
+.pill.pending{background:rgba(245,166,35,.15);color:var(--warn)}
+.pill.hidden,.pill.past{background:rgba(143,143,178,.15);color:var(--muted)}
+.item .acts{display:flex;gap:8px;flex:none}
+.item .acts .btn{padding:8px 12px;font-size:13px}
+.empty{color:var(--muted);text-align:center;padding:30px 10px}
+
+/* editor */
+#editor h2{font-family:'Montserrat',sans-serif;font-size:20px;margin-bottom:16px}
+.image-box{display:flex;gap:14px;align-items:center}
+.image-box .preview{width:110px;height:110px;border-radius:12px;flex:none;background:var(--field) center/cover no-repeat;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;text-align:center;padding:8px}
+.image-box .preview.has{border-style:solid;color:transparent}
+.image-box .controls{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.file-btn{position:relative;overflow:hidden}
+.file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.sep{border:0;border-top:1px solid var(--line);margin:6px 0}
+.section-title{grid-column:1/-1;font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-top:6px}
+.req{color:var(--accent)}
+.foot{position:sticky;bottom:0;margin:18px -20px -20px;padding:14px 20px;background:rgba(22,33,62,.96);border-top:1px solid var(--line);border-radius:0 0 16px 16px;backdrop-filter:blur(6px)}
+
+@media (max-width:640px){
+  .grid{grid-template-columns:1fr}
+  .item{flex-wrap:wrap}
+  .item .acts{width:100%}
+  .item .acts .btn{flex:1}
+  .foot .btn{flex:1}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="bar">
+    <a class="brand" href="/">Your<span>Concert</span>Tix</a>
+    <button class="link" id="signout" hidden>Sign out</button>
+  </nav>
+
+  <!-- Sign in -->
+  <section id="login" class="panel" hidden>
+    <h1>Add shows</h1>
+    <p class="lede">Put a show on Your Concert Tix that isn't booked in Airtable.</p>
+    <form id="login-form" style="margin-top:18px">
+      <label for="pw">Admin password</label>
+      <input type="password" id="pw" autocomplete="current-password" required>
+      <label class="check" style="margin-top:12px"><input type="checkbox" id="remember"> Remember me on this device</label>
+      <div class="row" style="margin-top:16px"><button class="btn primary" id="login-btn" type="submit">Sign in</button></div>
+      <p class="msg err" id="login-msg" role="alert"></p>
+    </form>
+  </section>
+
+  <!-- Signed in -->
+  <main id="app" hidden>
+    <div class="row">
+      <div>
+        <h1>Your added shows</h1>
+        <p class="lede">Shows added here appear on the homepage and get their own page, alongside the shows from Airtable. Changes go live in about 3 minutes.</p>
+      </div>
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn primary" id="new-btn" type="button">+ Add a show</button></div>
+
+    <section id="editor" class="panel" hidden>
+      <h2 id="editor-title">Add a show</h2>
+      <form id="form" novalidate>
+        <div class="grid">
+          <div class="section-title">The show</div>
+          <div class="full"><label for="f-name">Show name <span class="req">*</span></label><input type="text" id="f-name" maxlength="200" required placeholder="e.g. Springsteen: Born To Run"></div>
+          <div class="full"><label for="f-tagline">Tagline <small>(optional)</small></label><input type="text" id="f-tagline" maxlength="200" placeholder="e.g. A Tribute to Bruce Springsteen"></div>
+          <div><label for="f-date">Date <span class="req">*</span></label><input type="date" id="f-date" required></div>
+          <div><label for="f-time">Show time</label><input type="text" id="f-time" maxlength="60" placeholder="e.g. 7:00 PM"></div>
+
+          <div class="section-title">Where</div>
+          <div class="full"><label for="f-venue">Venue</label><input type="text" id="f-venue" maxlength="200" list="venues" autocomplete="off" placeholder="Start typing; known venues fill in the address"><datalist id="venues"></datalist></div>
+          <div class="full"><label for="f-address">Full address</label><input type="text" id="f-address" maxlength="300" placeholder="e.g. 6800 S Strand Ave, Yuma, AZ 85364"></div>
+          <div><label for="f-city">City</label><input type="text" id="f-city" maxlength="100"></div>
+          <div><label for="f-state">State</label><input type="text" id="f-state" maxlength="2" placeholder="AZ" style="text-transform:uppercase"></div>
+
+          <div class="section-title">Tickets</div>
+          <div class="full"><label for="f-ticket">Ticket link <span class="req">*</span></label><input type="url" id="f-ticket" required placeholder="https://..."></div>
+          <div><label for="f-price">Price <small>(optional)</small></label><input type="text" id="f-price" maxlength="100" placeholder="e.g. $25 to $45"></div>
+          <div><label for="f-video">Promo video <small>(optional)</small></label><input type="url" id="f-video" placeholder="YouTube or Vimeo link"></div>
+
+          <div class="section-title">Image</div>
+          <div class="full image-box">
+            <div class="preview" id="preview">No image</div>
+            <div class="controls">
+              <span class="btn ghost file-btn">Choose image<input type="file" id="f-image" accept="image/jpeg,image/png,image/webp,image/gif"></span>
+              <button class="btn ghost" type="button" id="remove-image" hidden>Remove image</button>
+              <p class="hint">Square images look best. Without one, the show uses the act's photo if the name matches an act on the site, or a colour block.</p>
+            </div>
+          </div>
+
+          <div class="section-title">Description</div>
+          <div class="full"><label for="f-desc">About the show <small>(optional)</small></label><textarea id="f-desc" maxlength="5000"></textarea></div>
+
+          <div class="full"><label class="check"><input type="checkbox" id="f-hidden"> Hide from the site (keeps it here so you can bring it back)</label></div>
+        </div>
+        <p class="msg" id="form-msg" role="status"></p>
+        <div class="foot row">
+          <button class="btn danger" type="button" id="delete-btn" hidden>Delete</button>
+          <span class="spacer"></span>
+          <button class="btn ghost" type="button" id="cancel-btn">Cancel</button>
+          <button class="btn primary" type="submit" id="save-btn">Save show</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="list-head">
+      <h2>Shows</h2>
+      <div class="filter" id="filter">
+        <button type="button" data-f="upcoming" class="on">Upcoming</button>
+        <button type="button" data-f="past">Past</button>
+        <button type="button" data-f="all">All</button>
+      </div>
+    </div>
+    <p class="msg" id="list-msg"></p>
+    <div class="items" id="items"></div>
+  </main>
+</div>
+
+<script>
+const API = '/api/events';
+const $ = s => document.querySelector(s);
+let password = '';
+let events = [];
+let editing = null;      // the event being edited, or null for a new one
+let pendingImage = null; // { filename, contentType, base64, url }
+let removeImage = false;
+let filter = 'upcoming';
+const knownVenues = new Map(); // name -> { address, city, state }
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function store(){ try { return localStorage; } catch { return null; } }
+function sess(){ try { return sessionStorage; } catch { return null; } }
+function today(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function fmtDate(ymd){ if(!ymd) return 'No date'; return new Date(ymd+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}); }
+
+async function call(action, extra = {}) {
+  const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, password, ...extra }) });
+  let data = {};
+  try { data = await res.json(); } catch {}
+  if (!res.ok || !data.ok) {
+    if (res.status === 401 && action !== 'login') signOut('Please sign in again.');
+    throw new Error(data.message || (res.status === 413 ? 'The image is too large. Try a smaller one.' : 'Request failed. Please try again.'));
+  }
+  return data;
+}
+
+// ---- sign in ----
+async function signIn(pw, remember) {
+  password = pw;
+  await call('login');
+  const ls = store(), ss = sess();
+  try { if (remember && ls) ls.setItem('yct-admin', pw); else if (ss) ss.setItem('yct-admin', pw); } catch {}
+  $('#login').hidden = true; $('#app').hidden = false; $('#signout').hidden = false;
+  loadVenues();
+  await refresh();
+}
+function signOut(message) {
+  password = '';
+  try { store()?.removeItem('yct-admin'); sess()?.removeItem('yct-admin'); } catch {}
+  $('#app').hidden = true; $('#signout').hidden = true; $('#login').hidden = false;
+  $('#login-msg').textContent = message || '';
+  $('#pw').value = '';
+}
+$('#login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('#login-btn'); btn.disabled = true; $('#login-msg').textContent = '';
+  try { await signIn($('#pw').value, $('#remember').checked); }
+  catch (err) { password = ''; $('#login-msg').textContent = err.message; }
+  finally { btn.disabled = false; }
+});
+$('#signout').addEventListener('click', () => signOut());
+
+// ---- list ----
+async function refresh() {
+  $('#list-msg').textContent = 'Loading...'; $('#list-msg').className = 'msg';
+  try { events = (await call('list')).events; $('#list-msg').textContent = ''; }
+  catch (err) { $('#list-msg').textContent = err.message; $('#list-msg').className = 'msg err'; }
+  for (const e of events) if (e.venue && !knownVenues.has(e.venue)) knownVenues.set(e.venue, { address: e.address, city: e.city, state: e.state });
+  fillVenueList();
+  render();
+}
+function status(e) {
+  if (e.hidden) return ['hidden', 'Hidden'];
+  if (e.date && e.date < today()) return ['past', 'Past'];
+  if (e.link) return ['live', 'Live'];
+  return ['pending', 'Going live'];
+}
+function render() {
+  const t = today();
+  const list = events.filter(e => filter === 'all' || (filter === 'past' ? (e.date && e.date < t) : !(e.date && e.date < t)));
+  if (filter !== 'past') list.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  $('#items').innerHTML = list.length ? list.map(e => {
+    const [cls, label] = status(e);
+    const where = [e.venue, [e.city, e.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
+    return `<div class="item">
+      ${e.image ? `<img class="thumb" src="${esc(e.image)}" alt="">` : `<div class="thumb">${esc((e.name || '?').charAt(0))}</div>`}
+      <div class="info">
+        <h3>${esc(e.name || 'Untitled')}<span class="pill ${cls}">${label}</span></h3>
+        <p>${esc(fmtDate(e.date))}${e.time ? ' · ' + esc(e.time) : ''}</p>
+        ${where ? `<p>${esc(where)}</p>` : ''}
+      </div>
+      <div class="acts">
+        ${e.link && cls === 'live' ? `<a class="btn ghost" href="${esc(e.link)}" target="_blank" rel="noopener">View</a>` : ''}
+        <button class="btn ghost" type="button" data-edit="${esc(e.id)}">Edit</button>
+      </div>
+    </div>`;
+  }).join('') : `<div class="empty">${filter === 'past' ? 'No past shows.' : 'No shows yet. Click <b>+ Add a show</b> to add one.'}</div>`;
+}
+$('#items').addEventListener('click', e => {
+  const b = e.target.closest('[data-edit]');
+  if (b) openEditor(events.find(x => x.id === b.dataset.edit));
+});
+$('#filter').addEventListener('click', e => {
+  const b = e.target.closest('button[data-f]'); if (!b) return;
+  filter = b.dataset.f;
+  for (const x of $('#filter').children) x.classList.toggle('on', x === b);
+  render();
+});
+
+// ---- venues: suggestions from the shows already on the site ----
+async function loadVenues() {
+  try {
+    const html = await (await fetch('/', { cache: 'no-store' })).text();
+    const m = html.match(/const events = (\[[\s\S]*?\n\]);/);
+    if (!m) return;
+    for (const e of JSON.parse(m[1])) {
+      if (e.venue && !knownVenues.has(e.venue)) knownVenues.set(e.venue, { address: e.address || '', city: e.city || '', state: e.state || '' });
+    }
+    fillVenueList();
+  } catch {}
+}
+function fillVenueList() {
+  $('#venues').innerHTML = [...knownVenues.keys()].sort((a, b) => a.localeCompare(b)).map(v => `<option value="${esc(v)}">`).join('');
+}
+$('#f-venue').addEventListener('change', () => {
+  const v = knownVenues.get($('#f-venue').value.trim());
+  if (!v) return;
+  if (!$('#f-address').value) $('#f-address').value = v.address;
+  if (!$('#f-city').value) $('#f-city').value = v.city;
+  if (!$('#f-state').value) $('#f-state').value = v.state;
+});
+
+// ---- editor ----
+const FIELDS = { name: '#f-name', tagline: '#f-tagline', date: '#f-date', time: '#f-time', venue: '#f-venue', address: '#f-address', city: '#f-city', state: '#f-state', ticket: '#f-ticket', price: '#f-price', video: '#f-video', description: '#f-desc' };
+function openEditor(ev) {
+  editing = ev || null; pendingImage = null; removeImage = false;
+  for (const [k, sel] of Object.entries(FIELDS)) $(sel).value = ev ? (ev[k] || '') : '';
+  if (!ev) $('#f-state').value = 'AZ';
+  $('#f-hidden').checked = !!(ev && ev.hidden);
+  $('#f-image').value = '';
+  showPreview(ev && ev.image);
+  $('#editor-title').textContent = ev ? 'Edit show' : 'Add a show';
+  $('#save-btn').textContent = ev ? 'Save changes' : 'Save show';
+  $('#delete-btn').hidden = !ev;
+  $('#form-msg').textContent = ''; $('#form-msg').className = 'msg';
+  $('#editor').hidden = false;
+  $('#editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => $('#f-name').focus({ preventScroll: true }), 300);
+}
+function closeEditor() { $('#editor').hidden = true; editing = null; pendingImage = null; }
+function showPreview(url) {
+  const p = $('#preview');
+  p.style.backgroundImage = url ? `url("${url}")` : '';
+  p.classList.toggle('has', !!url);
+  p.textContent = url ? '' : 'No image';
+  $('#remove-image').hidden = !url;
+}
+$('#new-btn').addEventListener('click', () => openEditor(null));
+$('#cancel-btn').addEventListener('click', closeEditor);
+
+// Shrink the image in the browser first (max 1600px JPEG) so uploads are quick
+// and stay under the server's size limit.
+function shrink(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const max = 1600, k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      const dataUrl = c.toDataURL('image/jpeg', 0.86);
+      resolve({ filename: file.name.replace(/\.[^.]+$/, '') + '.jpg', contentType: 'image/jpeg', base64: dataUrl.split(',')[1], url: dataUrl });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That file could not be opened as an image.')); };
+    img.src = url;
+  });
+}
+$('#f-image').addEventListener('change', async () => {
+  const file = $('#f-image').files[0];
+  if (!file) return;
+  try { pendingImage = await shrink(file); removeImage = false; showPreview(pendingImage.url); }
+  catch (err) { $('#form-msg').textContent = err.message; $('#form-msg').className = 'msg err'; }
+});
+$('#remove-image').addEventListener('click', () => { pendingImage = null; removeImage = true; $('#f-image').value = ''; showPreview(''); });
+
+$('#form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('#form-msg');
+  const fields = {};
+  for (const [k, sel] of Object.entries(FIELDS)) fields[k] = $(sel).value.trim();
+  fields.hidden = $('#f-hidden').checked;
+  const missing = [!fields.name && 'show name', !fields.date && 'date', !fields.ticket && 'ticket link'].filter(Boolean);
+  if (missing.length) { msg.textContent = 'Please add the ' + missing.join(', ') + '.'; msg.className = 'msg err'; return; }
+  const btn = $('#save-btn'); btn.disabled = true;
+  msg.textContent = pendingImage ? 'Saving and uploading the image...' : 'Saving...'; msg.className = 'msg';
+  try {
+    const payload = { fields };
+    if (editing) payload.id = editing.id;
+    if (pendingImage) payload.image = { filename: pendingImage.filename, contentType: pendingImage.contentType, base64: pendingImage.base64 };
+    else if (removeImage) payload.removeImage = true;
+    const out = await call('save', payload);
+    closeEditor();
+    await refresh();
+    const when = out.rebuild === 'queued' ? 'It will be on the site in about 3 minutes.' : 'It will be on the site after the next update (within 4 hours).';
+    $('#list-msg').textContent = `Saved "${out.event.name}". ${out.event.hidden ? 'It is hidden from the site.' : when}`;
+    $('#list-msg').className = 'msg ok';
+  } catch (err) { msg.textContent = err.message; msg.className = 'msg err'; }
+  finally { btn.disabled = false; }
+});
+
+$('#delete-btn').addEventListener('click', async () => {
+  if (!editing) return;
+  if (!confirm(`Delete "${editing.name}"? It will come off the site and can't be undone. To take it down for now, tick "Hide from the site" instead.`)) return;
+  const btn = $('#delete-btn'); btn.disabled = true;
+  try {
+    const name = editing.name;
+    await call('delete', { id: editing.id });
+    closeEditor();
+    await refresh();
+    $('#list-msg').textContent = `Deleted "${name}".`; $('#list-msg').className = 'msg ok';
+  } catch (err) { $('#form-msg').textContent = err.message; $('#form-msg').className = 'msg err'; }
+  finally { btn.disabled = false; }
+});
+
+// ---- start ----
+(async () => {
+  let saved = '';
+  try { saved = store()?.getItem('yct-admin') || sess()?.getItem('yct-admin') || ''; } catch {}
+  if (saved) {
+    try { await signIn(saved, !!store()?.getItem('yct-admin')); return; } catch { signOut(); return; }
+  }
+  $('#login').hidden = false;
+})();
+</script>
+</body>
+</html>

@@ -9,7 +9,7 @@
 //   node scripts/sync.mjs            # write into repo root
 //   node scripts/sync.mjs --dry-run  # don't write files, just print summary
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, rmSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
@@ -27,6 +27,7 @@ const BASE_ID = 'appEy2dr1ecmzbEpb';
 const EVENTS_TABLE = 'tblu9UIlpXChPdvOB';
 const BANDS_TABLE = 'tblOsZIDmFHt01rJn';
 const VENUES_TABLE = 'tblno252DKqUf55As';
+const EXTRA_TABLE = 'tbl4xJfw7ltLEFkbS'; // YCT EXTRA EVENTS — shows added via /admin/ (api/events.js)
 
 // Event field IDs
 const F_SHOW_INFO     = 'fld2ky88mk1cTECxX';
@@ -53,6 +54,22 @@ const F_BIO      = 'fldZRMHNofVVU5S6J'; // "Copy" — performer bio / show descr
 const F_TAGLINE  = 'fldTq2ehkhKtjfRUU'; // "Tagline" — short subtitle, e.g. "A Tribute to John Lennon"
 const F_PROMO_VIDEO = 'fldPzPlEyiezhUMrB'; // "Promo Video" — YouTube URL (url field)
 const F_BAND_HIDE   = 'fld4cU77BIY6lqjYV'; // "Hide from YCT" (checkbox) — hides this act and all its shows
+
+// YCT EXTRA EVENTS field IDs (filterByFormula below uses the names Date and Hidden)
+const FX_NAME     = 'fldTwxXwx9B8YK9Oc';
+const FX_DATE     = 'fldNs0lFdI8tjCqtz';
+const FX_TIME     = 'fldnCIXqxLn0IPBJs';
+const FX_VENUE    = 'fldMDmxKAjSCkPona';
+const FX_ADDRESS  = 'fldQcUgxqvOspvjn7';
+const FX_CITY     = 'fld7GS5MjAw1vbjaL';
+const FX_STATE    = 'fldkI8SNYNy6TQupl';
+const FX_TICKET   = 'fldPKNIDMKLf7CGHw';
+const FX_IMAGE    = 'fldvXK7lTQ47MmCUA';
+const FX_TAGLINE  = 'fld9GlhoX37QQOFQM';
+const FX_DESC     = 'fld7W33N9ELj9ILRt';
+const FX_PRICE    = 'fldkJoRbAIpcriaEI';
+const FX_VIDEO    = 'fld8cIABDpRMywKgP';
+const FX_YCT_LINK = 'fldlITdEaT1CvpCEH';
 
 // Venues field IDs
 const F_VENUE_NAME = 'fldNt6WjlSP0tivQ2'; // primary field "Name" on VENUES (From CP)
@@ -290,6 +307,84 @@ async function pullEvents() {
   return { events, skipped };
 }
 
+// ---- Pull shows added through /admin/ (YCT EXTRA EVENTS) ----
+//
+// These aren't bookings, so they skip the band/venue gates: every future row
+// with a name and a real ticket link that isn't Hidden is published. Each one
+// carries its own photo (artist-photos/extra-<record id>.jpg) when it has an
+// Image, and otherwise falls back to an act photo with the same name, if any.
+async function pullExtraEvents() {
+  const records = await airtableListAll(EXTRA_TABLE, {
+    fields: [FX_NAME, FX_DATE, FX_TIME, FX_VENUE, FX_ADDRESS, FX_CITY, FX_STATE, FX_TICKET, FX_IMAGE, FX_TAGLINE, FX_DESC, FX_PRICE, FX_VIDEO],
+    filterByFormula: `AND(IS_AFTER({Date}, DATEADD(TODAY(), -1, 'days')), NOT({Hidden}))`,
+  });
+  const today = new Date().toISOString().slice(0, 10);
+  const events = [];
+  const skipped = { noName: 0, noTicket: 0, past: 0 };
+  for (const r of records) {
+    const f = r.fields;
+    const name = (f[FX_NAME] || '').trim();
+    if (!name) { skipped.noName++; continue; }
+    if (isUnavailableTicket(f[FX_TICKET])) { skipped.noTicket++; continue; }
+    if (!f[FX_DATE] || f[FX_DATE] < today) { skipped.past++; continue; }
+    const img = (f[FX_IMAGE] || [])[0];
+    const slug = slugify(name);
+    events.push({
+      extraRecordId: r.id,
+      artist: name,
+      slug,
+      photo: img ? `extra-${r.id.toLowerCase()}` : slug,
+      imageUrl: img ? img.url : null,
+      ticket: f[FX_TICKET],
+      date: f[FX_DATE],
+      showtime: (f[FX_TIME] || '').trim(),
+      venue: (f[FX_VENUE] || '').trim(),
+      address: (f[FX_ADDRESS] || '').trim(),
+      city: (f[FX_CITY] || '').trim(),
+      state: (f[FX_STATE] || '').trim().toUpperCase(),
+      tagline: (f[FX_TAGLINE] || '').trim(),
+      bio: (f[FX_DESC] || '').trim(),
+      price: (f[FX_PRICE] || '').trim(),
+      promoVideo: (f[FX_VIDEO] || '').trim(),
+      platform: '',
+    });
+  }
+  return { events, skipped };
+}
+
+// Download each extra show's Image to artist-photos/extra-<id>.jpg, and remove
+// files for shows that no longer have one.
+async function downloadExtraPhotos(extras) {
+  if (!existsSync(photosDir)) mkdirSync(photosDir, { recursive: true });
+  const results = { downloaded: 0, unchanged: 0, removed: 0, failed: [] };
+  const keep = new Set();
+  for (const e of extras) {
+    if (!e.imageUrl) continue;
+    const file = `${e.photo}.jpg`;
+    keep.add(file);
+    const target = path.join(photosDir, file);
+    try {
+      const res = await fetch(e.imageUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buf = Buffer.from(await res.arrayBuffer());
+      if (existsSync(target) && statSync(target).size === buf.length) results.unchanged++;
+      else { if (!DRY_RUN) writeFileSync(target, buf); results.downloaded++; }
+    } catch (err) {
+      // No photo file: the card falls back to the act's photo or a gradient.
+      e.photo = e.slug;
+      keep.delete(file);
+      results.failed.push({ name: e.artist, error: err.message });
+    }
+  }
+  for (const file of readdirSync(photosDir)) {
+    if (file.startsWith('extra-') && !keep.has(file)) {
+      if (!DRY_RUN) rmSync(path.join(photosDir, file));
+      results.removed++;
+    }
+  }
+  return results;
+}
+
 // ---- Resolve artist names + photo URLs via BANDS-SHOWS ----
 
 async function pullBands(linkIds) {
@@ -403,6 +498,7 @@ function renderIndexHtml(events) {
     address: e.address,
     platform: e.platform,
     slug: e.slug,
+    photo: e.photo || e.slug,
     id: e.id,
   })), null, 2);
 
@@ -628,7 +724,7 @@ function render(){
       +'<a class="details" href="'+eventUrl+'">Details</a>';
     return \`<div class="card">
       <a class="card-photo-wrap" href="\${eventUrl}">
-        <img src="\${PHOTO_BASE}\${esc(e.slug)}.jpg" alt="\${esc(e.artist)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <img src="\${PHOTO_BASE}\${esc(e.photo)}.jpg" alt="\${esc(e.artist)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="card-photo-fallback" style="display:none;background:\${grad(e.slug)}">\${esc(e.artist)}</div>
       </a>
       <div class="card-body">
@@ -679,6 +775,7 @@ function renderEventHtml(e) {
     e.venue ? `<li><span>Venue</span><strong>${htmlesc(e.venue)}</strong></li>` : '',
     locality ? `<li><span>Location</span><strong>${htmlesc(locality)}</strong></li>` : '',
     e.address ? `<li><span>Address</span><strong>${htmlesc(e.address)}</strong></li>` : '',
+    e.price ? `<li><span>Price</span><strong>${htmlesc(e.price)}</strong></li>` : '',
   ].filter(Boolean).join('\n        ');
   const cta = hasTix
     ? `<a class="get-tickets" href="${htmlesc(e.ticket)}" target="_blank" rel="noopener">Get Tickets</a>`
@@ -694,7 +791,7 @@ function renderEventHtml(e) {
 <meta property="og:title" content="${htmlesc(e.artist)}">
 <meta property="og:description" content="${htmlesc(ogDesc)}">
 <meta property="og:type" content="website">
-<meta property="og:image" content="/artist-photos/${htmlesc(e.slug)}.jpg">
+<meta property="og:image" content="/artist-photos/${htmlesc(e.photo || e.slug)}.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
@@ -748,7 +845,7 @@ footer a:hover{color:var(--accent);}
   <a class="back" href="/">&larr; All shows</a>
   <article class="event-card">
     <div class="photo">
-      <img src="/artist-photos/${htmlesc(e.slug)}.jpg" alt="${htmlesc(e.artist)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="/artist-photos/${htmlesc(e.photo || e.slug)}.jpg" alt="${htmlesc(e.artist)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="photo-fallback" style="display:none;background:${gradFor(e.slug)}">${htmlesc(e.artist)}</div>
     </div>
     <div class="content">
@@ -874,6 +971,24 @@ async function syncYctLinks(usableEvents) {
   console.log(`YCT Link: set ${toWrite.length}, cleared ${toClear.length} (${desired.size} live events).`);
 }
 
+// Same as syncYctLinks, for the admin-form shows in YCT EXTRA EVENTS, so the
+// form can link each one to its live page.
+async function syncExtraYctLinks(usableEvents) {
+  const desired = new Map();
+  for (const e of usableEvents) {
+    if (e.extraRecordId && e.id) desired.set(e.extraRecordId, `${SITE_ORIGIN}/events/${e.id}/`);
+  }
+  const existing = await airtableListAll(EXTRA_TABLE, { fields: [FX_YCT_LINK] });
+  const updates = [];
+  for (const r of existing) {
+    const want = desired.get(r.id) || '';
+    if ((r.fields[FX_YCT_LINK] || '') !== want) updates.push({ id: r.id, fields: { [FX_YCT_LINK]: want || null } });
+  }
+  if (DRY_RUN) { console.log(`[DRY RUN] extra YCT Link: would update ${updates.length}`); return; }
+  if (updates.length) await airtableUpdate(EXTRA_TABLE, updates);
+  console.log(`Extra YCT Link: updated ${updates.length} (${desired.size} live extra events).`);
+}
+
 // ---- Main ----
 
 async function main() {
@@ -914,6 +1029,19 @@ async function main() {
     return true;
   });
   console.log(`  publish gates dropped ${JSON.stringify(dropped)}`);
+
+  // Shows added through /admin/. A failure here must not take the site down,
+  // so the bookings still publish without them.
+  let extras = [];
+  try {
+    const pulled = await pullExtraEvents();
+    extras = pulled.events;
+    console.log(`  ${extras.length} extra events (admin form); skipped ${JSON.stringify(pulled.skipped)}`);
+  } catch (err) {
+    console.warn(`WARNING: extra events skipped — ${err.message}`);
+  }
+  usableEvents.push(...extras);
+  usableEvents.sort((a, b) => a.date.localeCompare(b.date)); // stable: same-day order kept
   console.log(`  ${usableEvents.length} events will be published`);
 
   // Give each event a stable, unique URL id (artist slug + date, de-duplicated
@@ -932,6 +1060,9 @@ async function main() {
   console.log(`  downloaded=${photoResults.downloaded} unchanged=${photoResults.unchanged} failed=${photoResults.failed.length} skipped=${photoResults.skipped.length}`);
   for (const f of photoResults.failed) console.log(`  FAILED ${f.slug}: ${f.error}`);
   for (const s of photoResults.skipped) console.log(`  NO PHOTO ${s.slug} (${s.name})`);
+  const extraPhotos = await downloadExtraPhotos(extras);
+  console.log(`  extra photos: downloaded=${extraPhotos.downloaded} unchanged=${extraPhotos.unchanged} removed=${extraPhotos.removed} failed=${extraPhotos.failed.length}`);
+  for (const f of extraPhotos.failed) console.log(`  FAILED extra photo ${f.name}: ${f.error}`);
 
   const html = renderIndexHtml(usableEvents);
   if (DRY_RUN) {
@@ -957,6 +1088,11 @@ async function main() {
   } catch (e) {
     console.warn(`WARNING: YCT Link write-back skipped — ${e.message}`);
     console.warn('  (the AIRTABLE_PAT likely needs the data.records:write scope)');
+  }
+  try {
+    await syncExtraYctLinks(usableEvents);
+  } catch (e) {
+    console.warn(`WARNING: extra events YCT Link write-back skipped — ${e.message}`);
   }
 
   console.log('\nSummary:');

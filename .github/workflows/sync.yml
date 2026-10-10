@@ -6,10 +6,11 @@ on:
     - cron: '0 */4 * * *'
   # Allow manual runs from the Actions tab
   workflow_dispatch: {}
-  # Fired by api/affiliate.js when an affiliate creates links, so their page
-  # goes live in minutes instead of waiting for the next scheduled run.
+  # Fired by api/affiliate.js when an affiliate creates links, and by
+  # api/events.js when a show is added in /admin/, so the change goes live in
+  # minutes instead of waiting for the next scheduled run.
   repository_dispatch:
-    types: [affiliate-rebuild]
+    types: [affiliate-rebuild, events-rebuild]
   # Run after each push to main that touches the script or workflow itself
   push:
     branches: [main]

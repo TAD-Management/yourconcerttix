@@ -30,11 +30,12 @@
 import * as fg from '../lib/fangenie.mjs';
 import { AFFILIATES_TABLE, LINKS_TABLE, listAll, createAll, updateAll, q, findAffiliateByEmail } from '../lib/airtable.mjs';
 import { venueInfo } from '../lib/venues.mjs';
+import { triggerRebuild as dispatch } from '../lib/rebuild.mjs';
 
 export const config = { maxDuration: 60 };
 
 const SITE = 'https://yourconcerttix.com';
-const GITHUB_REPO = process.env.GITHUB_REPO || 'TAD-Management/yourconcerttix';
+const triggerRebuild = () => dispatch('affiliate-rebuild');
 
 class HttpError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
@@ -311,23 +312,4 @@ function lineup(state, affiliate) {
     venues: list,
     totals: { events: list.reduce((n, v) => n + v.events.length, 0), withLink: list.reduce((n, v) => n + v.withLink, 0) },
   };
-}
-
-// Ask GitHub to run the sync workflow now. Without a token the page still
-// rebuilds on the next scheduled run (every 4 hours).
-async function triggerRebuild() {
-  const ghToken = process.env.GITHUB_TOKEN;
-  if (!ghToken) return 'scheduled';
-  try {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/dispatches`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${ghToken}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json', 'User-Agent': 'yourconcerttix-affiliate' },
-      body: JSON.stringify({ event_type: 'affiliate-rebuild' }),
-    });
-    if (res.status === 204) return 'queued';
-    console.error('repository_dispatch failed:', res.status, (await res.text()).slice(0, 200));
-  } catch (err) {
-    console.error('repository_dispatch error:', err.message);
-  }
-  return 'scheduled';
 }
