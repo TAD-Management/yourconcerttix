@@ -74,8 +74,6 @@ const VENUES = [
     airtableVenue: 'recx2TsRMj4uLq6Mp' },  // VENUES "Cocopah RV & Golf Resort"
 ];
 
-// Acts the public site never lists; the same rule as EXCLUDED_ARTISTS in sync.mjs.
-const EXCLUDED_ARTISTS = ['yachtzilla'];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
@@ -1043,8 +1041,7 @@ async function buildVenue(cfg) {
   console.log(`  ${venue.name} (${venue._id})`);
 
   console.log(`${tag}: pulling events...`);
-  const list = (await fetchEventList(venue._id))
-    .filter(e => !EXCLUDED_ARTISTS.some(x => String(e.name || '').toLowerCase().includes(x)));
+  const list = await fetchEventList(venue._id);
   console.log(`  ${list.length} events listed`);
 
   console.log(`${tag}: pulling event details + season bundles...`);
