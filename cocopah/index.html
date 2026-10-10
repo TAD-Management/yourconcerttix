@@ -1,560 +1,22 @@
-#!/usr/bin/env node
-// Venue pages (Apache Junction, Lake Havasu, Paramount, ...) — pulls each venue's upcoming
-// shows and season bundles straight from FanGenie's public API and rebuilds
-// /<dir>/index.html for every entry in VENUES below.
-//
-// FanGenie only allows browser calls to its API from app.fangenie.com, so the
-// page can't fetch live in the visitor's browser. Instead the GitHub Action
-// runs this script alongside scripts/sync.mjs every few hours and commits the
-// result. No secrets are needed — the API is public.
-//
-// Posters: when AIRTABLE_PAT is set (it is in the GitHub Action) each show is
-// matched to its CURRENT EVENTS row by venue + date and the 1:1 Poster/Portrait
-// from BANDS-SHOWS is downloaded into <dir>/img/. Without the PAT, or when a
-// band has no poster, FanGenie's own image is used instead.
-//
-// Usage:
-//   node scripts/apache-junction.mjs                  # rebuild every venue page
-//   node scripts/apache-junction.mjs --only lakehavasu # just one (by dir)
-//   node scripts/apache-junction.mjs --dry-run        # just print a summary
-
-import { writeFileSync, readFileSync, mkdirSync, existsSync, readdirSync, unlinkSync, renameSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
-import { tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
-import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
-import { HOWTO_CSS, earnButton, howtoButton, howtoDialogs } from '../lib/promo-help.mjs';
-
-const DRY_RUN = process.argv.includes('--dry-run');
-const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > -1 ? process.argv[i + 1] : null; })();
-
-const API = 'https://api.fangenie.com/api/v1';
-const SITE_ORIGIN = 'https://yourconcerttix.com';
-
-// Airtable (same base + fields as scripts/sync.mjs). Optional — see header.
-const AIRTABLE_PAT = process.env.AIRTABLE_PAT || '';
-const BASE_ID = 'appEy2dr1ecmzbEpb';
-const EVENTS_TABLE = 'tblu9UIlpXChPdvOB';
-const BANDS_TABLE = 'tblOsZIDmFHt01rJn';
-const F_START_DATE = 'fld0VBiok50LzeKRZ';
-const F_ARTIST_LINK = 'fldRZ99cnPxHyPL18';
-const F_VENUE_LINK = 'fldWNKIABxBYUyX0A';
-const F_NAME = 'fldLzk7pDCwNsBQob';
-const F_WEB_IMG = 'fldmdmT8dvg45MLyn'; // Poster/Portrait (1:1)
-
-// One entry per venue page. `slug` is the venue code in FanGenie's URL
-// (app.fangenie.com/venue/<name>/<slug>), `dir` is the folder under the site
-// root, `headline` fills "<headline> Live" and `tagline` opens the intro line.
-// `seating` (optional) is the "Open seating" box's title and text when the
-// venue isn't general admission. `outlet` (optional) is an in-person ticket
-// outlet shown in a callout under the hero; its `when` wording drops off from
-// the `from` date (Arizona midnight). `address` (optional) replaces FanGenie's
-// street address when theirs is messy. Add the dir to the workflow's `git add` line
-// and a card to the homepage (sync.mjs) when adding a venue.
-const VENUES = [
-  { slug: 'LbyXyoyVFS', dir: 'apachejunction', headline: 'Apache Junction',
-    tagline: "TAD Management presents Arizona's #1 live concert series",
-    outlet: { when: 'beginning November 12th', from: '2026-11-12', name: 'AJ Chamber of Commerce',
-      address: '567 Apache Trail', city: 'Apache Junction, AZ 85120' },
-    airtableVenue: 'rec0tRFvep0mbHE1p' },  // VENUES "Apache Junction PAC"
-  { slug: 'AqIHEi8XOu', dir: 'lakehavasu', headline: 'Lake Havasu',
-    tagline: 'The TAD Management concert series roars back to life',
-    airtableVenue: 'receYZwNa6cnwQQrU' },  // VENUES "Lake Havasu Aquatic Center"
-  { slug: 'd2UgEqfLWS', dir: 'paramount', headline: 'Paramount Theatre',
-    tagline: 'TAD Management presents a new concert series',
-    // FanGenie seat map "Reserved and GA Mixed": reserved left/right, GA, VIP balcony.
-    seating: { title: 'Reserved &amp; GA seats', text: 'Reserved seats, general admission and a VIP balcony' },
-    airtableVenue: 'rec0LngZlqgOXgqwD' },  // VENUES "The Historic Paramount Theater (AZ)"
-  // No homepage card for Cocopah (Terry, 2026-10-10): the page is reached by link only.
-  { slug: 'aYIgA7hOmW', dir: 'cocopah', headline: 'Cocopah',
-    tagline: 'TAD Management brings live concerts to Yuma',
-    // FanGenie's address reads "6800 Strand Ave (also listed as S. Strand Ave), Yuma, AZ 85364".
-    address: '6800 S Strand Ave',
-    airtableVenue: 'recx2TsRMj4uLq6Mp' },  // VENUES "Cocopah RV & Golf Resort"
-];
-
-// Acts the public site never lists; the same rule as EXCLUDED_ARTISTS in sync.mjs.
-const EXCLUDED_ARTISTS = ['yachtzilla'];
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, '..');
-
-// ---- FanGenie API ----
-
-async function getJson(url) {
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
-  return res.json();
-}
-
-async function fetchVenue(slug) {
-  const v = await getJson(`${API}/venue/slug/${slug}`);
-  return v.data || v.venue || v;
-}
-
-// Season bundles ("season tickets") sold for the venue, if any.
-async function fetchBundles(slug) {
-  try {
-    const r = await getJson(`${API}/season-tickets/venue/${slug}`);
-    return (r.data || []).filter(b => b && !b.isDeleted);
-  } catch (err) {
-    console.warn(`  WARN season bundles failed: ${err.message}`);
-    return [];
-  }
-}
-
-async function fetchEventList(venueId) {
-  const all = [];
-  let page = 1, totalPages = 1;
-  do {
-    const q = `params[page]=${page}&params[limit]=50&params[featured]=false&params[venueId]=${venueId}`;
-    const data = await getJson(`${API}/event?${q}`);
-    all.push(...(data.events || []));
-    totalPages = data.totalPages || 1;
-    page++;
-  } while (page <= totalPages);
-  return all;
-}
-
-// The list endpoint omits on-sale date, video and category, so pull each
-// event's detail record (a few at a time).
-async function fetchDetails(events) {
-  const out = {};
-  const queue = [...events];
-  async function worker() {
-    while (queue.length) {
-      const e = queue.shift();
-      try {
-        const d = await getJson(`${API}/event/slug/${e.slug}`);
-        out[e.slug] = (d.data && d.data.event) || {};
-      } catch (err) {
-        console.warn(`  WARN detail failed for ${e.slug}: ${err.message}`);
-        out[e.slug] = {};
-      }
-    }
-  }
-  await Promise.all(Array.from({ length: 4 }, worker));
-  return out;
-}
-
-// ---- Airtable posters (optional) ----
-
-async function airtableListAll(tableId, { fields = [], filterByFormula = null } = {}) {
-  const records = [];
-  let offset = null;
-  do {
-    const params = new URLSearchParams();
-    for (const f of fields) params.append('fields[]', f);
-    if (filterByFormula) params.set('filterByFormula', filterByFormula);
-    params.set('returnFieldsByFieldId', 'true');
-    params.set('pageSize', '100');
-    if (offset) params.set('offset', offset);
-    const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}?${params}`, {
-      headers: { Authorization: `Bearer ${AIRTABLE_PAT}` },
-    });
-    if (!res.ok) throw new Error(`Airtable ${tableId} ${res.status}: ${(await res.text()).slice(0, 300)}`);
-    const data = await res.json();
-    records.push(...data.records);
-    offset = data.offset;
-  } while (offset);
-  return records;
-}
-
-// Upcoming CURRENT EVENTS rows for one venue: [{ ymd, bandId }]
-async function fetchAirtableShows(venueRecordId) {
-  const rows = await airtableListAll(EVENTS_TABLE, {
-    fields: [F_START_DATE, F_ARTIST_LINK, F_VENUE_LINK],
-    filterByFormula: `IS_AFTER({Start Date}, DATEADD(TODAY(), -2, 'days'))`,
-  });
-  return rows
-    .filter(r => (r.fields[F_VENUE_LINK] || []).includes(venueRecordId))
-    .map(r => ({ ymd: r.fields[F_START_DATE], bandId: (r.fields[F_ARTIST_LINK] || [])[0] || null }))
-    .filter(r => r.ymd && r.bandId);
-}
-
-// BANDS-SHOWS name + Poster/Portrait URL for a set of record ids.
-async function fetchAirtableBands(ids) {
-  const unique = [...new Set(ids.filter(Boolean))];
-  const byId = {};
-  for (let i = 0; i < unique.length; i += 80) {
-    const chunk = unique.slice(i, i + 80);
-    const rows = await airtableListAll(BANDS_TABLE, {
-      fields: [F_NAME, F_WEB_IMG],
-      filterByFormula: `OR(${chunk.map(id => `RECORD_ID()='${id}'`).join(',')})`,
-    });
-    for (const r of rows) {
-      const att = r.fields[F_WEB_IMG];
-      byId[r.id] = {
-        name: (r.fields[F_NAME] || '').trim(),
-        url: att && att[0] ? att[0].url : null,
-        // Attachment id + byte size identify the upload, so an unchanged
-        // poster is not re-downloaded and re-encoded on every run.
-        key: att && att[0] ? `${att[0].id}:${att[0].size || 0}` : null,
-      };
-    }
-  }
-  return byId;
-}
-
-function nameTokens(s) {
-  return String(s || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(t => t && !['the', 'a', 'an', 'of', 'to', 'and'].includes(t));
-}
-
-// How much of the band name appears in the FanGenie show name (0..1).
-function nameScore(bandName, showName) {
-  const b = nameTokens(bandName), n = new Set(nameTokens(showName));
-  if (!b.length) return 0;
-  return b.filter(t => n.has(t)).length / b.length;
-}
-
-// Pick the Airtable band for a FanGenie show: same local date and the band name
-// must be recognisable in the show title, so two shows on one day can't swap
-// posters. Falls back to a strong name match within a day either side (the two
-// systems occasionally disagree on the date by one).
-function matchShow(event, shows, bandsById) {
-  const dayMs = 86400 * 1000;
-  const t = new Date(event.ymd + 'T12:00:00Z').getTime();
-  let best = null;
-  for (const s of shows) {
-    const band = bandsById[s.bandId];
-    if (!band || !band.name) continue;
-    const dist = Math.abs(new Date(s.ymd + 'T12:00:00Z').getTime() - t) / dayMs;
-    if (dist > 1) continue;
-    const score = nameScore(band.name, event.name);
-    if (dist === 0 ? score < 0.5 : score < 0.8) continue;
-    const rank = score - dist * 0.25;
-    if (!best || rank > best.rank) best = { rank, band, score, dist };
-  }
-  return best;
-}
-
-// Downscale a poster to a web-sized JPEG (max 900px, ~100KB) with whatever
-// image tool the machine has. Source files from Airtable run to 2-3MB each.
-const POSTER_MAX = 900;
-let resizeTool; // resolved once: 'magick' | 'convert' | 'sips' | null
-function findResizeTool() {
-  if (resizeTool !== undefined) return resizeTool;
-  resizeTool = null;
-  for (const t of ['magick', 'convert', 'sips']) {
-    try { execFileSync(t, t === 'sips' ? ['--help'] : ['-version'], { stdio: 'ignore' }); resizeTool = t; break; } catch {}
-  }
-  return resizeTool;
-}
-function resizePoster(buf, target) {
-  const tool = findResizeTool();
-  const src = path.join(tmpdir(), `yct-poster-${process.pid}-${Math.random().toString(36).slice(2)}`);
-  writeFileSync(src, buf);
-  try {
-    if (tool === 'magick' || tool === 'convert') {
-      execFileSync(tool, [src, '-auto-orient', '-resize', `${POSTER_MAX}x${POSTER_MAX}>`, '-strip', '-interlace', 'Plane', '-quality', '82', `jpg:${target}`], { stdio: 'ignore' });
-    } else if (tool === 'sips') {
-      const tmpOut = `${target}.tmp.jpg`;
-      execFileSync('sips', ['--resampleHeightWidthMax', String(POSTER_MAX), '-s', 'format', 'jpeg', '-s', 'formatOptions', '82', src, '--out', tmpOut], { stdio: 'ignore' });
-      renameSync(tmpOut, target);
-    } else {
-      writeFileSync(target, buf);
-      return 'original';
-    }
-    return tool;
-  } catch (err) {
-    writeFileSync(target, buf); // never lose the poster over a tooling problem
-    return `original (${tool} failed: ${err.message.split('\n')[0]})`;
-  } finally {
-    try { unlinkSync(src); } catch {}
-  }
-}
-
-async function applyAirtablePosters(cfg, events) {
-  if (!AIRTABLE_PAT) { console.log('  AIRTABLE_PAT not set: using FanGenie images'); return; }
-  if (!cfg.airtableVenue) return;
-  const shows = await fetchAirtableShows(cfg.airtableVenue);
-  const bandsById = await fetchAirtableBands(shows.map(s => s.bandId));
-  const imgDir = path.join(repoRoot, cfg.dir, 'img');
-  if (!DRY_RUN) mkdirSync(imgDir, { recursive: true });
-  const manifestPath = path.join(imgDir, 'manifest.json');
-  let manifest = {};
-  try { manifest = JSON.parse(readFileSync(manifestPath, 'utf8')); } catch {}
-  const nextManifest = {};
-  const keep = new Set(['manifest.json']);
-  let matched = 0, noPoster = 0, unmatched = 0, failed = 0, downloaded = 0, reused = 0;
-  const tools = new Set();
-  for (const e of events) {
-    const m = matchShow(e, shows, bandsById);
-    if (!m) { unmatched++; console.log(`  no Airtable match: ${e.ymd} ${e.name}`); continue; }
-    if (!m.band.url) { noPoster++; console.log(`  no Poster/Portrait: ${m.band.name} (${e.ymd})`); continue; }
-    const file = `${slugify(m.band.name).replace(/-+/g, '-').replace(/^-|-$/g, '')}.jpg`;
-    const target = path.join(imgDir, file);
-    try {
-      if (!keep.has(file)) {
-        // Reuse the stored file when the upload is unchanged, unless it was
-        // saved unresized and a resize tool is available now.
-        const prev = manifest[file] || {};
-        const canResize = !!findResizeTool();
-        if (prev.key === m.band.key && existsSync(target) && (prev.resized || !canResize)) {
-          reused++;
-          nextManifest[file] = prev;
-        } else {
-          const res = await fetch(m.band.url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const buf = Buffer.from(await res.arrayBuffer());
-          const tool = DRY_RUN ? 'dry-run' : resizePoster(buf, target);
-          tools.add(tool);
-          nextManifest[file] = { key: m.band.key, resized: !/^original/.test(tool) };
-          downloaded++;
-        }
-      }
-      keep.add(file);
-      // Root-relative: the page is also served at /<dir> (no slash), where a
-      // relative img/ path would point at /img/ and 404.
-      e.poster = `/${cfg.dir}/img/${file}`;
-      e.posterSource = 'airtable';
-      matched++;
-    } catch (err) {
-      failed++;
-      console.log(`  poster download failed for ${m.band.name}: ${err.message}`);
-    }
-  }
-  // Drop posters for shows that are no longer listed.
-  if (!DRY_RUN && existsSync(imgDir)) {
-    for (const f of readdirSync(imgDir)) if (!keep.has(f)) unlinkSync(path.join(imgDir, f));
-    writeFileSync(manifestPath, JSON.stringify(nextManifest, null, 1) + '\n');
-  }
-  console.log(`  posters: ${matched} from Airtable (${downloaded} downloaded, ${reused} unchanged), ${noPoster} without Poster/Portrait, ${unmatched} unmatched, ${failed} failed${tools.size ? `; resized with ${[...tools].join(', ')}` : ''}`);
-}
-
-// ---- Helpers ----
-
-// "the Apache Junction Performing Arts Center", but "The Historic Paramount
-// Theatre" (FanGenie's name already starts with "The").
-function theVenue(name) {
-  return /^the\s/i.test(name || '') ? name : `the ${name}`;
-}
-
-// FanGenie stores some numbers bare (8775260069); show 877-526-0069.
-function fmtPhone(phone) {
-  const d = String(phone || '').replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '');
-  return d.length === 10 ? `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}` : String(phone || '');
-}
-
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
-function decodeEntities(s) {
-  return String(s ?? '')
-    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n));
-}
-
-// FanGenie descriptions arrive as editor HTML. Reduce them to plain paragraphs
-// so nothing from a third-party field is ever injected into our page as markup.
-function htmlToParagraphs(html) {
-  const text = String(html ?? '')
-    .replace(/<\s*br\s*\/?>/gi, '\n')
-    .replace(/<\/\s*(p|h[1-6]|li|div|blockquote)\s*>/gi, '\n\n')
-    .replace(/<[^>]+>/g, '');
-  return decodeEntities(text)
-    .split(/\n\s*\n/)
-    .map(p => p.replace(/\s+/g, ' ').trim())
-    .filter(Boolean);
-}
-
-function isPromoLine(p) {
-  return /discount code/i.test(p) || /code expires/i.test(p) || /enter the code/i.test(p);
-}
-
-// Detect a discount code shared across the listings (the venue puts the same
-// note at the top of every show). Returned as null when nothing is found.
-function detectDiscount(descriptions) {
-  const counts = new Map();
-  let amount = null, expiresText = null, note = null;
-  for (const d of descriptions) {
-    const text = htmlToParagraphs(d).join(' ');
-    const m = text.match(/discount code\s*[-\u2013:]?\s*([A-Z0-9]{4,})/i);
-    if (m) counts.set(m[1].toUpperCase(), (counts.get(m[1].toUpperCase()) || 0) + 1);
-    const a = text.match(/\$(\d+(?:\.\d+)?)\s+off/i);
-    if (a && !amount) amount = a[1];
-    // "expires at midnight on November 11th, 2026" or "before October 31st"
-    const x = text.match(/(?:expires\s+(?:at\s+midnight\s+)?on|before)\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?)(?:,?\s+(\d{4}))?/i);
-    if (x && !expiresText) expiresText = x[1] + (x[2] ? `, ${x[2]}` : '');
-    const n = text.match(/not (?:valid|applicable) (?:on|for) ([A-Za-z' ]+?)(?:\s*[*.]|$)/i);
-    if (n && !note) note = `Not valid on ${n[1].trim()}.`;
-  }
-  if (!counts.size) return null;
-  const [code] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
-  let expiresIso = null;
-  if (expiresText) {
-    let clean = expiresText.replace(/(\d)(st|nd|rd|th)/, '$1');
-    if (!/\d{4}/.test(clean)) {
-      // No year given: the first year that puts the deadline in the future.
-      const y = new Date().getFullYear();
-      const guess = new Date(`${clean}, ${y} 23:59:59 GMT-0700`);
-      clean = `${clean}, ${!isNaN(guess) && guess.getTime() < Date.now() ? y + 1 : y}`;
-      expiresText = clean;
-    }
-    const d = new Date(`${clean} 23:59:59 GMT-0700`); // midnight, Arizona time
-    if (!isNaN(d)) expiresIso = d.toISOString();
-  }
-  if (expiresText) expiresText = expiresText.replace(/^[a-z]+/i, m => m[0].toUpperCase() + m.slice(1).toLowerCase());
-  return { code, amount, expiresText, expiresIso, note };
-}
-
-function youtubeId(url) {
-  if (!url) return '';
-  const m = String(url).match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{11})/);
-  return m ? m[1] : '';
-}
-
-function fmt(date, tz, opts) {
-  return new Intl.DateTimeFormat('en-US', { timeZone: tz, ...opts }).format(date);
-}
-
-function slugify(s) {
-  return String(s).toLowerCase().replace(/[^a-z0-9]/g, '-');
-}
-
-// ---- Build ----
-
-function buildEvents(list, details, venue) {
-  const tz = venue.timezone || 'America/Phoenix';
-  const now = Date.now();
-  const events = [];
-  for (const e of list) {
-    const d = details[e.slug] || {};
-    const when = new Date(e.date);
-    if (isNaN(when)) continue;
-    if (when.getTime() < now - 6 * 3600 * 1000) continue; // already happened
-    const paragraphs = htmlToParagraphs(e.description || d.description || '').filter(p => !isPromoLine(p));
-    const venueSlug = slugify(venue.name || 'venue').replace(/-+/g, '-').replace(/^-|-$/g, '');
-    const url = d.website || `https://app.fangenie.com/${venueSlug}/${slugify(e.name)}/${e.slug}`;
-    // Square poster first; some venues only upload a landscape gallery image.
-    const gallery = (e.galleryImages || []).filter(Boolean);
-    const poster = e.heroBannerImageMobile || gallery[0] || e.heroBannerImage || '';
-    events.push({
-      name: e.name,
-      slug: e.slug,
-      url,
-      iso: when.toISOString(),
-      ymd: fmt(when, tz, { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2'),
-      dow: fmt(when, tz, { weekday: 'short' }),
-      dowLong: fmt(when, tz, { weekday: 'long' }),
-      day: fmt(when, tz, { day: 'numeric' }),
-      mon: fmt(when, tz, { month: 'short' }),
-      monLong: fmt(when, tz, { month: 'long' }),
-      year: fmt(when, tz, { year: 'numeric' }),
-      time: fmt(when, tz, { hour: 'numeric', minute: '2-digit' }),
-      poster,
-      banner: e.heroBannerImage || '',
-      category: (d.category && d.category[0] && d.category[0].name) || '',
-      video: youtubeId(d.video),
-      onSale: d.onSaleDate || null,
-      paragraphs,
-      excerpt: (paragraphs[0] || '').slice(0, 170).replace(/\s+\S*$/, '') + ((paragraphs[0] || '').length > 170 ? '…' : ''),
-    });
-  }
-  events.sort((a, b) => a.iso.localeCompare(b.iso));
-  return events;
-}
-
-function buildBundles(raw) {
-  return raw.map(b => {
-    const paragraphs = htmlToParagraphs(b.description || '');
-    const shows = (b.eventIds || []).map(x => (x && x.name) || '').filter(Boolean);
-    const seating = (b.name.match(/reserved/i) && 'Reserved seating') || (b.name.match(/general admission/i) && 'General admission') || '';
-    const cleanName = b.name.replace(/\s*[()]\s*(reserved seating|general admission)\s*[()]?\s*$/i, '').trim();
-    return {
-      name: cleanName || b.name,
-      seating,
-      url: `https://app.fangenie.com/season-ticket/${slugify(b.name).replace(/-+/g, '-').replace(/^-|-$/g, '')}/${b.slug}`,
-      price: typeof b.price === 'number' ? b.price : null,
-      count: shows.length || ((b.eventIds || []).length),
-      shows,
-      image: b.heroBannerImageMobile || (b.images && b.images[0] && (b.images[0].url || b.images[0])) || '',
-      blurb: paragraphs.find(p => !/^(this season ticket|six shows|one great price)/i.test(p)) || '',
-    };
-  }).sort((a, b) => (b.price || 0) - (a.price || 0) || a.name.localeCompare(b.name));
-}
-
-function jsonLd(events, venue, cfg) {
-  return JSON.stringify(events.map(e => ({
-    '@context': 'https://schema.org',
-    '@type': 'MusicEvent',
-    name: e.name,
-    startDate: e.iso,
-    eventStatus: 'https://schema.org/EventScheduled',
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    image: e.poster ? (e.poster.startsWith('http') ? e.poster : `${SITE_ORIGIN}/${cfg.dir}/${e.poster}`) : undefined,
-    description: e.excerpt || undefined,
-    url: e.url,
-    location: {
-      '@type': 'PerformingArtsTheater',
-      name: venue.name,
-      address: { '@type': 'PostalAddress', streetAddress: venue.address, addressLocality: venue.city, addressRegion: venue.state, postalCode: venue.zipcode, addressCountry: 'US' },
-    },
-    offers: { '@type': 'Offer', url: e.url, availability: 'https://schema.org/InStock', validFrom: e.onSale || undefined },
-    organizer: { '@type': 'Organization', name: 'TAD Management', url: SITE_ORIGIN },
-  })));
-}
-
-function renderPage({ cfg, venue, events, discount, bundles }) {
-  const PAGE_PATH = `/${cfg.dir}/`;
-  const VENUE_PAGE = venue.website || `https://app.fangenie.com/venue/${slugify(venue.name).replace(/-+/g, '-')}/${cfg.slug}`;
-  const seasons = [...new Set(events.map(e => e.year))];
-  const seasonLabel = seasons.length ? `${seasons[0]}${seasons.length > 1 ? '–' + seasons[seasons.length - 1] : ''} Season` : 'Upcoming Shows';
-  const first = events[0], last = events[events.length - 1];
-  const range = first && last ? (first.mon === last.mon && first.year === last.year
-    ? `${first.monLong} ${first.year}`
-    : `${first.mon} ${first.year === last.year ? '' : first.year + ' '}– ${last.mon} ${last.year}`) : '';
-  const months = [];
-  for (const e of events) {
-    const key = `${e.year}-${e.mon}`;
-    if (!months.find(m => m.key === key)) months.push({ key, label: `${e.mon} ${e.year}`, count: 0 });
-    months.find(m => m.key === key).count++;
-  }
-  const onSaleDates = events.map(e => e.onSale).filter(Boolean).sort();
-  const firstOnSale = onSaleDates[0] || null;
-  const hero = events.find(e => e.banner) || first;
-  const ogImage = (hero && hero.banner) || (first && first.poster) || '';
-  const fullAddress = [venue.address, venue.city, `${venue.state} ${venue.zipcode || ''}`.trim()].filter(Boolean).join(', ');
-  const times = [...new Set(events.map(e => e.time))];
-  const timeNote = times.length === 1 ? ` &middot; all at ${esc(times[0])}` : '';
-  // Arizona has no DST, so the outlet's start is always midnight at UTC-7.
-  const outletFrom = cfg.outlet && cfg.outlet.from ? new Date(`${cfg.outlet.from}T00:00:00-07:00`).getTime() : 0;
-  const descLine = `${events.length} upcoming shows at ${venue.name}, ${venue.city}, AZ. Tribute concerts and live music, ${range}. Tickets on FanGenie.`;
-
-  const dataJs = JSON.stringify({
-    venue: { name: venue.name, address: fullAddress, phone: venue.phone || '', page: VENUE_PAGE, tz: venue.timezone || 'America/Phoenix' },
-    bundles: bundles.length,
-    discount,
-    firstOnSale,
-    events: events.map(e => ({
-      name: e.name, url: e.url, iso: e.iso, ymd: e.ymd, dow: e.dow, dowLong: e.dowLong, day: e.day, mon: e.mon, monLong: e.monLong, year: e.year,
-      time: e.time, poster: e.poster, banner: e.banner, category: e.category, video: e.video, onSale: e.onSale, paragraphs: e.paragraphs, excerpt: e.excerpt,
-      key: `${e.year}-${e.mon}`,
-    })),
-    generatedAt: new Date().toISOString(),
-  }).replace(/</g, '\\u003c');
-
-  return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(venue.name)} — ${esc(seasonLabel)} | YourConcertTix</title>
-<meta name="description" content="${esc(descLine)}">
-<link rel="canonical" href="${SITE_ORIGIN}${PAGE_PATH}">
-<meta property="og:title" content="${esc(venue.name)} — ${esc(seasonLabel)}">
-<meta property="og:description" content="${esc(descLine)}">
-${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">` : ''}
+<title>Cocopah RV Resort — 2026–2027 Season | YourConcertTix</title>
+<meta name="description" content="3 upcoming shows at Cocopah RV Resort, Yuma, AZ. Tribute concerts and live music, Dec 2026 – Mar 2027. Tickets on FanGenie.">
+<link rel="canonical" href="https://yourconcerttix.com/cocopah/">
+<meta property="og:title" content="Cocopah RV Resort — 2026–2027 Season">
+<meta property="og:description" content="3 upcoming shows at Cocopah RV Resort, Yuma, AZ. Tribute concerts and live music, Dec 2026 – Mar 2027. Tickets on FanGenie.">
+<meta property="og:image" content="https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791634359081-z87zlrlcher.jpg">
 <meta property="og:type" content="website">
-<meta property="og:url" content="${SITE_ORIGIN}${PAGE_PATH}">
+<meta property="og:url" content="https://yourconcerttix.com/cocopah/">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://fangenie.s3.eu-north-1.amazonaws.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-<script type="application/ld+json">${jsonLd(events, venue, cfg).replace(/</g, '\\u003c')}</script>
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"MusicEvent","name":"3 International Tenors","startDate":"2026-12-06T02:00:00.000Z","eventStatus":"https://schema.org/EventScheduled","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","image":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791634359667-rfg6sludon.png","description":"THE 3 INTERNATIONAL TENORS – LIVE IN CONCERT is a tribute to some of the finest music in the world and features show stopping performances celebrating the virtuoso and…","url":"https://app.fangenie.com/cocopah-rv-resort/3-international-tenors/PBnwGYmeCH","location":{"@type":"PerformingArtsTheater","name":"Cocopah RV Resort","address":{"@type":"PostalAddress","streetAddress":"6800 S Strand Ave","addressLocality":"Yuma","addressRegion":"AZ","postalCode":"85364","addressCountry":"US"}},"offers":{"@type":"Offer","url":"https://app.fangenie.com/cocopah-rv-resort/3-international-tenors/PBnwGYmeCH","availability":"https://schema.org/InStock","validFrom":"2026-10-12T15:00:00.000Z"},"organizer":{"@type":"Organization","name":"TAD Management","url":"https://yourconcerttix.com"}},{"@context":"https://schema.org","@type":"MusicEvent","name":"TOBY","startDate":"2027-01-17T02:00:00.000Z","eventStatus":"https://schema.org/EventScheduled","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","image":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791635111982-ldkdk7xifaf.png","description":"\"Get ready for a wild ride through the heart and soul of country music with TOBY, the ultimate tribute to the bad boy of country music, Toby Keith! This electrifying…","url":"https://app.fangenie.com/cocopah-rv-resort/toby/1U8elQn4D0","location":{"@type":"PerformingArtsTheater","name":"Cocopah RV Resort","address":{"@type":"PostalAddress","streetAddress":"6800 S Strand Ave","addressLocality":"Yuma","addressRegion":"AZ","postalCode":"85364","addressCountry":"US"}},"offers":{"@type":"Offer","url":"https://app.fangenie.com/cocopah-rv-resort/toby/1U8elQn4D0","availability":"https://schema.org/InStock","validFrom":"2026-10-12T15:00:00.000Z"},"organizer":{"@type":"Organization","name":"TAD Management","url":"https://yourconcerttix.com"}},{"@context":"https://schema.org","@type":"MusicEvent","name":"Rock Revisited","startDate":"2027-03-21T02:00:00.000Z","eventStatus":"https://schema.org/EventScheduled","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","image":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791635650083-aeo7t2yhn7u.jpg","description":"AOR was the name given to the AWESOME rock music that dominated FM radio during the 1980’s. The list of inspiring bands goes on and on – Toto, Foreigner, REO Speedwagon,…","url":"https://app.fangenie.com/cocopah-rv-resort/rock-revisited/P208OxvFM5","location":{"@type":"PerformingArtsTheater","name":"Cocopah RV Resort","address":{"@type":"PostalAddress","streetAddress":"6800 S Strand Ave","addressLocality":"Yuma","addressRegion":"AZ","postalCode":"85364","addressCountry":"US"}},"offers":{"@type":"Offer","url":"https://app.fangenie.com/cocopah-rv-resort/rock-revisited/P208OxvFM5","availability":"https://schema.org/InStock","validFrom":"2026-10-12T15:00:00.000Z"},"organizer":{"@type":"Organization","name":"TAD Management","url":"https://yourconcerttix.com"}}]</script>
 <style>
 :root{
   --bg:#0f0f23; --bg2:#1a1a2e; --card:#16213e; --line:#26264a;
@@ -798,7 +260,57 @@ footer .follow-btn svg{width:16px;height:16px;flex:0 0 auto}
 @media (max-width:640px){.codebar>div{padding:14px}.codebar button{width:100%}.outlet>div{padding:14px}.outlet a{width:100%;text-align:center}}
 /* Phones: brand + FanGenie badge on the first row, the earn pill centred on its own row below */
 @media (max-width:640px){.bar{flex-wrap:wrap;row-gap:0}.bar-r{display:contents}.bar::after{content:"";order:2;flex-basis:100%}.bar .earn-pill{order:3;margin:10px auto 0}}
-${HOWTO_CSS}
+
+/* ---------- help popups + "Make $2+ a ticket" pill (lib/promo-help.mjs) ---------- */
+.earn-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border:0;border-radius:999px;background:linear-gradient(90deg,#f5a623,#ffd166);color:#1b1300;
+  font:inherit;font-size:13px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer;box-shadow:0 8px 22px -10px rgba(245,166,35,.9);transition:filter .15s,transform .15s}
+.earn-pill:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.earn-pill i{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#1b1300;color:#ffd166;font-style:normal;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:800}
+.howto{position:fixed;inset:0;z-index:100;width:min(540px,calc(100% - 32px));max-width:none;max-height:calc(100% - 32px);margin:auto;padding:0;overflow:auto;overscroll-behavior:contain;
+  border:1px solid rgba(255,255,255,.14);border-radius:22px;background:#141430;color:#e8e8f0;box-shadow:0 40px 100px rgba(0,0,0,.8);font-family:'Inter',sans-serif;line-height:1.5;text-align:left}
+.howto:not([open]){display:none}
+.howto::backdrop{background:rgba(6,6,18,.82);backdrop-filter:blur(6px)}
+.howto[open]{animation:howto-rise .25s ease}
+@keyframes howto-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.howto-in{position:relative;padding:24px 24px 22px}
+.howto-x{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:#fff;font:inherit;font-size:22px;line-height:1;cursor:pointer}
+.howto-x:hover{border-color:#e94560}
+.howto-kicker{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#f5a623}
+.howto h2{margin:6px 48px 6px 0;font-family:'Montserrat',sans-serif;font-weight:800;font-size:26px;line-height:1.1;letter-spacing:-.02em;text-transform:none}
+.howto-lead{color:#b4b4cc;font-size:14.5px}
+.howto ol{display:flex;flex-direction:column;gap:10px;margin:18px 0 0;padding:0;list-style:none;counter-reset:howto}
+.howto li{position:relative;padding:14px 14px 14px 56px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);counter-increment:howto}
+.howto li::before{content:counter(howto);position:absolute;left:14px;top:13px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#e94560,#f5a623);color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px}
+.howto li h3{margin-bottom:2px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:16px;line-height:1.3;letter-spacing:0;text-transform:none}
+.howto li p{color:#b4b4cc;font-size:14px}
+.howto li p b{color:#e8e8f0}
+.howto li p a,.howto-foot p a{color:#f5a623;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.howto-acts{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:12px}
+.howto-go{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:12px;background:linear-gradient(90deg,#e94560,#f5a623);color:#fff;
+  font-family:'Montserrat',sans-serif;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 10px 30px -10px #e94560;transition:filter .2s}
+.howto-go:hover{filter:brightness(1.08)}
+.howto-alt{color:#f5a623;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.howto-alt:hover{color:#fff}
+.howto-foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1)}
+.howto-foot p{flex:1 1 100%;color:#b4b4cc;font-size:13.5px}
+.howto-foot b{color:#f5a623}
+.howto-links{display:inline-flex;gap:8px}
+.howto-follow{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:#e8e8f0;font-size:13px;font-weight:600;text-decoration:none}
+.howto-follow:hover{border-color:#e94560}
+.howto-follow svg{width:16px;height:16px;flex:0 0 auto}
+@media (max-width:600px){
+  .howto{width:100%;max-height:92%;margin:auto 0 0;border-width:1px 0 0;border-radius:20px 20px 0 0}
+  .howto[open]{animation:howto-up .3s ease}
+  .howto-in{padding:20px 16px calc(18px + env(safe-area-inset-bottom))}
+  .howto h2{font-size:22px}
+  .howto ol{margin-top:14px}.howto-foot{margin-top:12px;padding-top:12px}
+  .howto li{padding:12px 12px 12px 50px}.howto li::before{left:12px;top:11px}
+  .howto-go{width:100%}
+}
+@keyframes howto-up{from{transform:translateY(100%)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.howto[open]{animation:none}.earn-pill{transition:none}}
+
 </style>
 </head>
 <body>
@@ -807,47 +319,36 @@ ${HOWTO_CSS}
 <nav class="bar">
   <a class="brand" href="/">Your<span>Concert</span>Tix</a>
   <div class="bar-r">
-    ${earnButton()}
-    <a class="fg" href="${esc(VENUE_PAGE)}" target="_blank" rel="noopener"><span>Tickets powered by</span><img src="https://app.fangenie.com/assets/images/newlogo.png" alt="FanGenie"></a>
+    <button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket<span class="earn-get"> &middot; Get your code</span></button>
+    <a class="fg" href="https://app.fangenie.com/venue/cocopah-rv-resort/aYIgA7hOmW" target="_blank" rel="noopener"><span>Tickets powered by</span><img src="https://app.fangenie.com/assets/images/newlogo.png" alt="FanGenie"></a>
   </div>
 </nav>
 
-<section class="hero" ${ogImage ? `style="--hero-img:url('${esc(ogImage)}')"` : ''}>
+<section class="hero" style="--hero-img:url('https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791634359081-z87zlrlcher.jpg')">
   <div class="hero-bg" aria-hidden="true"></div>
-  <div class="kicker"><i></i> ${esc(venue.city)}, Arizona &middot; ${esc(seasonLabel)}</div>
-  <h1>${esc(cfg.headline)} <em>Live</em></h1>
-  <p class="sub"><strong>${esc(cfg.tagline)}</strong> at ${esc(theVenue(venue.name))}. ${events.length} nights of tribute concerts and live music. Pick your shows and grab tickets straight from FanGenie${bundles.length ? ', or save with a season bundle' : ''}.</p>
+  <div class="kicker"><i></i> Yuma, Arizona &middot; 2026–2027 Season</div>
+  <h1>Cocopah <em>Live</em></h1>
+  <p class="sub"><strong>TAD Management brings live concerts to Yuma</strong> at the Cocopah RV Resort. 3 nights of tribute concerts and live music. Pick your shows and grab tickets straight from FanGenie.</p>
   <div class="facts">
-    <span><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${esc(range)}</span>
-    <span><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>${events.length} shows${timeNote}</span>
-    <a href="https://maps.google.com/?q=${encodeURIComponent(`${venue.name}, ${fullAddress}`)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(venue.address)}, ${esc(venue.city)}</a>
-    ${bundles.length ? `<a href="#bundles"><svg viewBox="0 0 24 24"><path d="M3 9a2 2 0 002-2 2 2 0 012-2h10a2 2 0 012 2 2 2 0 002 2v6a2 2 0 00-2 2 2 2 0 01-2 2H7a2 2 0 01-2-2 2 2 0 00-2-2z"/><path d="M13 5v14"/></svg>${bundles.length} season bundles</a>` : ''}
+    <span><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Dec 2026 – Mar 2027</span>
+    <span><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>3 shows &middot; all at 7:00 PM</span>
+    <a href="https://maps.google.com/?q=Cocopah%20RV%20Resort%2C%206800%20S%20Strand%20Ave%2C%20Yuma%2C%20AZ%2085364" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>6800 S Strand Ave, Yuma</a>
+    
   </div>
 </section>
 
-${cfg.outlet ? `<section class="outlet"><div>
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 002-2 2 2 0 012-2h10a2 2 0 012 2 2 2 0 002 2v6a2 2 0 00-2 2 2 2 0 01-2 2H7a2 2 0 01-2-2 2 2 0 00-2-2z"/><path d="M13 5v14"/></svg>
-  <p><b>Tickets also available${outletFrom > Date.now() ? `<span id="outlet-when" data-from="${new Date(outletFrom).toISOString()}"> ${esc(cfg.outlet.when)}</span>` : ''}</b> at the ${esc(cfg.outlet.name)}<br>${esc(cfg.outlet.address)}, ${esc(cfg.outlet.city)}</p>
-  <a href="https://maps.google.com/?q=${encodeURIComponent(`${cfg.outlet.name}, ${cfg.outlet.address}, ${cfg.outlet.city}`)}" target="_blank" rel="noopener">Directions</a>
-</div></section>
-
-` : ''}<section class="strip${discount ? '' : ' solo'}" id="strip">
+<section class="strip solo" id="strip">
   <div id="onsale">
     <div class="lbl">Public on-sale</div>
     <div id="onsale-body"></div>
   </div>
-  ${discount ? `<div class="deal" id="deal">
-    <div class="lbl">Season discount</div>
-    <div class="big">${discount.amount ? `<em>$${esc(discount.amount)} off</em> every ticket, every show` : `<em>Discount</em> on every ticket`}</div>
-    <div class="code"><span id="code-text">${esc(discount.code)}</span><button type="button" id="copy">Copy</button></div>
-    <div class="fine">Enter the code at checkout on FanGenie, once per show.${discount.expiresText ? ` Expires ${esc(discount.expiresText)}.` : ''}${discount.note ? ` ${esc(discount.note)}` : ''}</div>
-  </div>` : ''}
+  
 </section>
 
 <div class="codebar"><div>
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 002-2 2 2 0 012-2h10a2 2 0 012 2 2 2 0 002 2v6a2 2 0 00-2 2 2 2 0 01-2 2H7a2 2 0 01-2-2 2 2 0 00-2-2z"/><path d="M13 5v14"/></svg>
   <p><b>Have a promo code?</b> You need a free FanGenie account to use it. It only takes a minute.</p>
-  ${howtoButton('How it works')}
+  <button type="button" data-howto="promo">How it works</button>
 </div></div>
 
 <div class="filters" id="shows">
@@ -858,37 +359,21 @@ ${cfg.outlet ? `<section class="outlet"><div>
 
 <div class="grid" id="grid"></div>
 
-${bundles.length ? `<section class="bundles" id="bundles">
-  <div class="section-head">
-    <div class="kicker"><i></i> Season bundles</div>
-    <h2>${esc(String(bundles[0].count || 6))} shows. One price.</h2>
-    <p>Pick a themed bundle and lock in every night${bundles.some(b => b.seating) ? ' with reserved or general admission seating' : ''}. Bundles are sold on FanGenie.</p>
-  </div>
-  <div class="bgrid">
-    ${bundles.map((b, i) => `<a class="bundle c${(i + 3) % 10}" href="${esc(b.url)}" target="_blank" rel="noopener">
-      <div class="bart">${b.image ? `<img src="${esc(b.image)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<div class="ph" aria-hidden="true">${esc(b.name)}</div>${b.seating ? `<span class="tag">${esc(b.seating)}</span>` : ''}</div>
-      <div class="bbody">
-        <h3>${esc(b.name)}</h3>
-        ${b.shows.length ? `<ul>${b.shows.map(sh => `<li>${esc(sh)}</li>`).join('')}</ul>` : (b.blurb ? `<p>${esc(b.blurb)}</p>` : '')}
-        <div class="bfoot">${b.price != null ? `<span class="bprice"><b>$${esc(b.price)}</b> for ${esc(String(b.count))} shows</span>` : `<span class="bprice">${esc(String(b.count))} shows</span>`}<span class="bcta">Get Bundle ${'<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'}</span></div>
-      </div>
-    </a>`).join('')}
-  </div>
-</section>` : ''}
+
 
 <div class="trust">
   <div><b>Official tickets</b><p>Every link goes straight to the show's page on FanGenie, the venue's official ticketing partner.</p></div>
-  <div><b>${cfg.seating ? cfg.seating.title : 'Open seating'}</b><p>${cfg.seating ? cfg.seating.text : 'General admission'} at ${esc(theVenue(venue.name))}, ${esc(venue.address)}, ${esc(venue.city)}, AZ${venue.zipcode ? ' ' + esc(venue.zipcode) : ''}.</p></div>
-  <div><b>Questions?</b><p>${venue.phone ? `Call <a href="tel:${esc(venue.phone.replace(/[^\d+]/g, ''))}">${esc(fmtPhone(venue.phone))}</a> or ` : ''}see the <a href="${esc(VENUE_PAGE)}" target="_blank" rel="noopener">venue page on FanGenie</a>.</p></div>
+  <div><b>Open seating</b><p>General admission at the Cocopah RV Resort, 6800 S Strand Ave, Yuma, AZ 85364.</p></div>
+  <div><b>Questions?</b><p>Call <a href="tel:9283439300">928-343-9300</a> or see the <a href="https://app.fangenie.com/venue/cocopah-rv-resort/aYIgA7hOmW" target="_blank" rel="noopener">venue page on FanGenie</a>.</p></div>
 </div>
 
 <footer>
-  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${earnButton()}</div>
+  <div class="follow"><span class="follow-pitch">New promo code every day at 10 AM</span><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket<span class="earn-get"> &middot; Get your code</span></button></div>
   <a href="/">YourConcertTix</a> &middot; Tickets by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a> &middot; Presented by TAD Management
   <div class="stamp">Listings refresh automatically from FanGenie.</div>
 </footer>
 
-<div class="sticky" id="sticky"><a href="#grid">See all ${events.length} shows &amp; get tickets</a></div>
+<div class="sticky" id="sticky"><a href="#grid">See all 3 shows &amp; get tickets</a></div>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
   <div class="sheet">
@@ -904,7 +389,7 @@ ${bundles.length ? `<section class="bundles" id="bundles">
 </div>
 
 <script>
-const DATA = ${dataJs};
+const DATA = {"venue":{"name":"Cocopah RV Resort","address":"6800 S Strand Ave, Yuma, AZ 85364","phone":"(928) 343-9300","page":"https://app.fangenie.com/venue/cocopah-rv-resort/aYIgA7hOmW","tz":"America/Phoenix"},"bundles":0,"discount":null,"firstOnSale":"2026-10-12T15:00:00.000Z","events":[{"name":"3 International Tenors","url":"https://app.fangenie.com/cocopah-rv-resort/3-international-tenors/PBnwGYmeCH","iso":"2026-12-06T02:00:00.000Z","ymd":"2026-12-05","dow":"Sat","dowLong":"Saturday","day":"5","mon":"Dec","monLong":"December","year":"2026","time":"7:00 PM","poster":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791634359667-rfg6sludon.png","banner":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791634359081-z87zlrlcher.jpg","category":"Tribute Concert","video":"tOvi_t92s8U","onSale":"2026-10-12T15:00:00.000Z","paragraphs":["THE 3 INTERNATIONAL TENORS – LIVE IN CONCERT is a tribute to some of the finest music in the world and features show stopping performances celebrating the virtuoso and careers of Luciano Pavarotti, Andrea Bocelli, Enrico Caruso, and others. This stirring show includes renditions of some of the most memorable songs ever written like “Time To Say Goodbye,” “Ave Maria” and “Nessun Dorma.”"],"excerpt":"THE 3 INTERNATIONAL TENORS – LIVE IN CONCERT is a tribute to some of the finest music in the world and features show stopping performances celebrating the virtuoso and…","key":"2026-Dec"},{"name":"TOBY","url":"https://app.fangenie.com/cocopah-rv-resort/toby/1U8elQn4D0","iso":"2027-01-17T02:00:00.000Z","ymd":"2027-01-16","dow":"Sat","dowLong":"Saturday","day":"16","mon":"Jan","monLong":"January","year":"2027","time":"7:00 PM","poster":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791635111982-ldkdk7xifaf.png","banner":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791635111076-qkcgbf8rfrp.jpg","category":"Tribute Concert","video":"TMhJPnEM1ck","onSale":"2026-10-12T15:00:00.000Z","paragraphs":["\"Get ready for a wild ride through the heart and soul of country music with TOBY, the ultimate tribute to the bad boy of country music, Toby Keith! This electrifying show is guaranteed to leave audiences on their feet, singing along to hit after hit of great country music, all brought to life by the one and only Hollywood Yates! The air pulsates with anticipation as Hollywood Yates takes center stage, belting out country music anthems that have become the soundtrack to countless lives. Sing your heart out to timeless classics like “How Do You Like Me Now,” “Should’ve Been a Cowboy,” and “I Love This Bar,” feeling every word resonate deep within your soul.","With every strum of the guitar and every beat of the drum, TOBY pays homage to Toby Keith’s extraordinary career, capturing the essence of his rebellious charm and his unwavering dedication to his craft. Hollywood Yates embodies the spirit of this country music legend, delivering a powerhouse performance that will leave you craving more.","So grab your cowboy hat, put on your boots, and get ready to experience the energy, the passion, and the undeniable talent of Toby Keith like never before. TOBY is a must-see show for country music lovers, a journey that will transport you to the heart of Nashville and leave you yearning for more. Get ready to sing, dance, and raise a glass to the unforgettable legacy of Toby Keith!\""],"excerpt":"\"Get ready for a wild ride through the heart and soul of country music with TOBY, the ultimate tribute to the bad boy of country music, Toby Keith! This electrifying…","key":"2027-Jan"},{"name":"Rock Revisited","url":"https://app.fangenie.com/cocopah-rv-resort/rock-revisited/P208OxvFM5","iso":"2027-03-21T02:00:00.000Z","ymd":"2027-03-20","dow":"Sat","dowLong":"Saturday","day":"20","mon":"Mar","monLong":"March","year":"2027","time":"7:00 PM","poster":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791635650083-aeo7t2yhn7u.jpg","banner":"https://fangenie.s3.eu-north-1.amazonaws.com/uploads/1791635648660-tish7rcsyah.jpg","category":"Tribute Concert","video":"RXAWGHiAjBE","onSale":"2026-10-12T15:00:00.000Z","paragraphs":["AOR was the name given to the AWESOME rock music that dominated FM radio during the 1980’s. The list of inspiring bands goes on and on – Toto, Foreigner, REO Speedwagon, Boston, Kansas, Night Ranger, Whitesnake, Cheap Trick, Heart, Mr Mister … You will hear them all in this show – and remember When FM Radio Ruled The World!"],"excerpt":"AOR was the name given to the AWESOME rock music that dominated FM radio during the 1980’s. The list of inspiring bands goes on and on – Toto, Foreigner, REO Speedwagon,…","key":"2027-Mar"}],"generatedAt":"2026-10-10T12:43:41.912Z"};
 const $ = s => document.querySelector(s);
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h;}
@@ -1024,81 +509,94 @@ document.addEventListener('click',ev=>{
 });
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeModal();});
 </script>
-${howtoDialogs({
-  pickShow: 'Tap <b>Get Tickets</b> on any show on this page, then pick your tickets on FanGenie.',
-  showsLink: { href: '#shows', label: 'See the shows' },
-})}
+<dialog class="howto" id="howto-promo" aria-labelledby="howto-promo-title">
+  <div class="howto-in">
+    <button type="button" class="howto-x" data-howto-close aria-label="Close">&times;</button>
+    <div class="howto-kicker">Promo codes</div>
+    <h2 id="howto-promo-title">How to use a promo code</h2>
+    <p class="howto-lead">Our tickets are sold on FanGenie. To use a code there, you need a free FanGenie account.</p>
+    <ol>
+      <li><h3>Create your free FanGenie account</h3>
+        <p>You only do this once, and it takes about a minute. FanGenie emails you a 6-digit number to confirm it's you.</p>
+        <div class="howto-acts">
+          <a class="howto-go" data-fg href="https://app.fangenie.com/auth" target="_blank" rel="noopener">Create my free account</a>
+          <a class="howto-alt" data-fg href="https://app.fangenie.com/auth/login" target="_blank" rel="noopener">Already have one? Sign in</a>
+        </div></li>
+      <li><h3>Pick your show</h3>
+        <p>Tap <b>Get Tickets</b> on any show on this page, then pick your tickets on FanGenie.</p>
+        <div class="howto-acts"><a class="howto-alt" href="#shows" data-howto-close>See the shows</a></div></li>
+      <li><h3>Enter the code in your cart</h3>
+        <p>Under &ldquo;Have a promo code?&rdquo; type the code, then tap &ldquo;Apply Promo Code&rdquo;. You need to be signed in.</p></li>
+    </ol>
+    <div class="howto-foot">
+      <p><b>New promo code every day at 10 AM</b> on our Facebook and Instagram.</p>
+      <span class="howto-links"><a class="howto-follow" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="howto-follow" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span>
+    </div>
+  </div>
+</dialog>
+<dialog class="howto" id="howto-earn" aria-labelledby="howto-earn-title">
+  <div class="howto-in">
+    <button type="button" class="howto-x" data-howto-close aria-label="Close">&times;</button>
+    <div class="howto-kicker">Affiliate Rewards</div>
+    <h2 id="howto-earn-title">Make $2+ for every ticket</h2>
+    <p class="howto-lead">Earn at least $2 for every ticket bought through your link. Some shows pay more.</p>
+    <ol>
+      <li><h3>Create your free FanGenie account</h3>
+        <p>Your code comes from FanGenie, where our tickets are sold. It takes a minute: FanGenie emails you a 6-digit number to confirm.</p>
+        <div class="howto-acts">
+          <a class="howto-go" href="https://app.fangenie.com/auth?next=%2Fdashboard%2Faffiliate" target="_blank" rel="noopener">Create my free account</a>
+          <a class="howto-alt" href="https://app.fangenie.com/auth/login?next=%2Fdashboard%2Faffiliate" target="_blank" rel="noopener">Already have one? Sign in</a>
+        </div></li>
+      <li><h3>Get your link</h3>
+        <p>Open <b>Affiliate Rewards</b> and tap <b>Get Affiliate Link</b> next to any show. Each show gets its own link with your code.</p>
+        <div class="howto-acts"><a class="howto-alt" href="https://app.fangenie.com/dashboard/affiliate" target="_blank" rel="noopener">Open Affiliate Rewards</a></div></li>
+      <li><h3>Share it and get paid</h3>
+        <p>Post it anywhere. Earnings go to your FanGenie wallet: spend them on tickets or cash out to PayPal from $10. Your own purchases don't count.</p></li>
+    </ol>
+    <div class="howto-foot">
+      <p><b>Raising money for a school, team or club?</b> <a href="/fundfare/">See Fundfare</a></p>
+    </div>
+  </div>
+</dialog>
+<script>
+(function(){
+  var dialogs=document.querySelectorAll('dialog.howto'); if(!dialogs.length) return;
+  // FanGenie can send people back here after signing up (?next=, allow-listed on its side).
+  var back='?next='+encodeURIComponent(location.origin+location.pathname);
+  document.querySelectorAll('dialog.howto [data-fg]').forEach(function(a){a.href+=back;});
+  function anyOpen(){return document.querySelector('dialog.howto[open]');}
+  function show(key){
+    var d=document.getElementById('howto-'+key);
+    if(!d||d.open) return;
+    var other=anyOpen(); if(other) hide(other);
+    if(typeof d.showModal==='function') d.showModal(); else d.setAttribute('open','');
+    document.body.style.overflow='hidden';
+  }
+  function closed(){
+    if(anyOpen()) return;
+    document.body.style.overflow='';
+    if(location.hash==='#promo'||location.hash==='#earn') history.replaceState(null,'',location.pathname+location.search);
+  }
+  function hide(d){
+    if(typeof d.close==='function') d.close(); else d.removeAttribute('open');
+    closed();
+  }
+  dialogs.forEach(function(d){
+    d.addEventListener('close',closed);
+    // Bound on each dialog so iOS reports taps on the backdrop.
+    // e.target===d is the backdrop: the content fills the dialog box.
+    d.addEventListener('click',function(e){
+      if(e.target===d||e.target.closest('[data-howto-close]')) hide(d);
+    });
+  });
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('[data-howto]');
+    if(t){e.preventDefault();show(t.getAttribute('data-howto'));}
+  });
+  function fromHash(){var k=location.hash.slice(1); if(k==='promo'||k==='earn') show(k);}
+  addEventListener('hashchange',fromHash);
+  fromHash();
+})();
+</script>
 </body>
 </html>
-`;
-}
-
-// ---- Main ----
-
-async function buildVenue(cfg) {
-  const tag = cfg.headline;
-  console.log(`${tag}: pulling venue from FanGenie...`);
-  const venue = await fetchVenue(cfg.slug);
-  if (cfg.address) venue.address = cfg.address;
-  console.log(`  ${venue.name} (${venue._id})`);
-
-  console.log(`${tag}: pulling events...`);
-  const list = (await fetchEventList(venue._id))
-    .filter(e => !EXCLUDED_ARTISTS.some(x => String(e.name || '').toLowerCase().includes(x)));
-  console.log(`  ${list.length} events listed`);
-
-  console.log(`${tag}: pulling event details + season bundles...`);
-  const [details, rawBundles] = await Promise.all([fetchDetails(list), fetchBundles(cfg.slug)]);
-
-  const events = buildEvents(list, details, venue);
-  try {
-    await applyAirtablePosters(cfg, events);
-  } catch (err) {
-    console.warn(`  WARN Airtable posters skipped: ${err.message}`);
-  }
-  const bundles = buildBundles(rawBundles);
-  const discount = detectDiscount(list.map(e => e.description || ''));
-  console.log(`  ${events.length} upcoming events kept; ${bundles.length} bundles${discount ? `; discount code ${discount.code}` : ''}`);
-  for (const e of events) console.log(`  ${e.ymd} ${e.time.padEnd(8)} ${e.name}  -> ${e.url}`);
-  for (const b of bundles) console.log(`  BUNDLE $${b.price} ${b.name} (${b.seating || 'n/a'})  -> ${b.url}`);
-
-  if (events.length === 0) {
-    // Never blank the page because of a transient API hiccup — keep the last good build.
-    console.warn(`WARNING: ${tag}: no upcoming events returned; leaving the existing page untouched.`);
-    return false;
-  }
-
-  const outDir = path.join(repoRoot, cfg.dir);
-  const outPath = path.join(outDir, 'index.html');
-  const html = renderPage({ cfg, venue, events, discount, bundles });
-  if (DRY_RUN) {
-    console.log(`[DRY RUN] would write ${outPath} (${html.length} bytes)`);
-    return true;
-  }
-  mkdirSync(outDir, { recursive: true });
-  writeFileSync(outPath, html);
-  console.log(`Wrote ${outPath} (${html.length} bytes)`);
-  return true;
-}
-
-async function main() {
-  const targets = VENUES.filter(v => !ONLY || v.dir === ONLY);
-  if (!targets.length) throw new Error(`no venue with dir "${ONLY}"`);
-  let failures = 0;
-  for (const cfg of targets) {
-    try {
-      await buildVenue(cfg);
-    } catch (err) {
-      // One venue failing must not stop the others from rebuilding.
-      failures++;
-      console.error(`ERROR: ${cfg.headline}: ${err.message}`);
-    }
-    console.log('');
-  }
-  if (failures === targets.length) process.exit(1);
-}
-
-main().catch(err => {
-  console.error('ERROR:', err.message);
-  process.exit(1);
-});
