@@ -13,6 +13,9 @@
 //   (the form shrinks it first) and replaces the current one. Triggers a rebuild.
 // POST { action: 'delete', password, id }
 //   Deletes a row and triggers a rebuild.
+// POST { action: 'rebuild', password }
+//   "Refresh site now": rebuilds the whole site from Airtable and FanGenie
+//   without waiting for the scheduled run.
 //
 // Env: ADMIN_PASSWORD, AIRTABLE_PAT (required); GITHUB_TOKEN (optional, see lib/rebuild.mjs).
 
@@ -41,6 +44,7 @@ export default async function handler(req, res) {
     else if (action === 'list') out = { events: await listEvents() };
     else if (action === 'save') out = await saveEvent(body);
     else if (action === 'delete') out = await removeEvent(body);
+    else if (action === 'rebuild') out = { rebuild: await triggerRebuild('events-rebuild') };
     else throw new HttpError(400, 'bad_action', 'Unknown action');
     return res.status(200).json({ ok: true, ...out });
   } catch (err) {

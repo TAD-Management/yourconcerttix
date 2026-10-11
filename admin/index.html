@@ -123,7 +123,12 @@ textarea{min-height:110px;resize:vertical}
         <p class="lede">Shows added here appear on the homepage and get their own page, alongside the shows from Airtable. Changes go live in about 3 minutes.</p>
       </div>
     </div>
-    <div class="row" style="margin-top:16px"><button class="btn primary" id="new-btn" type="button">+ Add a show</button></div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" id="new-btn" type="button">+ Add a show</button>
+      <button class="btn ghost" id="rebuild-btn" type="button">&#8635; Refresh site now</button>
+    </div>
+    <p class="hint">The site updates itself from Airtable and FanGenie every few hours. Changed a show in Airtable? Refresh to put it live in about 3 minutes.</p>
+    <p class="msg" id="rebuild-msg" role="status"></p>
 
     <section id="editor" class="panel" hidden>
       <h2 id="editor-title">Add a show</h2>
@@ -400,6 +405,25 @@ $('#delete-btn').addEventListener('click', async () => {
     $('#list-msg').textContent = `Deleted "${name}".`; $('#list-msg').className = 'msg ok';
   } catch (err) { $('#form-msg').textContent = err.message; $('#form-msg').className = 'msg err'; }
   finally { btn.disabled = false; }
+});
+
+// ---- refresh the whole site now ----
+// Repeat clicks are harmless (GitHub queues at most one extra run), but the
+// button rests for a minute so nobody thinks it needs pressing again.
+$('#rebuild-btn').addEventListener('click', async () => {
+  const btn = $('#rebuild-btn'), msg = $('#rebuild-msg');
+  btn.disabled = true; msg.textContent = 'Starting a refresh...'; msg.className = 'msg';
+  let rest = 0;
+  try {
+    const out = await call('rebuild');
+    if (out.rebuild === 'queued') {
+      msg.textContent = 'Refresh started. Changes will be on the site in about 3 minutes.'; msg.className = 'msg ok';
+      rest = 60000;
+    } else {
+      msg.textContent = "Couldn't start a refresh right now. The site will still update on its own within 4 hours."; msg.className = 'msg err';
+    }
+  } catch (err) { msg.textContent = err.message; msg.className = 'msg err'; }
+  finally { setTimeout(() => { btn.disabled = false; }, rest); }
 });
 
 // ---- start ----
