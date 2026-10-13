@@ -679,7 +679,7 @@ ${HOWTO_CSS}
   <div class="promo-text">
     <span class="promo-kicker">Special event &middot; Registration open</span>
     <span class="promo-title">Got Phil Voted In</span>
-    <span class="promo-sub">Merchandise packages with event entry included. Register before they're gone.</span>
+    <span class="promo-sub">Limited-edition merchandise packages. Register before they're gone.</span>
   </div>
   <span class="promo-btn">See Packages &rarr;</span>
 </a>
