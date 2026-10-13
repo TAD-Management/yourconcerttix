@@ -26,6 +26,12 @@ import * as fg from '../lib/fangenie.mjs';
 import { AFFILIATES_TABLE, LINKS_TABLE, listAll, updateAll } from '../lib/airtable.mjs';
 import { venueInfo } from '../lib/venues.mjs';
 
+// Events sold as registration + merchandise packages rather than tickets:
+// their buttons say "Register Here" (FanGenie event slugs).
+const REGISTRATION_EVENTS = new Set([
+  '53XJTbeTQ9', // Got Phil Voted In - Fan Event (Ritz-Carlton, Nov 13 2026)
+]);
+
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
 const flag = name => { const i = args.indexOf(name); return i > -1 ? args[i + 1] : null; };
@@ -81,6 +87,7 @@ function showFromEvent(ev, url) {
     id: String(ev._id),
     name: ev.name,
     url: url || '',
+    register: REGISTRATION_EVENTS.has(ev.slug),
     iso: when.toISOString(),
     dow: fmt(when, tz, { weekday: 'short' }),
     dowLong: fmt(when, tz, { weekday: 'long' }),
@@ -179,14 +186,14 @@ function renderPage({ affiliate, venues, shows, current, prelaunch = false }) {
         ${i === 0 && !current ? '<span class="tag hot">Next up</span>' : ''}`;
     return `<article class="card c${hash(s.name) % 10}" style="animation-delay:${(0.05 * Math.min(i, 12)).toFixed(2)}s">
       ${s.url
-        ? `<a class="art" href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="Tickets for ${esc(s.name)}">${art}</a>`
+        ? `<a class="art" href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="${s.register ? 'Register for' : 'Tickets for'} ${esc(s.name)}">${art}</a>`
         : `<div class="art">${art}</div>`}
       <div class="body">
         <h3><small>${esc(s.dowLong)}, ${esc(s.monLong)} ${esc(s.day)} &middot; ${esc(s.time)}</small>${esc(s.name)}</h3>
         <p>${esc(s.venue.name)}${s.venue.city ? `, ${esc(s.venue.city)}` : ''}</p>
         ${s.url
-          ? `<a class="cta" href="${esc(s.url)}" target="_blank" rel="noopener">Get Tickets ${ARROW}</a>`
-          : `<span class="cta hold">${CLOCK}Tickets open here soon</span>`}
+          ? `<a class="cta" href="${esc(s.url)}" target="_blank" rel="noopener">${s.register ? 'Register Here' : 'Get Tickets'} ${ARROW}</a>`
+          : `<span class="cta hold">${CLOCK}${s.register ? 'Registration opens here soon' : 'Tickets open here soon'}</span>`}
       </div>
     </article>`;
   }).join('');
