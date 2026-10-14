@@ -497,6 +497,7 @@ function renderIndexHtml(events) {
     city: e.city,
     state: e.state,
     venue: e.venue,
+    venueHref: e.venueHref || '',
     address: e.address,
     platform: e.platform,
     slug: e.slug,
@@ -575,6 +576,8 @@ footer .follow { margin-bottom: 14px; }
 .card-body h3 { font-family: 'Montserrat', sans-serif; font-size: 18px; }
 .card-body .meta { color: var(--text-muted); font-size: 14px; }
 .card-body .meta strong { color: var(--text); }
+.card-body .meta a.venue { border-bottom: 1px solid rgba(255,255,255,.25); }
+.card-body .meta a.venue:hover { color: var(--accent); border-color: var(--accent); }
 .card-body .cta { margin-top: auto; padding-top: 12px; display: flex; gap: 8px; }
 .card-body .cta a { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-weight: 600; }
 .card-body .cta a.get { background: var(--accent); color: white; }
@@ -768,7 +771,7 @@ function render(){
       </a>
       <div class="card-body">
         <h3><a href="\${eventUrl}">\${esc(e.artist)}</a></h3>
-        \${e.venue?'<div class="meta"><strong>'+esc(e.venue)+'</strong></div>':''}
+        \${e.venue?'<div class="meta"><strong>'+(e.venueHref?'<a class="venue" href="'+esc(e.venueHref)+'">'+esc(e.venue)+'</a>':esc(e.venue))+'</strong></div>':''}
         <div class="meta"><strong>\${dateStr}</strong>\${e.showtime?' · '+esc(e.showtime):''}</div>
         <div class="meta">\${esc(e.city)}\${e.state?', '+esc(e.state):''}</div>
         <div class="cta">\${cta}</div>
