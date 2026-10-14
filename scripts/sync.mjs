@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
 import { HOWTO_CSS, earnButton, howtoDialogs } from '../lib/promo-help.mjs';
+import { groupVenues } from '../lib/directory.mjs';
 
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 if (!AIRTABLE_PAT) {
@@ -810,7 +811,7 @@ function renderEventHtml(e) {
   const detailRows = [
     `<li><span>Date</span><strong>${htmlesc(dateStr)}</strong></li>`,
     e.showtime ? `<li><span>Time</span><strong>${htmlesc(e.showtime)}</strong></li>` : '',
-    e.venue ? `<li><span>Venue</span><strong>${htmlesc(e.venue)}</strong></li>` : '',
+    e.venue ? `<li><span>Venue</span><strong>${venueLink(e)}</strong></li>` : '',
     locality ? `<li><span>Location</span><strong>${htmlesc(locality)}</strong></li>` : '',
     e.address ? `<li><span>Address</span><strong>${htmlesc(e.address)}</strong></li>` : '',
     e.price ? `<li><span>Price</span><strong>${htmlesc(e.price)}</strong></li>` : '',
@@ -849,6 +850,9 @@ a{color:inherit;text-decoration:none;}
 .content h1{font-family:'Montserrat',sans-serif;font-size:26px;line-height:1.2;}
 .content .tagline{color:var(--text-muted);font-size:15px;font-style:italic;margin-top:4px;}
 .content .venue{color:var(--accent);font-weight:600;margin-top:6px;}
+.content .venue a:hover{text-decoration:underline;}
+.details li strong a{border-bottom:1px solid rgba(255,255,255,.25);}
+.details li strong a:hover{color:var(--accent);border-color:var(--accent);}
 .desc{color:var(--text-muted);font-size:15px;margin-top:14px;}
 .desc p+p{margin-top:10px;}
 .desc.clamp{max-height:9em;overflow:hidden;position:relative;}
@@ -889,7 +893,7 @@ footer a:hover{color:var(--accent);}
     <div class="content">
       <h1>${htmlesc(e.artist)}</h1>
       ${taglineHtml}
-      ${e.venue ? `<p class="venue">${htmlesc(e.venue)}</p>` : ''}
+      ${e.venue ? `<p class="venue">${venueLink(e)}</p>` : ''}
       ${descHtml}
       <ul class="details">
         ${detailRows}
@@ -919,6 +923,12 @@ footer a:hover{color:var(--accent);}
 </body>
 </html>
 `;
+}
+
+// The venue name, linked to its page on the site (/venues/<slug>/ or a FanGenie venue page).
+function venueLink(e) {
+  const name = htmlesc(e.venue);
+  return e.venueHref ? `<a href="${htmlesc(e.venueHref)}">${name}</a>` : name;
 }
 
 function htmlesc(s) {
@@ -1091,6 +1101,12 @@ async function main() {
     while (idsSeen.has(id)) id = `${base}-${n++}`;
     idsSeen.add(id);
     e.id = id;
+  }
+
+  // Each venue's page on the site, so event pages can link to it. Same grouping
+  // as scripts/directory.mjs, which builds those pages later in the workflow.
+  for (const v of groupVenues(usableEvents)) {
+    for (const e of v.events) e.venueHref = v.href;
   }
 
   console.log('Downloading photos...');

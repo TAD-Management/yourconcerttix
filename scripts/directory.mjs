@@ -28,33 +28,10 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
+import { FANGENIE_PAGES, STATES, byName, clean, cityFromAddress, fanGeniePage, groupVenues, slugify } from '../lib/directory.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-
-// The FanGenie venue pages (scripts/apache-junction.mjs VENUES). `match` picks
-// out the same venue among the Airtable venue names, which differ slightly
-// ("The Historic Paramount Theater (AZ)" vs FanGenie's "...Theatre").
-const FANGENIE_PAGES = [
-  { dir: 'apachejunction', match: /apache junction/i },
-  { dir: 'lakehavasu',     match: /havasu aquatic/i },
-  { dir: 'paramount',      match: /paramount/i },
-  { dir: 'cocopah',        match: /cocopah/i },
-];
-
-const STATES = {
-  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado',
-  CT: 'Connecticut', DE: 'Delaware', DC: 'Washington, D.C.', FL: 'Florida', GA: 'Georgia',
-  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas',
-  KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts',
-  MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana',
-  NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico',
-  NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma',
-  OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
-  SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia',
-  WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
-};
-const STATE_ABBR = Object.fromEntries(Object.entries(STATES).map(([k, v]) => [v.toLowerCase(), k]));
 
 // Gradient fallback palette, same as scripts/sync.mjs.
 const PALETTE = [
@@ -73,18 +50,6 @@ function gradFor(s) {
 function htmlesc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-function clean(s) {
-  return String(s || '').replace(/\s+/g, ' ').trim();
-}
-function slugify(s) {
-  return String(s || '').toLowerCase().replace(/['’]/g, '').replace(/&/g, ' and ')
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-}
-// "The Historic Paramount" files under P.
-function sortKey(s) {
-  return s.toLowerCase().replace(/^the\s+/, '');
-}
-const byName = (a, b) => sortKey(a.name).localeCompare(sortKey(b.name));
 const stateName = st => STATES[st] || st || 'Other';
 function shortDate(ymd) {
   return new Date(ymd + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -102,68 +67,32 @@ function readHomepageEvents() {
   return JSON.parse(m[1]);
 }
 
-function readFanGeniePage(dir) {
-  const file = path.join(repoRoot, dir, 'index.html');
-  if (!existsSync(file)) return null;
-  const m = readFileSync(file, 'utf8').match(/const DATA = (\{.*?\});\n/s);
-  return m ? JSON.parse(m[1]) : null;
-}
-
-// "2525 South Ironwood Drive, Apache Junction, Arizona 85120" -> Apache Junction, AZ
-function cityFromAddress(address) {
-  const parts = String(address || '').split(',').map(clean).filter(Boolean);
-  if (parts.length < 3) return { city: '', state: '' };
-  const st = parts[parts.length - 1].replace(/\s*\d{5}(-\d{4})?$/, '').trim();
-  return {
-    city: parts[parts.length - 2],
-    state: st.length === 2 ? st.toUpperCase() : (STATE_ABBR[st.toLowerCase()] || st),
-  };
-}
-
 // ---- Build the venue + city lists ----
 
+function fanGenieShows(data) {
+  return data.events.map(e => ({ artist: e.name, date: e.ymd, photo: e.poster }));
+}
+
 function buildVenues(events) {
-  const groups = new Map();
-  for (const e of events) {
-    const city = clean(e.city), state = clean(e.state).toUpperCase();
-    let name = clean(e.venue);
-    if (!name) continue;
-    // Drop a disambiguating "(Laughlin)" / "(AZ)" when the tile already says where.
-    name = name.replace(/\s*\(([^)]*)\)$/, (all, inner) =>
-      [city.toLowerCase(), state.toLowerCase()].includes(inner.trim().toLowerCase()) ? '' : all);
-    const key = `${name}|${city}|${state}`.toLowerCase();
-    if (!groups.has(key)) groups.set(key, { name, city, state, address: clean(e.address), shows: [] });
-    groups.get(key).shows.push({
-      artist: e.artist, date: e.date, showtime: e.showtime, ticket: e.ticket, id: e.id,
-      slug: e.slug, photo: `/artist-photos/${e.photo || e.slug}.jpg`,
-    });
-  }
-  const venues = [...groups.values()];
+  // A venue with a FanGenie page takes that page's name and show list, since its tile links there.
+  const venues = groupVenues(events).map(v => v.fanGenie
+    ? { ...v, name: clean(v.fanGenie.data.venue.name) || v.name, shows: fanGenieShows(v.fanGenie.data) }
+    : { ...v, shows: v.events.map(e => ({
+        artist: e.artist, date: e.date, showtime: e.showtime, ticket: e.ticket, id: e.id,
+        slug: e.slug, photo: `/artist-photos/${e.photo || e.slug}.jpg`,
+      })) });
 
-  // Fold in the FanGenie pages: their tile links to that page and its show list wins.
+  // FanGenie pages with no Airtable twin (Apache Junction) get a tile of their own.
+  const claimed = new Set(venues.map(v => v.fanGenie && v.fanGenie.dir));
   for (const p of FANGENIE_PAGES) {
-    const data = readFanGeniePage(p.dir);
-    if (!data || !data.events || !data.events.length) continue;
-    const shows = data.events.map(e => ({ artist: e.name, date: e.ymd, photo: e.poster }));
-    const twin = venues.find(v => p.match.test(v.name));
-    if (twin) {
-      Object.assign(twin, { name: clean(data.venue.name) || twin.name, href: `/${p.dir}/`, shows });
-    } else {
-      const { city, state } = cityFromAddress(data.venue.address);
-      venues.push({ name: clean(data.venue.name), city, state, address: clean(data.venue.address), href: `/${p.dir}/`, shows });
-    }
+    const data = fanGeniePage(p.dir);
+    if (!data || claimed.has(p.dir)) continue;
+    const { city, state } = cityFromAddress(data.venue.address);
+    venues.push({ name: clean(data.venue.name), city, state, address: clean(data.venue.address), href: `/${p.dir}/`, shows: fanGenieShows(data) });
   }
 
-  const slugsSeen = new Set();
-  for (const v of venues.sort(byName)) {
-    v.shows.sort((a, b) => a.date.localeCompare(b.date));
-    let slug = slugify(v.name);
-    if (slugsSeen.has(slug)) slug = `${slug}-${slugify(`${v.city} ${v.state}`)}`;
-    slugsSeen.add(slug);
-    v.slug = slug;
-    v.href = v.href || `/venues/${slug}/`;
-  }
-  return venues;
+  for (const v of venues) v.shows.sort((a, b) => a.date.localeCompare(b.date));
+  return venues.sort(byName);
 }
 
 function buildCities(venues) {
