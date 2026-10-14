@@ -50,8 +50,9 @@ const F_WEB_IMG = 'fldmdmT8dvg45MLyn'; // Poster/Portrait (1:1)
 // venue isn't general admission. `outlet` (optional) is an in-person ticket
 // outlet shown in a callout under the hero; its `when` wording drops off from
 // the `from` date (Arizona midnight). `address` (optional) replaces FanGenie's
-// street address when theirs is messy. Add the dir to the workflow's `git add` line
-// and a card to the homepage (sync.mjs) when adding a venue.
+// street address when theirs is messy. Add the dir to the workflow's `git add` line,
+// to FANGENIE_PAGES in scripts/directory.mjs, and a card to the homepage (sync.mjs)
+// when adding a venue.
 const VENUES = [
   { slug: 'LbyXyoyVFS', dir: 'apachejunction', headline: 'Apache Junction',
     tagline: "TAD Management presents Arizona's #1 live concert series",

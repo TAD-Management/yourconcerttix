@@ -588,6 +588,23 @@ footer .follow { margin-bottom: 14px; }
 .promo .promo-kicker { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent2); }
 .promo .promo-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px; line-height: 1.1; }
 .promo .promo-sub { color: var(--text-muted); font-size: 14px; }
+/* Two big "browse" tiles under the hero; link to the /venues/ and /cities/ directories (scripts/directory.mjs) */
+.browse { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1200px; margin: 0 auto 16px; }
+.browse-tile { position: relative; overflow: hidden; display: flex; align-items: center; gap: 22px; min-height: 150px; padding: 26px 28px; border-radius: 18px; color: #fff; transition: transform .2s, box-shadow .2s; }
+.browse-tile:hover { transform: translateY(-3px); }
+.browse-venues { background: linear-gradient(135deg, #6a11cb, #2575fc); }
+.browse-venues:hover { box-shadow: 0 18px 44px -16px rgba(37,117,252,.8); }
+.browse-cities { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+.browse-cities:hover { box-shadow: 0 18px 44px -16px rgba(233,69,96,.8); }
+.browse-icon { flex: 0 0 auto; width: 76px; height: 76px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.18); }
+.browse-icon svg { width: 38px; height: 38px; }
+.browse-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; }
+.browse-kicker { font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; opacity: .85; }
+.browse-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 34px; line-height: 1.05; letter-spacing: -.5px; }
+.browse-sub { font-size: 15px; opacity: .9; }
+.browse-arrow { flex: 0 0 auto; font-size: 30px; font-weight: 700; transition: transform .2s; }
+.browse-tile:hover .browse-arrow { transform: translateX(4px); }
+@media (max-width: 700px) { .browse { grid-template-columns: 1fr; gap: 10px; margin: 0 12px 12px; } .browse-tile { min-height: 0; padding: 18px; gap: 16px; } .browse-icon { width: 56px; height: 56px; } .browse-icon svg { width: 28px; height: 28px; } .browse-title { font-size: 26px; } .browse-sub { font-size: 14px; } }
 .promo-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto 8px; }
 .promo-row .promo { margin: 0; flex-direction: column; align-items: flex-start; }
 .promo-row .promo .promo-btn { align-self: flex-start; margin-top: auto; }
@@ -630,6 +647,26 @@ ${HOWTO_CSS}
 <div class="hero">
   <h2>Find Live Shows Near You</h2>
   <p>Tribute bands, classic rock, country &amp; more</p>
+</div>
+<div class="browse">
+  <a class="browse-tile browse-venues" href="/venues/">
+    <span class="browse-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01M15 11h.01"/></svg></span>
+    <span class="browse-text">
+      <span class="browse-kicker">Browse by</span>
+      <span class="browse-title">Venues</span>
+      <span class="browse-sub">Pick a theater, casino or resort and see every show there.</span>
+    </span>
+    <span class="browse-arrow" aria-hidden="true">&rarr;</span>
+  </a>
+  <a class="browse-tile browse-cities" href="/cities/">
+    <span class="browse-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+    <span class="browse-text">
+      <span class="browse-kicker">Browse by</span>
+      <span class="browse-title">Cities, State</span>
+      <span class="browse-sub">Find the venues and shows in your town.</span>
+    </span>
+    <span class="browse-arrow" aria-hidden="true">&rarr;</span>
+  </a>
 </div>
 <div class="promo-row">
   <a class="promo" href="/apachejunction/">

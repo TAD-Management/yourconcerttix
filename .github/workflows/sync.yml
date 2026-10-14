@@ -19,6 +19,7 @@ on:
       - 'scripts/sync.mjs'
       - 'scripts/apache-junction.mjs'
       - 'scripts/affiliates.mjs'
+      - 'scripts/directory.mjs'
       - 'lib/**'
       - '.github/workflows/sync.yml'
 
@@ -67,6 +68,12 @@ jobs:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
         run: node scripts/apache-junction.mjs
 
+      - name: Rebuild the venue + city directory (/venues/, /cities/)
+        # Reads the homepage and venue pages written above; no secrets. On
+        # failure the previous directory is kept.
+        continue-on-error: true
+        run: node scripts/directory.mjs
+
       - name: Rebuild the affiliate pages (/a/<handle>/) from Airtable + FanGenie
         continue-on-error: true
         env:
@@ -77,7 +84,7 @@ jobs:
         run: |
           git config user.name  "yct-sync-bot"
           git config user.email "yct-sync-bot@users.noreply.github.com"
-          git add -A artist-photos index.html events apachejunction lakehavasu paramount cocopah a
+          git add -A artist-photos index.html events apachejunction lakehavasu paramount cocopah venues cities a
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
