@@ -627,6 +627,8 @@ footer .follow { margin-bottom: 14px; }
 @media (max-width: 600px) { .promo { flex-direction: column; align-items: flex-start; margin: 0 12px 8px; } .promo .promo-btn { width: 100%; text-align: center; } .promo-row { grid-template-columns: 1fr; gap: 8px; margin: 0 12px 8px; } .promo-row .promo { margin: 0; } .promo-row .promo .promo-btn { align-self: stretch; } }
 @media (max-width: 600px) { .promo.promo-fund { margin: 30px 12px 8px; gap: 12px; } .promo-fund .promo-bee { position: absolute; right: 12px; top: -30px; width: 86px; margin: 0; } }
 footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--card-border); margin-top: 40px; }
+footer .foot-venues { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+footer .foot-venues:hover { color: var(--text); }
 @media (max-width: 600px) {
   .hero h2 { font-size: 28px; }
   .grid { padding: 12px; gap: 12px; grid-template-columns: 1fr; }
@@ -735,7 +737,7 @@ ${HOWTO_CSS}
 <div class="grid" id="grid"></div>
 <footer>
   <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span>${earnButton()}</div>
-  &copy; ${new Date().getFullYear()} YourConcertTix
+  &copy; ${new Date().getFullYear()} YourConcertTix &middot; <a class="foot-venues" href="/partners/">For Venues</a>
 </footer>
 <script>
 const PHOTO_BASE = '/artist-photos/';
