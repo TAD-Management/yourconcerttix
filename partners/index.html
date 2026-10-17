@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For Venues: Ticketing That Sells Your Tickets For You | YourConcertTix + FanGenie</title>
+<meta name="description" content="Bring FanGenie ticketing to your venue. Get a branded season page on YourConcertTix, reserved seat maps, box office and door tools, plus fans, affiliates and local schools selling your shows on commission.">
+<link rel="canonical" href="https://yourconcerttix.com/partners/">
+<meta property="og:title" content="Stop just selling tickets. Start filling seats.">
+<meta property="og:description" content="YourConcertTix + FanGenie for venues: a branded box office, a reserved-seat checkout, and a sales force that only gets paid when you sell.">
+<meta property="og:image" content="https://yourconcerttix.com/partners/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yourconcerttix.com/partners/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#100c26">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#100c26; --night-2:#191437; --card:#1d1840; --line:rgba(255,255,255,.10);
+  --text:#f4f2fb; --muted:#aaa4c8; --dim:#8a84ab;
+  --red:#f0435f; --orange:#f7a23a; --gold:#f4b63f;
+  --grad:linear-gradient(90deg,#f0435f,#f7a23a);
+  --display:'Montserrat',Inter,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden;overflow-x:clip;background:#100c26}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;font-size:17px;line-height:1.55;color:var(--text);overflow-x:hidden;overflow-x:clip;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(1100px 700px at 85% -5%,#3a1d5e 0%,rgba(58,29,94,0) 65%) no-repeat,radial-gradient(900px 600px at -10% 40%,#24164a 0%,rgba(36,22,74,0) 60%) no-repeat,var(--night)}
+a{color:inherit}
+img{max-width:100%;height:auto;display:block}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+h1,h2,h3,.num{font-family:var(--display);letter-spacing:-.02em}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.kicker{font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0}
+.logo{font-family:var(--display);font-weight:800;font-size:20px;text-decoration:none;letter-spacing:-.01em}
+.logo span{color:var(--red)}
+.top-r{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--muted)}
+.top-r .fg{color:var(--gold);font-weight:600}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 8px 24px rgba(240,67,95,.3)}
+.btn-ghost{border:1px solid rgba(255,255,255,.22);color:var(--text)}
+.btn-ghost:hover{background:rgba(255,255,255,.06)}
+.btn-sm{padding:9px 16px;font-size:13px;border-radius:10px}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* hero */
+.hero{padding:56px 0 20px;text-align:center}
+.hero h1{font-size:clamp(38px,6.6vw,74px);line-height:1.02;font-weight:900;margin-top:14px}
+.hero .lede{font-size:clamp(17px,2vw,20px);color:#d3cfe8;max-width:760px;margin:22px auto 0}
+.hero .lede b{color:#fff;font-weight:600}
+.hero .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.hero .shot{margin:52px auto 0;max-width:1000px}
+
+/* screenshot frame */
+.shot{border-radius:14px;overflow:hidden;background:#0d0a20;border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.shot .bar{height:30px;background:#231f3e;display:flex;align-items:center;gap:6px;padding:0 12px}
+.shot .bar i{width:9px;height:9px;border-radius:50%;background:#4a456a;display:block}
+.shot .bar span{margin-left:10px;font-size:11.5px;color:#9c97bb;background:#161330;padding:3px 12px;border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cap{font-size:13px;color:var(--dim);margin-top:10px;text-align:center}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:56px}
+.stat{border-top:2px solid;border-image:var(--grad) 1;padding-top:14px}
+.stat .num{font-size:clamp(30px,4vw,42px);font-weight:900;line-height:1}
+.stat p{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.4}
+
+/* sections */
+section.sec{padding:96px 0 0}
+.head{max-width:760px}
+.head .n{display:inline-flex;width:34px;height:34px;border-radius:50%;background:var(--grad);font-family:var(--display);font-weight:900;font-size:15px;align-items:center;justify-content:center;margin-bottom:14px}
+.head h2{font-size:clamp(30px,4.2vw,46px);line-height:1.08;font-weight:900}
+.head p{color:var(--muted);font-size:18px;margin-top:14px}
+.split{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;align-items:center;margin-top:44px}
+.split.flip > :first-child{order:2}
+ul.pts{list-style:none;display:grid;gap:20px}
+ul.pts li{padding-left:22px;position:relative}
+ul.pts li::before{content:"";position:absolute;left:0;top:8px;width:9px;height:9px;border-radius:3px;background:var(--grad)}
+ul.pts b{display:block;font-size:17px;color:#fff}
+ul.pts span{color:var(--muted);font-size:15.5px}
+.proof{margin-top:26px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:15px;color:var(--muted)}
+.proof b{color:#fff}
+.proof a{color:var(--gold);text-decoration:none;font-weight:600}
+.proof a:hover{text-decoration:underline}
+
+/* fundfare band */
+.fund{margin-top:80px;background:linear-gradient(135deg,#2250d9,#1638a8);border-radius:22px;padding:44px;display:grid;grid-template-columns:1fr 1.05fr;gap:44px;align-items:center}
+.fund .kicker{color:#e9ff3a}
+.fund h3{font-size:clamp(26px,3.4vw,36px);font-weight:900;line-height:1.1;margin-top:10px}
+.fund p{color:#dfe6ff;margin-top:14px;font-size:16.5px}
+.fund ul.pts{margin-top:20px}
+.fund ul.pts li::before{background:#e9ff3a}
+.fund ul.pts span{color:#c9d4ff}
+.fund .shot{border-color:rgba(255,255,255,.25)}
+.fund .btn{margin-top:24px;background:#e9ff3a;color:#151515}
+
+.minis{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+.mini{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+.mini h3{font-size:18px;font-weight:800}
+.mini p{color:var(--muted);font-size:15.5px;margin-top:6px}
+
+/* tools */
+.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:44px}
+.tool{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:22px 20px}
+.tool svg{width:28px;height:28px;stroke:var(--orange);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tool h3{font-size:17px;font-weight:800;margin-top:12px;line-height:1.25}
+.tool p{font-size:14.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:40px;counter-reset:s;position:relative}
+.steps::before{content:"";position:absolute;left:18px;right:18px;top:18px;height:2px;background:var(--line)}
+.step{position:relative}
+.step .num{width:36px;height:36px;border-radius:50%;background:var(--night);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;position:relative}
+.step h3{font-size:18px;font-weight:800;margin-top:14px}
+.step p{color:var(--muted);font-size:15px;margin-top:6px}
+
+/* cta */
+.cta{margin:110px 0 0;background:var(--night-2);border:1px solid var(--line);border-radius:24px;padding:56px;display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:center;position:relative;overflow:hidden}
+.cta::after{content:"";position:absolute;inset:auto -120px -160px auto;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(240,67,95,.28),rgba(240,67,95,0) 70%);pointer-events:none}
+.cta h2{font-size:clamp(30px,4vw,46px);font-weight:900;line-height:1.05;margin-top:10px}
+.cta p{color:var(--muted);margin-top:16px;font-size:17px}
+.cta .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.contact{border-left:2px solid;border-image:var(--grad) 1;padding-left:22px;font-size:17px;line-height:1.8;position:relative;z-index:1}
+.contact .l{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--dim)}
+.contact a{text-decoration:none;color:#fff}
+.contact a:hover{color:var(--gold)}
+.live{margin-top:14px;font-size:14px;color:var(--dim);line-height:1.9}
+.live a{color:var(--text);font-weight:600;text-decoration:none;margin-right:10px}
+.live a:hover{color:var(--gold)}
+
+footer{padding:56px 0 40px;margin-top:80px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--dim)}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:#fff}
+
+@media (max-width:900px){
+  .split,.fund,.cta{grid-template-columns:1fr;gap:32px}
+  .split.flip > :first-child{order:0}
+  .tools{grid-template-columns:1fr 1fr}
+  .stats{grid-template-columns:1fr 1fr;gap:26px 20px}
+  .steps{grid-template-columns:1fr 1fr;gap:28px 20px}
+  .steps::before{display:none}
+  .fund,.cta{padding:30px 24px}
+  section.sec{padding-top:72px}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  .top-r .pw{display:none}
+  .hero{padding-top:32px}
+  .hero .ctas .btn{flex:1 1 100%;justify-content:center}
+  .minis{grid-template-columns:1fr}
+  .tools{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .shot .bar{height:24px}
+  .cta .ctas .btn{flex:1 1 100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="/">Your<span>Concert</span>Tix</a>
+    <div class="top-r">
+      <span class="pw">Tickets powered by <span class="fg">FanGenie</span></span>
+      <a class="btn btn-ghost btn-sm" href="#talk">Talk to us</a>
+    </div>
+  </header>
+
+  <!-- hero -->
+  <section class="hero">
+    <div class="kicker">For venues · The ticketing platform that sells your tickets for you</div>
+    <h1>Stop just selling tickets.<br><span class="grad">Start filling seats.</span></h1>
+    <p class="lede"><b>FanGenie</b> is a full ticketing platform: reserved seat maps, box office, door scanning and settlement. <b>YourConcertTix</b> is the marketing engine wrapped around it. Your venue gets its own storefront, plus fans, affiliates and local schools out selling your shows on commission.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#talk">Book a walkthrough
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="btn btn-ghost" href="/partners/YCT-FanGenie-Venue-Pitch.pdf" download>
+        <svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download the PDF</a>
+    </div>
+    <div class="shot">
+      <div class="bar"><i></i><i></i><i></i><span>yourconcerttix.com</span></div>
+      <img src="/partners/img/home.jpg" width="1600" height="1111" alt="The YourConcertTix homepage, with venue and city browsing and four venue season cards">
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">178</div><p>upcoming shows listed on YourConcertTix</p></div>
+      <div class="stat"><div class="num">46</div><p>venues in 41 cities across 11 states</p></div>
+      <div class="stat"><div class="num">92</div><p>shows with paid affiliate sellers right now</p></div>
+      <div class="stat"><div class="num">$2–$15</div><p>per ticket paid to sellers, only when a ticket sells</p></div>
+    </div>
+  </section>
+
+  <!-- 1 -->
+  <section class="sec">
+    <div class="head">
+      <div class="n">1</div>
+      <h2>Your venue gets its own box office online</h2>
+      <p>Every FanGenie venue gets a branded season page on YourConcertTix: one link for your whole lineup, for posters, emails and every social post.</p>
+    </div>
+    <div class="split">
+      <div>
+        <div class="shot">
+          <div class="bar"><i></i><i></i><i></i><span>yourconcerttix.com/apachejunction</span></div>
+          <img src="/partners/img/aj.jpg" width="1600" height="1640" loading="lazy" alt="Apache Junction Live season page with a $5-off season code and a grid of show posters">
+        </div>
+      </div>
+      <div>
+        <ul class="pts">
+          <li><b>The whole season on one page</b><span>Poster art for every show, month filters, search, box-office details, and a "Get Tickets" button on each card. Works on any phone.</span></li>
+          <li><b>Keeps itself up to date</b><span>The page rebuilds from FanGenie every few hours. Add a show, change a time or set an on-sale date, and the page follows.</span></li>
+          <li><b>Season discount codes built in</b><span>Codes like "$5 off every ticket" sit at the top with a one-tap Copy button, plus a short how-to for first-time buyers.</span></li>
+          <li><b>Found by new fans</b><span>Your shows also appear in the YourConcertTix directory, browsable by venue, city and state.</span></li>
+        </ul>
+        <div class="proof"><b>Live today:</b> <a href="/apachejunction/">Apache Junction PAC</a> (46 shows), <a href="/lakehavasu/">Lake Havasu Aquatic Center</a> (29), <a href="/paramount/">the Historic Paramount Theatre</a> (12) and <a href="/cocopah/">Cocopah RV Resort</a>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="sec">
+    <div class="head">
+      <div class="n">2</div>
+      <h2>A checkout fans actually finish</h2>
+      <p>FanGenie handles everything from the seat map to the ticket at the door, on desktop and phone.</p>
+    </div>
+    <div class="split flip">
+      <div>
+        <div class="shot">
+          <div class="bar"><i></i><i></i><i></i><span>app.fangenie.com</span></div>
+          <img src="/partners/img/seatmap.jpg" width="1600" height="1250" loading="lazy" alt="FanGenie event page for an Eagles tribute with a reserved and GA seat map and pricing legend">
+        </div>
+        <p class="cap">The Historic Paramount Theatre: reserved left and right, GA floor, VIP balcony.</p>
+      </div>
+      <div>
+        <ul class="pts">
+          <li><b>Reserved, GA and VIP in one map</b><span>Draw your real room: reserved sections, general admission and a VIP balcony, each with its own price and legend.</span></li>
+          <li><b>Season tickets, bundles and codes</b><span>Sell a season or a package of shows at one price, and run promo codes per show or season-wide.</span></li>
+          <li><b>Guest checkout, mobile tickets</b><span>No account required to buy. Card payments run through Stripe, and every ticket carries a QR code for the door.</span></li>
+          <li><b>Fans help themselves</b><span>Ticket transfers and refund requests are handled in the fan's own dashboard, not on your phone line.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="sec">
+    <div class="head">
+      <div class="n">3</div>
+      <h2>A sales force paid only when you sell</h2>
+      <p>Most platforms list your show and wait. FanGenie pays fans, promoters and community groups a fixed amount for every ticket they sell, so hundreds of people have a reason to post your shows.</p>
+    </div>
+    <div class="split">
+      <div>
+        <div class="shot">
+          <div class="bar"><i></i><i></i><i></i><span>yourconcerttix.com/a/your-name</span></div>
+          <img src="/partners/img/aff.jpg" width="1600" height="1111" loading="lazy" alt="An affiliate page titled Don't Miss These Shows, listing 92 shows across 7 venues">
+        </div>
+        <p class="cap">An affiliate's personal page: every show, each link tracked to them.</p>
+      </div>
+      <div>
+        <ul class="pts">
+          <li><b>Any fan can become a seller</b><span>A free FanGenie account gets a tracked link for any show. Sellers earn on every ticket bought through it, paid to their FanGenie wallet or PayPal.</span></li>
+          <li><b>You set the commission per show</b><span>Today's rates run from $2 to $15 a ticket. It's a marketing cost you pay only after the sale.</span></li>
+          <li><b>One page per seller</b><span>Instead of juggling dozens of links, each seller gets a single page of your shows to share, with all their links built in automatically.</span></li>
+          <li><b>Fraud-aware tracking</b><span>One link per seller per show, and sellers can't earn commission on their own purchases.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="fund">
+      <div>
+        <div class="kicker">Fundfare · Community fundraising</div>
+        <h3>Turn local schools into your street team</h3>
+        <p>Schools, teams, bands and clubs each get their own ticket link. Every ticket bought through it sends $2 to the group. Parents and boosters share it because it raises money for their kids, and your shows reach families who have never been to your venue.</p>
+        <ul class="pts">
+          <li><b>Ready-made print and social kit</b><span>Flyers, one-sheets, ticket backs and a goal tracker, all branded and ready to hand out.</span></li>
+          <li><b>Good press, built in</b><span>Your venue becomes the place that funds local schools.</span></li>
+        </ul>
+        <a class="btn" href="/fundfare/">See Fundfare
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <div>
+        <div class="shot">
+          <div class="bar"><i></i><i></i><i></i><span>yourconcerttix.com/fundfare</span></div>
+          <img src="/partners/img/fund.jpg" width="1600" height="989" loading="lazy" alt="Fundfare page: Every ticket equals $2 for your school">
+        </div>
+      </div>
+    </div>
+
+    <div class="minis">
+      <div class="mini"><h3>Daily promo codes on social</h3><p>A new code drops on Facebook and Instagram every day at 10 AM, which gives followers a reason to check back and buy.</p></div>
+      <div class="mini"><h3>A shared audience</h3><p>Fans who come to YourConcertTix for one venue browse 178 shows at 46 venues, and find yours.</p></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="sec">
+    <div class="head">
+      <div class="n">4</div>
+      <h2>Everything you need to run the night</h2>
+      <p>Your team gets a Venue Partner portal in FanGenie that covers the box office, the door and the books.</p>
+    </div>
+    <div class="tools">
+      <div class="tool">
+        <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/></svg>
+        <h3>Box office sales</h3><p>Cash checkout for walk-up and outlet sales, on the same inventory as online.</p>
+      </div>
+      <div class="tool">
+        <svg viewBox="0 0 24 24"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M7 12h10"/></svg>
+        <h3>QR door scanning</h3><p>Give each door staffer a scanner login. Tickets and passes are verified at the door.</p>
+      </div>
+      <div class="tool">
+        <svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        <h3>Will-call lists</h3><p>Master lists of every buyer and seat for each show, exportable for the door.</p>
+      </div>
+      <div class="tool">
+        <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        <h3>Settlement reports</h3><p>Per-event transactions and settlement reports, ready for show-night close-out.</p>
+      </div>
+      <div class="tool">
+        <svg viewBox="0 0 24 24"><path d="M3 9a3 3 0 0 0 0 6v3h18v-3a3 3 0 0 1 0-6V6H3z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>
+        <h3>Seat maps you control</h3><p>Build and edit your room's seat map once, then reuse it for every show.</p>
+      </div>
+      <div class="tool">
+        <svg viewBox="0 0 24 24"><path d="M7 7h10l-3-3M17 17H7l3 3"/></svg>
+        <h3>Transfers and refunds</h3><p>Approve refund requests and move tickets between buyers without re-issuing by hand.</p>
+      </div>
+      <div class="tool">
+        <svg viewBox="0 0 24 24"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+        <h3>Codes and passes</h3><p>Promo codes, discount passes and season bundles, set by show or across the season.</p>
+      </div>
+      <div class="tool">
+        <svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+        <h3>Mobile app</h3><p>Fans can browse, buy and carry their tickets in the FanGenie app.</p>
+      </div>
+    </div>
+
+    <div class="head" style="margin-top:80px">
+      <h2 style="font-size:clamp(26px,3.2vw,34px)">Switching is simple</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h3>Set up your room</h3><p>We build your venue and seat map in FanGenie with you.</p></div>
+      <div class="step"><div class="num">2</div><h3>Load your season</h3><p>Shows go on sale, and your branded YourConcertTix page goes live.</p></div>
+      <div class="step"><div class="num">3</div><h3>Turn on the sellers</h3><p>Pick your commission, launch codes and bring in schools.</p></div>
+      <div class="step"><div class="num">4</div><h3>Open the doors</h3><p>Your box office and door staff are trained and scanning on show night.</p></div>
+    </div>
+  </section>
+
+  <!-- cta -->
+  <section class="cta" id="talk">
+    <div>
+      <div class="kicker">Let's talk about your next season</div>
+      <h2>Let your fans sell<br><span class="grad">your next season.</span></h2>
+      <p>We'll walk you through a live venue page, a real seat map and the Venue Partner portal, then mock up your own season page before you commit.</p>
+      <div class="ctas">
+        <a class="btn btn-primary" href="mailto:info@tadshows.com?subject=FanGenie%20for%20our%20venue">Email us
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn btn-ghost" href="/partners/YCT-FanGenie-Venue-Pitch.pdf" download>
+          <svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download the PDF</a>
+      </div>
+    </div>
+    <div class="contact">
+      <div class="l">Contact</div>
+      <b>TAD Management</b><br>
+      <a href="mailto:info@tadshows.com?subject=FanGenie%20for%20our%20venue">info@tadshows.com</a>
+      <div class="live">See it live:<br>
+        <a href="/apachejunction/">/apachejunction</a><a href="/paramount/">/paramount</a><a href="/fundfare/">/fundfare</a></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 YourConcertTix · Presented by TAD Management</span>
+    <span><a href="/">Find shows</a> · <a href="/venues/">Venues</a> · <a href="/fundfare/">Fundfare</a></span>
+  </footer>
+</div>
+
+</body>
+</html>
