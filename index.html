@@ -120,6 +120,8 @@ footer .follow { margin-bottom: 14px; }
 @media (max-width: 600px) { .promo { flex-direction: column; align-items: flex-start; margin: 0 12px 8px; } .promo .promo-btn { width: 100%; text-align: center; } .promo-row { grid-template-columns: 1fr; gap: 8px; margin: 0 12px 8px; } .promo-row .promo { margin: 0; } .promo-row .promo .promo-btn { align-self: stretch; } }
 @media (max-width: 600px) { .promo.promo-fund { margin: 30px 12px 8px; gap: 12px; } .promo-fund .promo-bee { position: absolute; right: 12px; top: -30px; width: 86px; margin: 0; } }
 footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--card-border); margin-top: 40px; }
+footer .foot-venues { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+footer .foot-venues:hover { color: var(--text); }
 @media (max-width: 600px) {
   .hero h2 { font-size: 28px; }
   .grid { padding: 12px; gap: 12px; grid-template-columns: 1fr; }
@@ -288,7 +290,7 @@ footer { text-align: center; padding: 24px; color: var(--text-muted); font-size:
 <div class="grid" id="grid"></div>
 <footer>
   <div class="follow"><span class="follow-links"><a class="follow-btn" href="https://www.facebook.com/yourconcerttix" target="_blank" rel="noopener" aria-label="Your Concert Tix on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg><span>Facebook</span></a><a class="follow-btn" href="https://www.instagram.com/yourconcerttix/" target="_blank" rel="noopener" aria-label="Your Concert Tix on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a></span><button type="button" class="earn-pill" data-howto="earn"><i aria-hidden="true">$</i>Make $2+ a ticket<span class="earn-get"> &middot; Get your code</span></button></div>
-  &copy; 2026 YourConcertTix
+  &copy; 2026 YourConcertTix &middot; <a class="foot-venues" href="/partners/">For Venues</a>
 </footer>
 <script>
 const PHOTO_BASE = '/artist-photos/';
