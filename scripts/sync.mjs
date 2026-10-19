@@ -44,6 +44,7 @@ const F_VENUE_ADDR    = 'fldv6kMv0wmhrpLql'; // "Venue Location" formula → ful
 const F_PLATFORM      = 'fldczQJUGFvhg2NrC'; // lookup → multipleSelects
 const F_YCT_LINK      = 'fld2j6LeVomGaGCPP'; // "YCT Link" (url) — public event page URL, written back by this script
 const F_EVENT_HIDE    = 'fldz0pnIWdJYPO5OX'; // "Hide from YCT" (checkbox) — hides this single show
+const F_STATUS        = 'fldFJNJLucJRWEVBB'; // "STATUS" (singleSelect) — any option containing "cancel" unpublishes the show
 
 // Public origin of the deployed site. Event pages live at `${SITE_ORIGIN}/events/<id>/`.
 const SITE_ORIGIN = 'https://yourconcerttix.com';
@@ -267,7 +268,7 @@ async function pullEvents() {
     fields: [
       F_SHOW_INFO, F_TICKET, F_START_DATE, F_ARTIST_LINK, F_ARTIST_LOOK,
       F_SHOWTIME, F_CITY, F_STATE, F_VENUE_LINK, F_VENUE_ADDR, F_PLATFORM,
-      F_EVENT_HIDE,
+      F_EVENT_HIDE, F_STATUS,
     ],
     // Use field name for filterByFormula — field IDs aren't supported in formulas.
     filterByFormula: `IS_AFTER({Start Date}, DATEADD(TODAY(), -1, 'days'))`,
@@ -275,7 +276,7 @@ async function pullEvents() {
   });
 
   const events = [];
-  const skipped = { noTicket: 0, past: 0, noArtistLink: 0, noDate: 0, hiddenEvent: 0 };
+  const skipped = { noTicket: 0, past: 0, noArtistLink: 0, noDate: 0, hiddenEvent: 0, cancelled: 0 };
 
   for (const r of records) {
     const f = r.fields;
@@ -284,6 +285,8 @@ async function pullEvents() {
     const artistLinks = f[F_ARTIST_LINK];
 
     if (f[F_EVENT_HIDE]) { skipped.hiddenEvent++; continue; }
+    // "Canceled", "Cancelled with Expenses", "Canceled - FanGenie Only" (and any future spelling)
+    if (/cancel/i.test(firstLookupText(f[F_STATUS]))) { skipped.cancelled++; continue; }
     if (isUnavailableTicket(ticket)) { skipped.noTicket++; continue; }
     if (!startDate) { skipped.noDate++; continue; }
     if (startDate < today) { skipped.past++; continue; }
