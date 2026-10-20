@@ -27,7 +27,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
+import { followLinks } from '../lib/social.mjs';
 import { FANGENIE_PAGES, STATES, byName, clean, cityFromAddress, fanGeniePage, groupVenues, slugify } from '../lib/directory.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -177,7 +177,6 @@ main{flex:1;width:100%;max-width:1200px;margin:0 auto;padding:0 20px 20px;}
 footer{text-align:center;padding:24px;color:var(--text-muted);font-size:13px;border-top:1px solid var(--card-border);margin-top:40px;}
 footer a:hover{color:var(--accent);}
 .follow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin-bottom:14px;}
-.follow-pitch{font-weight:600;color:var(--accent2);}
 .follow-links{display:inline-flex;gap:8px;}
 .follow-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);color:var(--text);font-weight:600;}
 .follow-btn:hover{border-color:var(--accent);}
@@ -214,7 +213,7 @@ function page({ title, description, nav, body, script = '' }) {
 ${body}
 </main>
 <footer>
-  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span></div>
+  <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span></div>
   <a href="/">YourConcertTix</a> &middot; Powered by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a>
 </footer>${script}
 </body>

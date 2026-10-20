@@ -12,7 +12,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, rmSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { FOLLOW_PITCH, followLinks } from '../lib/social.mjs';
+import { followLinks } from '../lib/social.mjs';
 import { HOWTO_CSS, earnButton, howtoDialogs } from '../lib/promo-help.mjs';
 import { groupVenues } from '../lib/directory.mjs';
 
@@ -551,7 +551,6 @@ header .count { color: var(--text-muted); margin-top: 4px; font-size: 14px; }
 /* Follow buttons (Facebook / Instagram), in the header and the footer */
 .follow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 12px; }
 header .follow { margin-top: 14px; }
-.follow-pitch { font-size: 13px; font-weight: 600; color: var(--accent2); }
 .follow-links { display: inline-flex; gap: 8px; }
 .follow-btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.16); background: var(--card-bg); color: var(--text); font-size: 13px; font-weight: 600; transition: border-color .15s, color .15s; }
 .follow-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -651,7 +650,7 @@ ${HOWTO_CSS}
   <a class="aff-login" href="/affiliate/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Affiliate Login</a>
   <h1>Your<span class="accent">Concert</span>Tix</h1>
   <div class="count">${count} upcoming shows</div>
-  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span>${earnButton()}</div>
+  <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span>${earnButton()}</div>
 </header>
 <div class="hero">
   <h2>Find Live Shows Near You</h2>
@@ -883,7 +882,6 @@ a{color:inherit;text-decoration:none;}
 footer{text-align:center;padding:20px;color:var(--text-muted);font-size:13px;}
 footer a:hover{color:var(--accent);}
 .follow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin-bottom:14px;}
-.follow-pitch{font-weight:600;color:#f5a623;}
 .follow-links{display:inline-flex;gap:8px;}
 .follow-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);color:var(--text);font-weight:600;}
 .follow-btn:hover{border-color:var(--accent);}
@@ -912,7 +910,7 @@ footer a:hover{color:var(--accent);}
   </article>
 </main>
 <footer>
-  <div class="follow"><span class="follow-pitch">${FOLLOW_PITCH}</span><span class="follow-links">${followLinks('follow-btn')}</span></div>
+  <div class="follow"><span class="follow-links">${followLinks('follow-btn')}</span></div>
   <a href="/">YourConcertTix</a> &middot; Powered by <a href="https://fangenie.com" target="_blank" rel="noopener">FanGenie</a>
 </footer>
 <script>
