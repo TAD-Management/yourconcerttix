@@ -73,6 +73,32 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .vp.full small{font-size:13px;opacity:.9}
 .other{font-size:13px;font-weight:600;color:var(--muted);border-bottom:1px solid transparent;transition:color .2s,border-color .2s}
 .other:hover{color:var(--gold);border-color:var(--gold)}
+.others{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 22px}
+.vp.find{border-color:rgba(245,166,35,.5)}
+.vp.find b{display:inline-flex;align-items:center;gap:7px}
+.vp svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round}
+.hero .sub .tl{color:var(--text)}
+.finder [hidden]{display:none!important}
+.finder{max-width:680px;margin:30px auto 0;padding:0 20px;animation:rise .8s .35s ease both}
+.find-box{position:relative;display:block}
+.find-box svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+.find-box input{width:100%;font:inherit;font-size:18px;padding:17px 18px 17px 50px;border-radius:16px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:var(--text);backdrop-filter:blur(8px)}
+.find-box input:focus{outline:none;border-color:rgba(245,166,35,.7);box-shadow:0 0 0 3px rgba(245,166,35,.18)}
+.results{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.results a{display:flex;align-items:center;gap:14px;padding:10px 16px 10px 10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px);transition:border-color .2s}
+.results a:hover,.results a.on{border-color:rgba(245,166,35,.7)}
+.results .ph{width:56px;height:56px;border-radius:10px;flex:0 0 auto;overflow:hidden}
+.results .ph img{width:100%;height:100%;object-fit:cover}
+.results .t{flex:1;min-width:0}
+.results .n,.results .s{display:block}
+.results .n{font-family:'Montserrat',sans-serif;font-weight:800;font-size:17px;line-height:1.2}
+.results .s{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.results .c{flex:0 0 auto;padding:4px 10px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--gold));color:#fff;font-size:12px;font-weight:800}
+.hint{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin-top:16px;color:var(--muted);font-size:14px}
+.hint button{font-size:13px;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05)}
+.hint button:hover{border-color:rgba(245,166,35,.6);color:var(--gold)}
+.finder .none{text-align:center;color:var(--muted);padding:24px 0 0}
+.finder .none a{color:var(--gold)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;max-width:1240px;margin:20px auto 0;padding:0 20px}
 .card{position:relative;display:flex;flex-direction:column;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.1);overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s;animation:rise .6s ease both}
@@ -125,6 +151,7 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
   .cta{padding:11px;font-size:13px}.date{min-width:48px;padding:6px 6px 5px}.date b{font-size:19px}.tag{display:none}
   .bar .fg span{display:none}.kicker{font-size:10px;letter-spacing:.14em;padding:7px 12px}
   .filters .title{width:100%}
+  .find-box input{font-size:16px}
   .venues{gap:8px}.vp{min-width:0;flex:1 1 calc(50% - 8px);padding:10px 12px}.vp b{font-size:13.5px}.vp small{font-size:10.5px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -143,8 +170,8 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
   <div class="kicker"><i></i> Riverview PAC &middot; March 2027</div>
   <h1>Don't Miss <em>These Shows</em></h1>
   <p class="sub">1 show at the Riverview Performing Arts Center (Riverview High School), Sarasota. Ticket links are not live on this page yet, but they are on the way. Check back shortly.</p>
-  <nav class="venues single" aria-label="Venues"><div class="vp on full"><b>Riverview Performing Arts Center (Riverview High School)</b><small>Sarasota, Florida &middot; 1 show</small></div>
-  <a class="other" href="/a/baseball/">See all 6 venues &rarr;</a></nav>
+  <nav class="venues single" aria-label="Venues and artists"><div class="vp on full"><b>Riverview Performing Arts Center (Riverview High School)</b><small>Sarasota, Florida &middot; 1 show</small></div>
+  <div class="others"><a class="other" href="/a/baseball/">See all 6 venues &rarr;</a><a class="other" href="/a/baseball/artists/">Find an artist &rarr;</a></div></nav>
   <button class="share" type="button" id="share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Share this page</span></button>
 </section>
 
