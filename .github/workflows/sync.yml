@@ -68,9 +68,9 @@ jobs:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
         run: node scripts/apache-junction.mjs
 
-      - name: Rebuild the venue + city directory (/venues/, /cities/)
-        # Reads the homepage and venue pages written above; no secrets. On
-        # failure the previous directory is kept.
+      - name: Rebuild the venue, city + artist directory (/venues/, /cities/, /artists/)
+        # Reads the homepage, event pages and venue pages written above; no
+        # secrets. On failure the previous directory is kept.
         continue-on-error: true
         run: node scripts/directory.mjs
 
@@ -84,7 +84,7 @@ jobs:
         run: |
           git config user.name  "yct-sync-bot"
           git config user.email "yct-sync-bot@users.noreply.github.com"
-          git add -A artist-photos index.html events apachejunction lakehavasu paramount cocopah venues cities a
+          git add -A artist-photos index.html events apachejunction lakehavasu paramount cocopah venues cities artists a
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
