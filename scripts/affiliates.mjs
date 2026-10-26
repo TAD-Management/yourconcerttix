@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Affiliate pages — builds /a/<handle>/ (all venues) and /a/<handle>/<venue>/
-// for every Active row in the Airtable AFFILIATES table, using the links in
+// Affiliate pages — builds /a/<handle>/ (all venues), /a/<handle>/<venue>/,
+// /a/<handle>/artists/ (artist search) and /a/<handle>/artists/<act>/ (every
+// date for one act) for every Active row in the Airtable AFFILIATES table, using the links in
 // AFFILIATE LINKS. Show details (name, date, image, venue) come fresh from
 // FanGenie's public affiliate-events feed, so a show that has passed or lost
 // its commission simply drops off the page; the stored rows are left alone.
@@ -10,7 +11,10 @@
 // ticket buttons held ("Tickets open here soon"), so the address can be shared
 // ahead of time. The buttons go live on the first rebuild after links exist.
 //
-// Runs in the GitHub Action after scripts/sync.mjs. Needs AIRTABLE_PAT.
+// Acts take the main site's names and slugs (lib/artists.mjs, from the homepage
+// written earlier in the run), so /a/<handle>/artists/toby/ matches /artists/toby/.
+//
+// Runs in the GitHub Action after scripts/sync.mjs and scripts/directory.mjs. Needs AIRTABLE_PAT.
 //
 // Usage:
 //   node scripts/affiliates.mjs                    # rebuild every affiliate page
@@ -25,6 +29,8 @@ import path from 'node:path';
 import * as fg from '../lib/fangenie.mjs';
 import { AFFILIATES_TABLE, LINKS_TABLE, listAll, updateAll } from '../lib/airtable.mjs';
 import { venueInfo } from '../lib/venues.mjs';
+import { actForShow, finderScript, groupArtists } from '../lib/artists.mjs';
+import { readHomepageEvents } from '../lib/directory.mjs';
 
 // Events sold as registration + merchandise packages rather than tickets:
 // their buttons say "Register Here" (FanGenie event slugs).
@@ -89,6 +95,7 @@ function showFromEvent(ev, url) {
     url: url || '',
     register: REGISTRATION_EVENTS.has(ev.slug),
     iso: when.toISOString(),
+    ymd: new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(when),
     dow: fmt(when, tz, { weekday: 'short' }),
     dowLong: fmt(when, tz, { weekday: 'long' }),
     day: fmt(when, tz, { day: 'numeric' }),
@@ -134,11 +141,43 @@ function groupVenues(shows) {
   const venues = [];
   for (const s of shows) {
     let v = venues.find(x => x.dir === s.venue.dir);
-    if (!v) { v = { ...s.venue, shows: [] }; venues.push(v); }
+    if (!v) { v = { kind: 'venue', ...s.venue, shows: [] }; venues.push(v); }
     v.shows.push(s);
   }
   venues.sort((a, b) => b.shows.length - a.shows.length || a.short.localeCompare(b.short));
   return venues;
+}
+
+// The main site's acts, so affiliate artist pages share their names and slugs.
+// Without the homepage (a local run, say) acts are named from FanGenie titles.
+function siteActs() {
+  try {
+    return groupArtists(readHomepageEvents());
+  } catch (e) {
+    console.warn(`WARN main-site acts unavailable (${e.message}); naming acts from FanGenie titles`);
+    return [];
+  }
+}
+
+// An act's tagline from its main-site page (scripts/directory.mjs), for the search.
+function siteTagline(slug) {
+  const file = path.join(repoRoot, 'artists', slug, 'index.html');
+  const m = existsSync(file) && readFileSync(file, 'utf8').match(/<p class="tagline">([\s\S]*?)<\/p>/);
+  return m ? m[1].replace(/&(amp|lt|gt|quot|#39);/g, (x, c) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" }[c])).trim() : '';
+}
+
+// The affiliate's shows grouped by act: { kind: 'artist', name, slug, tagline, shows }.
+// Registration events (Got Phil Voted In) are not an act's concert, so they stay off.
+function groupActs(shows, known) {
+  const acts = new Map();
+  for (const s of shows) {
+    if (s.register) continue;
+    const act = actForShow({ title: s.name, date: s.ymd, city: s.venue.city }, known, [...acts.values()]);
+    if (!act.slug) continue;
+    if (!acts.has(act.slug)) acts.set(act.slug, { kind: 'artist', name: act.name, slug: act.slug, tagline: siteTagline(act.slug), shows: [] });
+    acts.get(act.slug).shows.push(s);
+  }
+  return [...acts.values()];
 }
 
 // ---- render ----
@@ -147,37 +186,67 @@ function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function renderPage({ affiliate, venues, shows, current, prelaunch = false }) {
+const plural = (n, one, many = one + 's') => `${n} ${n === 1 ? one : many}`;
+const SEARCH = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+const GRADS = [['#e94560', '#f5a623'], ['#6a11cb', '#2575fc'], ['#ff512f', '#dd2476'], ['#11998e', '#38ef7d'], ['#f12711', '#f5af19'],
+  ['#8e2de2', '#4a00e0'], ['#ee0979', '#ff6a00'], ['#4568dc', '#b06ab3'], ['#c94b4b', '#4b134f'], ['#ff9966', '#ff5e62']];
+
+// `current` picks the page: null (all venues), a venue, an act ({ kind: 'artist' })
+// or { kind: 'finder' } (the artist search).
+function renderPage({ affiliate, venues, shows, acts, current, prelaunch = false }) {
   const handle = affiliate.fields.Handle;
   const name = affiliate.fields['Display Name'] || handle;
   const headline = affiliate.fields.Headline || '';
   const photo = (affiliate.fields.Photo || [])[0];
   const photoUrl = photo ? ((photo.thumbnails && photo.thumbnails.large && photo.thumbnails.large.url) || photo.url) : '';
   const base = `/a/${handle}/`;
-  const pagePath = current ? `${base}${current.dir}/` : base;
-  const listed = current ? current.shows : shows;
-  const title = current ? `Don't miss these shows at ${current.short}` : `Don't miss these shows`;
+  const kind = current ? current.kind : 'hub';
+  const finder = kind === 'finder';
+  const pagePath = { hub: base, venue: `${base}${current && current.dir}/`, artist: `${base}artists/${current && current.slug}/`, finder: `${base}artists/` }[kind];
+  const listed = current && current.shows ? current.shows : shows;
+  const actVenues = kind === 'artist' ? new Set(listed.map(s => s.venue.dir)).size : 0;
+  const title = {
+    hub: `Don't miss these shows`,
+    venue: `Don't miss these shows at ${current && current.short}`,
+    artist: `Don't miss ${current && current.name} live`,
+    finder: 'Find an artist',
+  }[kind];
   const first = listed[0], last = listed[listed.length - 1];
   const range = first && last ? (first.mon === last.mon && first.year === last.year
     ? `${first.monLong} ${first.year}`
     : `${first.mon} ${first.year === last.year ? '' : first.year + ' '}– ${last.mon} ${last.year}`) : '';
-  const descLine = current
-    ? `${listed.length} upcoming shows at ${current.name}, ${current.city}, ${current.state}. Tickets on FanGenie.`
-    : `${listed.length} upcoming shows across ${venues.length} venue${venues.length === 1 ? '' : 's'}. Tickets on FanGenie.`;
+  const descLine = {
+    hub: `${listed.length} upcoming shows across ${plural(venues.length, 'venue')}. Tickets on FanGenie.`,
+    venue: `${listed.length} upcoming shows at ${current && current.name}, ${current && current.city}, ${current && current.state}. Tickets on FanGenie.`,
+    artist: `${plural(listed.length, `upcoming ${current && current.name} show`)} across ${plural(actVenues, 'venue')}. Tickets on FanGenie.`,
+    finder: `Search ${plural(acts.length, 'act')} and get tickets on FanGenie.`,
+  }[kind];
   const ogImage = (first && first.poster) || photoUrl || '';
   const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
   const ARROW = '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
   const CLOCK = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
   const SOON = 'Ticket links are not live on this page yet, but they are on the way. Check back shortly.';
 
-  // Hub page: one pill per venue. Venue page: that venue full width, plus a
-  // quiet way back to the rest.
-  const nav = current
-    ? `<div class="vp on full"><b>${esc(current.name)}</b><small>${esc([current.city, current.state].filter(Boolean).join(', ') || current.short)} &middot; ${current.shows.length} show${current.shows.length === 1 ? '' : 's'}</small></div>
-  <a class="other" href="${esc(base)}">See all ${venues.length} venues &rarr;</a>`
-    : [`<a class="vp on" href="${esc(base)}"><b>All venues</b><small>${shows.length} show${shows.length === 1 ? '' : 's'}</small></a>`]
-      .concat(venues.map(v => `<a class="vp" href="${esc(base + v.dir + '/')}"><b>${esc(v.short)}</b><small>${esc(v.city || v.name)} &middot; ${v.shows.length} show${v.shows.length === 1 ? '' : 's'}</small></a>`))
+  // Hub and search pages: one pill per venue plus an Artists pill. Venue and
+  // act pages: that venue or act full width, plus quiet ways back to the rest.
+  const findPill = `<a class="vp find${finder ? ' on' : ''}" href="${esc(base)}artists/"><b>${SEARCH}Artists</b><small>Search ${plural(acts.length, 'act')}</small></a>`;
+  const nav = kind === 'venue' || kind === 'artist'
+    ? `<div class="vp on full"><b>${esc(current.name)}</b><small>${kind === 'venue'
+        ? `${esc([current.city, current.state].filter(Boolean).join(', ') || current.short)} &middot; ${plural(current.shows.length, 'show')}`
+        : `${plural(current.shows.length, 'show')} &middot; ${plural(actVenues, 'venue')}`}</small></div>
+  <div class="others"><a class="other" href="${esc(base)}">${kind === 'venue' ? `See all ${venues.length} venues` : `See all ${shows.length} shows`} &rarr;</a><a class="other" href="${esc(base)}artists/">${kind === 'venue' ? 'Find an artist' : 'Find another artist'} &rarr;</a></div>`
+    : [`<a class="vp${finder ? '' : ' on'}" href="${esc(base)}"><b>All venues</b><small>${plural(shows.length, 'show')}</small></a>`]
+      .concat(venues.map(v => `<a class="vp" href="${esc(base + v.dir + '/')}"><b>${esc(v.short)}</b><small>${esc(v.city || v.name)} &middot; ${plural(v.shows.length, 'show')}</small></a>`), findPill)
       .join('');
+
+  // The search page's acts (see finderScript); the three with the most shows are suggested.
+  const finderIndex = finder ? acts.map(a => ({
+    n: a.name, u: `${base}artists/${a.slug}/`, t: a.tagline, c: a.shows.length,
+    x: `${a.shows[0].dow}, ${a.shows[0].mon} ${a.shows[0].day}`, p: (a.shows.find(s => s.poster) || {}).poster || '',
+    g: `linear-gradient(135deg,${GRADS[hash(a.name) % 10].join(',')})`,
+    k: [a.name, a.tagline, ...a.shows.map(s => s.name)].join(' '),
+  })) : [];
+  const popular = finder ? [...acts].sort((a, b) => b.shows.length - a.shows.length).slice(0, 3) : [];
 
   const cards = listed.map((s, i) => {
     const art = `${s.poster ? `<img src="${esc(s.poster)}" alt="${esc(s.name)}" loading="${i < 4 ? 'eager' : 'lazy'}" decoding="async" onerror="this.remove()">` : ''}
@@ -273,6 +342,32 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .vp.full small{font-size:13px;opacity:.9}
 .other{font-size:13px;font-weight:600;color:var(--muted);border-bottom:1px solid transparent;transition:color .2s,border-color .2s}
 .other:hover{color:var(--gold);border-color:var(--gold)}
+.others{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 22px}
+.vp.find{border-color:rgba(245,166,35,.5)}
+.vp.find b{display:inline-flex;align-items:center;gap:7px}
+.vp svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round}
+.hero .sub .tl{color:var(--text)}
+.finder [hidden]{display:none!important}
+.finder{max-width:680px;margin:30px auto 0;padding:0 20px;animation:rise .8s .35s ease both}
+.find-box{position:relative;display:block}
+.find-box svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+.find-box input{width:100%;font:inherit;font-size:18px;padding:17px 18px 17px 50px;border-radius:16px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:var(--text);backdrop-filter:blur(8px)}
+.find-box input:focus{outline:none;border-color:rgba(245,166,35,.7);box-shadow:0 0 0 3px rgba(245,166,35,.18)}
+.results{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.results a{display:flex;align-items:center;gap:14px;padding:10px 16px 10px 10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px);transition:border-color .2s}
+.results a:hover,.results a.on{border-color:rgba(245,166,35,.7)}
+.results .ph{width:56px;height:56px;border-radius:10px;flex:0 0 auto;overflow:hidden}
+.results .ph img{width:100%;height:100%;object-fit:cover}
+.results .t{flex:1;min-width:0}
+.results .n,.results .s{display:block}
+.results .n{font-family:'Montserrat',sans-serif;font-weight:800;font-size:17px;line-height:1.2}
+.results .s{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.results .c{flex:0 0 auto;padding:4px 10px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--gold));color:#fff;font-size:12px;font-weight:800}
+.hint{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin-top:16px;color:var(--muted);font-size:14px}
+.hint button{font-size:13px;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05)}
+.hint button:hover{border-color:rgba(245,166,35,.6);color:var(--gold)}
+.finder .none{text-align:center;color:var(--muted);padding:24px 0 0}
+.finder .none a{color:var(--gold)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;max-width:1240px;margin:20px auto 0;padding:0 20px}
 .card{position:relative;display:flex;flex-direction:column;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.1);overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s;animation:rise .6s ease both}
@@ -325,6 +420,7 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
   .cta{padding:11px;font-size:13px}.date{min-width:48px;padding:6px 6px 5px}.date b{font-size:19px}.tag{display:none}
   .bar .fg span{display:none}.kicker{font-size:10px;letter-spacing:.14em;padding:7px 12px}
   .filters .title{width:100%}
+  .find-box input{font-size:16px}
   .venues{gap:8px}.vp{min-width:0;flex:1 1 calc(50% - 8px);padding:10px 12px}.vp b{font-size:13.5px}.vp small{font-size:10.5px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -340,20 +436,28 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
 
 <section class="hero">
   <div class="avatar">${photoUrl ? `<img src="${esc(photoUrl)}" alt="">` : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'}</div>
-  <div class="kicker"><i></i> ${current ? esc(current.short) + ' &middot; ' : ''}${esc(range || 'Upcoming shows')}</div>
-  <h1>Don't Miss <em>These Shows</em></h1>
-  <p class="sub">${headline ? `<strong>${esc(headline)}</strong> ` : ''}${current
-    ? `${listed.length} show${listed.length === 1 ? '' : 's'} at the ${esc(current.name)}${current.city ? `, ${esc(current.city)}` : ''}. ${prelaunch ? SOON : 'Grab tickets straight from FanGenie.'}`
-    : `${listed.length} show${listed.length === 1 ? '' : 's'} across ${venues.length} venue${venues.length === 1 ? '' : 's'}. ${prelaunch ? SOON : 'Pick a venue below and grab tickets straight from FanGenie.'}`}</p>
-  <nav class="venues${current ? ' single' : ''}" aria-label="Venues">${nav}</nav>
+  <div class="kicker"><i></i> ${finder ? 'Search by artist' : `${kind === 'venue' ? esc(current.short) + ' &middot; ' : kind === 'artist' ? esc(current.name) + ' &middot; ' : ''}${esc(range || 'Upcoming shows')}`}</div>
+  <h1>${{ artist: `Don't Miss <em>${esc(current && current.name)}</em>`, finder: 'Find <em>an Artist</em>' }[kind] || "Don't Miss <em>These Shows</em>"}</h1>
+  <p class="sub">${headline ? `<strong>${esc(headline)}</strong> ` : ''}${{
+    hub: `${plural(listed.length, 'show')} across ${plural(venues.length, 'venue')}. ${prelaunch ? SOON : 'Pick a venue below and grab tickets straight from FanGenie.'}`,
+    venue: `${plural(listed.length, 'show')} at the ${esc(current && current.name)}${current && current.city ? `, ${esc(current.city)}` : ''}. ${prelaunch ? SOON : 'Grab tickets straight from FanGenie.'}`,
+    artist: `${current && current.tagline ? `<em class="tl">${esc(current.tagline)}</em>. ` : ''}${plural(listed.length, 'show')} at ${plural(actVenues, 'venue')}. ${prelaunch ? SOON : 'Grab tickets straight from FanGenie.'}`,
+    finder: `Type an act, or the star they pay tribute to, and see every upcoming date.`,
+  }[kind]}</p>
+  <nav class="venues${kind === 'venue' || kind === 'artist' ? ' single' : ''}" aria-label="Venues and artists">${nav}</nav>
   <button class="share" type="button" id="share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Share this page</span></button>
 </section>
 
-<div class="filters">
-  <div class="title">${current ? esc(current.name) : 'All Shows'} <span>${listed.length} show${listed.length === 1 ? '' : 's'}</span></div>
+${finder ? `<div class="finder">
+  <label class="find-box">${SEARCH}<input id="q" type="search" placeholder="e.g. Garth, Eagles, Neil Diamond..." aria-label="Search for an artist" autocomplete="off" autofocus></label>
+  <ul class="results" id="results"></ul>
+  <div class="hint" id="hint"><span>Popular:</span>${popular.map(a => `<button type="button" data-q="${esc(a.name)}">${esc(a.name)}</button>`).join('')}</div>
+  <p class="none" id="none" hidden>No upcoming shows for that artist here. <a href="${esc(base)}">See all ${shows.length} shows</a></p>
+</div>` : `<div class="filters">
+  <div class="title">${current ? esc(current.name) : 'All Shows'} <span>${plural(listed.length, 'show')}</span></div>
 </div>
 
-<div class="grid">${cards || '<div class="empty">No upcoming shows listed right now. Check back soon.</div>'}</div>
+<div class="grid">${cards || '<div class="empty">No upcoming shows listed right now. Check back soon.</div>'}</div>`}
 
 <div class="trust">
   <div><b>Official tickets</b><p>Every link goes straight to the show's page on FanGenie, the venue's official ticketing partner.</p></div>
@@ -377,7 +481,7 @@ footer .stamp{margin-top:8px;font-size:11px;opacity:.7}
     setTimeout(function(){label.textContent='Share this page';},2200);
   });
 })();
-</script>
+</script>${finder ? finderScript(finderIndex) : ''}
 </body>
 </html>
 `;
@@ -402,6 +506,7 @@ async function main() {
     return;
   }
   const eventsById = new Map(events.map(e => [String(e._id), e]));
+  const knownActs = siteActs();
 
   const linksByAffiliate = new Map();
   for (const l of data.links) for (const id of l.fields.Affiliate || []) {
@@ -417,14 +522,20 @@ async function main() {
     const prelaunch = !shows.length;
     if (prelaunch) shows = buildPrelaunchShows(events);
     const venues = groupVenues(shows);
-    console.log(`${handle}: ${prelaunch ? 'no links yet, pre-launch page with' : 'linked'} ${shows.length} upcoming show(s) across ${venues.length} venue(s)`);
+    const acts = groupActs(shows, knownActs);
+    console.log(`${handle}: ${prelaunch ? 'no links yet, pre-launch page with' : 'linked'} ${shows.length} upcoming show(s) across ${venues.length} venue(s), ${acts.length} act(s)`);
     if (!shows.length) {
       if (affiliate.fields['Page URL']) pageUrlUpdates.push({ id: affiliate.id, fields: { 'Page URL': null } });
       continue;
     }
     const dir = path.join(OUT_ROOT, handle);
-    const pages = [{ file: path.join(dir, 'index.html'), html: renderPage({ affiliate, venues, shows, current: null, prelaunch }) }];
-    for (const v of venues) pages.push({ file: path.join(dir, v.dir, 'index.html'), html: renderPage({ affiliate, venues, shows, current: v, prelaunch }) });
+    const page = current => renderPage({ affiliate, venues, shows, acts, current, prelaunch });
+    const pages = [{ file: path.join(dir, 'index.html'), html: page(null) }];
+    for (const v of venues) pages.push({ file: path.join(dir, v.dir, 'index.html'), html: page(v) });
+    pages.push({ file: path.join(dir, 'artists', 'index.html'), html: page({ kind: 'finder' }) });
+    for (const a of acts) pages.push({ file: path.join(dir, 'artists', a.slug, 'index.html'), html: page(a) });
+    // Acts are rebuilt from scratch so ones with no shows left drop off.
+    if (!DRY_RUN) rmSync(path.join(dir, 'artists'), { recursive: true, force: true });
     for (const p of pages) {
       if (DRY_RUN) { console.log(`  [DRY RUN] would write ${path.relative(repoRoot, p.file)} (${p.html.length} bytes)`); continue; }
       mkdirSync(path.dirname(p.file), { recursive: true });
@@ -433,7 +544,7 @@ async function main() {
     }
     // Venue folders that no longer apply (a venue dropped off) go away too.
     if (!DRY_RUN) {
-      const keepDirs = new Set(venues.map(v => v.dir));
+      const keepDirs = new Set(venues.map(v => v.dir).concat('artists'));
       for (const entry of readdirSync(dir)) {
         const p = path.join(dir, entry);
         if (statSync(p).isDirectory() && !keepDirs.has(entry)) { rmSync(p, { recursive: true, force: true }); console.log(`  removed stale ${handle}/${entry}/`); }

@@ -35,8 +35,8 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { followLinks } from '../lib/social.mjs';
-import { FANGENIE_PAGES, STATES, byName, clean, cityFromAddress, fanGeniePage, groupVenues, slugify } from '../lib/directory.mjs';
-import { groupArtists } from '../lib/artists.mjs';
+import { FANGENIE_PAGES, STATES, byName, clean, cityFromAddress, fanGeniePage, groupVenues, readHomepageEvents, slugify } from '../lib/directory.mjs';
+import { finderScript, groupArtists } from '../lib/artists.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const SITE_ORIGIN = 'https://yourconcerttix.com';
@@ -65,15 +65,6 @@ function shortDate(ymd) {
 }
 function plural(n, one, many = one + 's') {
   return `${n} ${n === 1 ? one : many}`;
-}
-
-// ---- Read the generated pages ----
-
-function readHomepageEvents() {
-  const html = readFileSync(path.join(repoRoot, 'index.html'), 'utf8');
-  const m = html.match(/const events = (\[[\s\S]*?\n\]);/);
-  if (!m) throw new Error('no `const events = [...]` in index.html');
-  return JSON.parse(m[1]);
 }
 
 // ---- Build the venue + city lists ----
@@ -524,9 +515,8 @@ function cityCount(a) {
 const SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
 const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
 
-// The finder: one search box, results only once something is typed. The acts
-// ride along as JSON (name, tagline and FanGenie titles are searchable, so
-// "Neil Diamond" finds Hot August Night).
+// The finder: one search box, results only once something is typed (see
+// finderScript in lib/artists.mjs).
 function renderArtistsIndex(artists) {
   const index = artists.map(a => {
     const x = a.extras;
@@ -552,49 +542,7 @@ function renderArtistsIndex(artists) {
   <p class="none" id="none" hidden>No upcoming shows for that artist. Try <a href="/venues/">venues</a> or <a href="/cities/">cities</a> instead.</p>
   <p class="alt">Or browse by <a href="/venues/">venue</a> or <a href="/cities/">city</a>.</p>
 </div>`,
-    script: `
-<script>
-(function(){
-  var A=${JSON.stringify(index).replace(/</g, '\\u003c')};
-  var q=document.getElementById('q'),out=document.getElementById('results'),hint=document.getElementById('hint'),none=document.getElementById('none'),sel=0,hits=[];
-  function norm(s){return String(s).toLowerCase().replace(/&/g,' and ').replace(/['\\u2019]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
-  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-  A.forEach(function(a){a.nn=norm(a.n);a.kk=' '+norm(a.k)+' ';});
-  // Name starts with the query > a word of the name does > name contains it > only the tagline/titles match.
-  function score(a,qn){
-    if(!qn.split(' ').every(function(w){return a.kk.indexOf(w)>-1;}))return -1;
-    var n=a.nn.replace(/^the /,'');
-    if(n.indexOf(qn)===0||a.nn.indexOf(qn)===0)return 3;
-    if((' '+a.nn).indexOf(' '+qn)>-1)return 2;
-    return a.nn.indexOf(qn)>-1?1:0;
-  }
-  function paint(){
-    out.innerHTML=hits.map(function(a,i){
-      return '<li><a href="'+esc(a.u)+'"'+(i===sel?' class="on"':'')+'><span class="ph" style="background:'+a.g+'">'+(a.p?'<img src="'+esc(a.p)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'+
-        '<span class="t"><span class="n">'+esc(a.n)+'</span><span class="s">'+esc(a.t?a.t+' \\u00b7 ':'')+'Next: '+esc(a.x)+'</span></span>'+
-        '<span class="c">'+a.c+(a.c===1?' show':' shows')+'</span></a></li>';
-    }).join('');
-  }
-  function run(){
-    var qn=norm(q.value);
-    hint.hidden=!!qn;
-    sel=0;
-    hits=qn?A.map(function(a){return {a:a,s:score(a,qn)};}).filter(function(h){return h.s>=0;})
-      .sort(function(x,y){return y.s-x.s||y.a.c-x.a.c;}).slice(0,8).map(function(h){return h.a;}):[];
-    none.hidden=!qn||hits.length>0;
-    paint();
-  }
-  q.addEventListener('input',run);
-  q.addEventListener('keydown',function(e){
-    if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(!hits.length)return;e.preventDefault();sel=(sel+(e.key==='ArrowDown'?1:hits.length-1))%hits.length;paint();}
-    else if(e.key==='Enter'&&hits[sel]){e.preventDefault();location.href=hits[sel].u;}
-  });
-  hint.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;q.value=b.dataset.q;run();q.focus();});
-  // /artists/?q=garth arrives pre-filled.
-  var q0=new URLSearchParams(location.search).get('q');if(q0){q.value=q0;}
-  run();
-})();
-</script>`,
+    script: finderScript(index),
   });
 }
 
