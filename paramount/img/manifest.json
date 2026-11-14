@@ -1,8 +1,4 @@
 {
- "one-of-these-nights.jpg": {
-  "key": "attIaQHL77hxlL6HX:261658",
-  "resized": true
- },
  "abba-holly-jolly-christmas.jpg": {
   "key": "attDx6QohIyLsgvnj:3081946",
   "resized": true
@@ -25,6 +21,10 @@
  },
  "one-more-night.jpg": {
   "key": "attqPv878djKsFIXk:190961",
+  "resized": true
+ },
+ "one-of-these-nights.jpg": {
+  "key": "attIaQHL77hxlL6HX:261658",
   "resized": true
  },
  "magic-of-manilow.jpg": {
